@@ -1,0 +1,22 @@
+.container {
+    display: grid;
+    columns: 2;
+    grid-template-columns: repeat(auto-fit, minmax(32rem, 1fr));
+    /* border: 1px solid red; */
+}
+
+.container .box:nth-child(1) {
+    background-color: var(--primary-clr-500);
+    color: var(--primary-clr-0);
+}
+
+.container .box:nth-child(2) {
+    background-color: var(--neutral-clr-0);
+    color: var(--primary-clr-500);
+}
+
+.box {
+    padding: 5.625rem 3.125rem;
+    min-height: 100vh;
+    height: 100%;
+}

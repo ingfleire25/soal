@@ -1,0 +1,4 @@
+.contenedor {
+    margin: 8rem auto;
+    width: clamp(min(10vw, 20rem), 90vw, max(90vw, 55rem));
+}

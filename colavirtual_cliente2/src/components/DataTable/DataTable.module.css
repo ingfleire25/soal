@@ -1,0 +1,31 @@
+table, th, td {
+    border: 1px solid var(--primary-clr-900);
+    border-collapse: collapse;
+}
+
+th, td {
+    padding: .5em;
+}
+
+th {
+    background-color: var(--primary-clr-500);
+    color: var(--neutral-clr-100);
+    font-weight: bold;
+}
+
+tr:hover {
+    background-color: var(--neutral-clr-100);
+}
+
+.wrapperOpciones {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 1rem;
+}
+
+/* remover el margen puesto en index.css para el form principal que aquí molesta */
+.wrapperOpciones select { 
+    margin-right: -.1rem;
+}

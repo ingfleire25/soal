@@ -10,17 +10,19 @@ import DashboardSolicitudes from './components/DashboardSolicitudes/DashboardSol
 import SolicitudDetalle from './components/SolicitudDetalle/SolicitudDetalle';
 import Configuracion from './components/Configuracion/Configuracion';
 import Dashboard from './components/Reportes/Dashboard';
+import TablaSolicitudes from './components/Tabla solicitudes/TablaSolicitudes'
 
 
 const App = () => {
   return (
     <main className='App'>
       <Routes>
-        <Route path='/' element={ <Layout /> } >
+         
           {/* rutas públicas*/ }
           <Route index element={ <Inicio /> } />
           <Route path='iniciar-sesion' element={ <InicioSesion /> } />
           <Route path='crear-solicitud' element={ <SolicitudFormulario /> } />
+          <Route path='solicitudes2' element={ < TablaSolicitudes/> } />
           <Route path='no-autorizado' element={ <SinAuth /> } />
           {/* rutas protegidas*/ }
           {/* <Route element={ <RequerirAuth rolesPermitidos={ [ 1707, 3008, 1709 ] } /> } > */}
@@ -33,7 +35,7 @@ const App = () => {
           {/* </Route> */}
           {/* todo lo que no haga match*/ }
           <Route path='*' element={ <NoMatch /> } />
-        </Route>
+   
       </Routes>
     </main >
   )

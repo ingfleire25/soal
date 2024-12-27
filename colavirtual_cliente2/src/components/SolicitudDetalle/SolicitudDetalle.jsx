@@ -7,7 +7,7 @@ import { contenedor } from './SolicitudDetalle.module.css'
 
 const SolicitudDetalle = () => {
     let { solicitudId } = useParams()
-    const { data, error, loading } = useFetch( `http://localhost:3001/api/solicitudes/${solicitudId}` )
+    const { data, error, loading } = useFetch( `/solicitudes/${solicitudId}` )
     if ( loading ) return <FullScreenLoader />
     if ( !Object.keys( data ).length ) return null
 

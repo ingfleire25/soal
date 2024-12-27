@@ -6,7 +6,7 @@ const verificarRoles = require( '../middleware/verificarRoles' )
 
 
 //router.get( '/', [ verificarToken, verificarRoles( 'Analista', 'Supervisor', 'Administrador' ) ], solicitudes.getAll ) // filtra por usuario
- //router.get( '/', solicitudes.getAll ) // para pruebas
+ router.get( '/', solicitudes.getAll ) // para pruebas
 // get solicitudes por ua
 // get solicitudes por area
 //router.get( '/:solicitudId', [ verificarToken, verificarRoles( 'Analista', 'Supervisor', 'Administrador' ) ], solicitudes.getPorId )

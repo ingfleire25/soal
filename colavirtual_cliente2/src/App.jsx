@@ -6,27 +6,32 @@ import Inicio from './components/Inicio/Inicio';
 import InicioSesion from './components/InicioSesion/InicioSesion';
 import SolicitudFormulario from './components/SolicitudFormulario/SolicitudFormulario';
 // import RequerirAuth from './components/RequerirAuth/RequerirAuth';
-import DashboardSolicitudes from './components/DashboardSolicitudes/DashboardSolicitudes';
+
+//import DashboardSolicitudes from './components/DashboardSolicitudes/DashboardSolicitudes';
 import SolicitudDetalle from './components/SolicitudDetalle/SolicitudDetalle';
 import Configuracion from './components/Configuracion/Configuracion';
 import Dashboard from './components/Reportes/Dashboard';
-import TablaSolicitudes from './components/Tabla solicitudes/TablaSolicitudes'
+//import TablaSolicitudes from './components/Tabla solicitudes/TablaSolicitudes'
+import SolicitudesTabla from './components/Solicitudes/SolicitudesTabla'
 
 
 const App = () => {
   return (
     <main className='App'>
       <Routes>
-         
+         <Route path='/' element={ <Layout /> } >
           {/* rutas públicas*/ }
           <Route index element={ <Inicio /> } />
           <Route path='iniciar-sesion' element={ <InicioSesion /> } />
           <Route path='crear-solicitud' element={ <SolicitudFormulario /> } />
-          <Route path='solicitudes2' element={ < TablaSolicitudes/> } />
+          {/* <Route path='solicitudes2' element={ < TablaSolicitudes/> } />
+          <Route path='solicitudes3' element={ < SolicitudesTabla/> } /> */}
           <Route path='no-autorizado' element={ <SinAuth /> } />
           {/* rutas protegidas*/ }
           {/* <Route element={ <RequerirAuth rolesPermitidos={ [ 1707, 3008, 1709 ] } /> } > */}
-            <Route path='solicitudes' element={ <DashboardSolicitudes /> } /> {/* dashboard de analistas: url=`${import.meta.env.VITE_API_URL}/solicitudes` */ }
+
+            {/* <Route path='solicitudes' element={ <DashboardSolicitudes /> } /> {/* dashboard de analistas: url=`${import.meta.env.VITE_API_URL}/solicitudes` */ } 
+            <Route path='solicitudes' element={ <SolicitudesTabla /> } />
             <Route path='detalle-solicitud/:solicitudId' element={ <SolicitudDetalle /> } />
           {/* </Route> */}
           {/* <Route element={ <RequerirAuth rolesPermitidos={ [ 3008, 1709 ] } /> } > */}
@@ -36,6 +41,7 @@ const App = () => {
           {/* todo lo que no haga match*/ }
           <Route path='*' element={ <NoMatch /> } />
    
+        </Route>
       </Routes>
     </main >
   )

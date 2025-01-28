@@ -1,3 +1,8 @@
+.contenedor{
+    margin: 8rem auto;
+    width: 90vw;
+}
+
 /* Estilo general para la tabla */
 .table {
     width: 80%; /* Ancho de la tabla */
@@ -26,23 +31,4 @@
 
 .table tr:hover {
     background-color: #ddd; /* Color de fondo al pasar el mouse */
-}
-
-/* Estilo para el botón de descarga */
-.download-button {
-    display: block; /* Hacer que el botón ocupe todo el ancho */
-    width: 150px; /* Ancho del botón */
-    margin: 20px auto; /* Centrar el botón */
-    padding: 10px; /* Espaciado interno */
-    background-color: #4CAF50; /* Color de fondo del botón */
-    color: white; /* Color del texto */
-    text-align: center; /* Centrar texto */
-    text-decoration: none; /* Sin subrayado */
-    border-radius: 5px; /* Bordes redondeados */
-    transition: background-color 0.3s; /* Transición suave */
-}
-
-/* Efecto al pasar el mouse sobre el botón */
-.download-button:hover {
-    background-color: #45a049; /* Color de fondo al pasar el mouse */
 }

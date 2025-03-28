@@ -1,10 +1,10 @@
 import { api } from "../utils/axios"
 
-export const getUsuario = async ( uuid ) => { // uuid también representa la cédula
+export const consultaSiga = async ( cedula ) => { // uuid también representa la cédula
     const abortController = new AbortController()
     const signal = abortController.signal // de repente la api está caída
     try {
-        const { data } = await api.get( '/api/usuarios/' + uuid, { signal: signal } )
+        const { data } = await api.get( '/api/siga/:' + cedula, { signal: signal })
         return data.result
     } catch ( error ) {
         let err = {}
@@ -19,4 +19,3 @@ export const getUsuario = async ( uuid ) => { // uuid también representa la cé
         throw err
     }
 }
- 

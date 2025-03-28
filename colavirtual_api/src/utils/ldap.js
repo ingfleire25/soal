@@ -97,3 +97,6 @@ exports.validarCredenciales = async ( indicador, contrasena ) => {
         } );
     } )
 }
+
+
+//servidor de guillermo: http://10.114.31.192:8000/api/ldapUsers/ para usuarios

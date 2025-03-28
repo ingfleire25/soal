@@ -1,4 +1,4 @@
-const nodemailer = require( 'nodemailer' );
+ const nodemailer = require( 'nodemailer' );
 require( 'dotenv' ).config();
 const { EMAIL, PASS } = process.env;
 
@@ -10,13 +10,15 @@ const mail = {
 
 let transporter = nodemailer.createTransport( {
     // host: 'smtp.gmail.com', // probar si funciona en pdvsa (no funciona)
-    host: '162.122.200.30',
+    //host: '162.122.200.30',
+    host: '10.173.11.100',
     // port: 2525, // defaults to 465 if secure is true
+    port: 25,
     tls: {
         rejectUnauthorized: false,
         minVersion: 'TLSv1', // versiones superiores rompen al intentar enviar
     },
-    secure: true, // true for 465, false for other ports (gmail requires 465)
+    secure: false, // true for 465, false for other ports (gmail requires 465)
     auth: {
         user: mail.user,
         pass: mail.pass

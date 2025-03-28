@@ -1,6 +1,7 @@
 const { Solicitud, Usuario, Tipo, Ua, Estado, Conteo, Categoria, Rol } = require( '../db' )
 const { sendEmail, getTemplate } = require( '../utils/nodemailer' )
 
+
 //----------- GET -----------//
 exports.getAll = async ( req, res ) => {
     // si el usuario es analista o supervisor, solo devuelve las solicitudes de las uas asignadas
@@ -43,8 +44,8 @@ try {
         return res.status( 400 ).json( { statusCode: 400, statusText: 'Error al consultar' } )
     }
    
-}
-
+} 
+ 
 exports.getPorId = async ( req, res ) => {
     const { solicitudId } = req.params
     try {
@@ -67,7 +68,7 @@ exports.postSolicitud = async ( req, res ) => { // findOrCreate devuelve [{insta
         return res.status( 400 ).json( { statusCode: 400, statusText: 'Todos los campos son requeridos' } )
     }
     const ua = await Ua.findByPk( uaId )
-    const solicitudesParaUAyDia = await Conteo.findOrCreate( {
+    const  solicitudesParaUAyDia = await Conteo.findOrCreate( {
         where: {
             fh_atencion,
             uaId
@@ -80,6 +81,7 @@ exports.postSolicitud = async ( req, res ) => { // findOrCreate devuelve [{insta
             statusCode: 400, statusText: `Cantidad de solicitudes excedido para "${ua.tx_nombre}" en la fecha solicitada (${fh_atencion})`
         } )
     }
+
     const activo = 1 // para evitar número mágicos
     let solicitud
     const n_ticket = `${fh_atencion.replaceAll( '-', '' )}#${( cantidadSolicitudes + 1 ).toString().padStart( 3, '0' )}`
@@ -108,22 +110,35 @@ exports.postSolicitud = async ( req, res ) => { // findOrCreate devuelve [{insta
         await solicitud.destroy()
         return res.status( 400 ).json( { statusCode: 400, statusText: 'Error al crear la solicitud' } )
     }
-    // try {
-    //     let enviados = [ correo ]
-    //     const usuario = await solicitud.getSolicitante()
-    //     const nombreCompleto = usuario.tx_nombre + " " + usuario.tx_apellido
-    //     const mensaje = getTemplate( 'bienvenida', nombreCompleto )
-    //     await sendEmail( correo, 'prueba', mensaje )
-    //     if ( correo_alt ) {
-    //         await sendEmail( correo_alt, 'prueba', mensaje )
-    //         enviados.push( correo_alt )
-    //     }
-    //     solicitud.enviadoA = enviados
-    //     await solicitud.save()
-    // } catch ( error ) {
-    //     console.error( error )
-    //     return res.status( 400 ).json( { statusCode: 400, statusText: 'Error al crear la solicitud' } )
-    // }
+    try {
+        let enviados = [ correo ]
+        const usuario = await solicitud.getSolicitante()
+        const nombreCompleto = usuario.tx_nombre + " " + usuario.tx_apellido
+        
+
+
+    //    const tipos = await solicitud.Tipo
+    //    console.log(tipos)
+       const localidad = await ua.tx_nombre; // Obtener la localidad desde la UA
+       console.log(localidad)
+       const fecha = await solicitud.fh_atencion;
+       console.log(fecha)
+       const ticket = await solicitud.n_ticket;
+       console.log(ticket)
+       console.log(usuario.tx_cedula)
+
+        const mensaje = getTemplate( 'bienvenida', nombreCompleto)
+        await sendEmail( correo, 'prueba', mensaje )
+        if ( correo_alt ) {
+            await sendEmail( correo_alt, 'prueba', mensaje )
+            enviados.push( correo_alt )
+        }
+        solicitud.enviadoA = enviados
+        await solicitud.save()
+    } catch ( error ) {
+        console.error( error )
+        return res.status( 400 ).json( { statusCode: 400, statusText: 'Error al crear la solicitud' } )
+     }
     return res.status( 201 ).json( { statusCode: 201, statusText: 'Solicitud creada con éxito', result: solicitud } )
 }
 

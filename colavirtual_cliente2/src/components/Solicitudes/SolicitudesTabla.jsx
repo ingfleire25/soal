@@ -80,7 +80,7 @@ function DataTables() {
             width: '60px',
         },
         { name: '# Solicitud', selector: row => row.n_ticket, sortable: true },
-        { name: 'Fecha de Creación', selector: row => row.fh_apertura ? moment(row.fh_apertura).format('DD/MM/YYYY HH:mm') : '', sortable: true },
+        { name: 'Fecha de Creación', selector: row => row.fh_apertura ? moment(row.fh_apertura).format('DD/MM/YYYY HH:mm') : '', sortable: false },
         { name: 'Solicitante', selector: row => `${row.solicitante?.tx_nombre || ''} ${row.solicitante?.tx_apellido || ''}` },
         { name: 'Categoría', selector: row => row.tipos?.[0]?.categorium?.tx_nombre || '' },
         { name: 'Fecha de Atención', selector: row => row.fh_atencion ? moment(row.fh_atencion).format('DD/MM/YYYY HH:mm') : '--', sortable: true },

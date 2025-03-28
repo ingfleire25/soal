@@ -15,9 +15,55 @@ const getTemplate = ( template, body ) => {
 
 const getBienvenida = ( name ) => {
     return `
-        <img src='https://i.ibb.co/6Y4Tcd8/pdvsa-logo.png' alt='Logo PDVSA' width=300px>
-        <h2>Hola, ${name || 'Usuario'}</h2>
-        <p>Esto es una prueba para la aplicación ColaVirtual</p>
+        
+
+                    <html>
+                <head>
+                    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+                </head>
+            
+                <body style="font-family: Monserrat;">
+
+                    <div class="card" style="border: 2px solid #bbb;width: 80%;border-radius: .25rem;margin: 0 auto;max-width: 600px;box-shadow: 0 5px 11px 0 rgba(0, 0, 0, .18), 0 4px 15px 0 rgba(0, 0, 0, .15);">
+                        <div class="container" style="background-color:#f1f1f1; padding: 2px 16px">
+                        <img src='https://i.ibb.co/6Y4Tcd8/pdvsa-logo.png' alt='Logo PDVSA' width=300px>
+                            <h1 class="empresa" style="color: #A50000; text-align: center;">SISCAI</h3>
+                        </div>
+                        
+                        <div class="container" style="background-color:#f1f1f1; padding: 2px 16px">
+                            <h2 class="titulo" style="color: #253E6F;"><b>Nueva Solicitud Registrada</b></h2>
+                            <p>Hola <strong>${name}</strong>,</p>
+                            <p>Se ha registrado una nueva solicitud con los siguientes detalles:</p>
+                            
+                            <ul class="list-group" style="display: flex;-ms-flex-direction: column;flex-direction: column;">
+                                <li class="list-items">
+                                    <i class="fas fa-check"></i>
+                                    Tipo de Solicitud: <strong></strong>
+                                </li>
+                                <li class="list-items" style="">
+                                    <i class="fas fa-check"></i>
+                                    Localidad: <strong></strong>
+                                </li>
+                                <li class="list-items" style="">
+                                    <i class="fas fa-check"></i>
+                                    Fecha: <strong></strong>
+                                </li>
+                                <li class="list-items" style="">
+                                    <i class="fas fa-check"></i>
+                                    Numero de solicitud: <strong></strong>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="container" style="background-color:#f1f1f1; padding: 2px 16px">
+                            <p>Gracias por usar nuestro servicio</p>
+                            <p class="expire" style="color:#A50000;">Atentamente, <br>Recursos Humanos</p>
+                        </div>
+                    </div>
+
+                </body>
+            </html>
+
+            
         <!-- <p>Ahora que estás regitrado/a, te contamos lo que puedes hacer:</p>
         <ul>
             <li>Buscar los libros que quieras.</li>

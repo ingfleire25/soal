@@ -17,3 +17,4 @@ router.put( '/:solicitudId/estado', [ verificarToken, verificarRoles( 'Analista'
 
 
 module.exports = router
+

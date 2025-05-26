@@ -84,3 +84,6 @@ typings/
 /build
 package-lock.json
 
+#eliminar .env
+.env
+

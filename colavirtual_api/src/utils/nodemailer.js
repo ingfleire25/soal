@@ -13,7 +13,8 @@ const getTemplate = ( template, body ) => {
     return templates[ template ]( body )
 }
 
-const getBienvenida = ( name ) => {
+const getBienvenida = ( {name, tipos, localidad, fecha, ticket} ) => {
+  
     return `
         
 
@@ -38,19 +39,19 @@ const getBienvenida = ( name ) => {
                             <ul class="list-group" style="display: flex;-ms-flex-direction: column;flex-direction: column;">
                                 <li class="list-items">
                                     <i class="fas fa-check"></i>
-                                    Tipo de Solicitud: <strong></strong>
+                                    Tipo de Solicitud: <strong>${tipos}</strong>
                                 </li>
                                 <li class="list-items" style="">
                                     <i class="fas fa-check"></i>
-                                    Localidad: <strong></strong>
+                                    Localidad: <strong>${localidad}</strong>
                                 </li>
                                 <li class="list-items" style="">
                                     <i class="fas fa-check"></i>
-                                    Fecha: <strong></strong>
+                                    Fecha: <strong>${fecha}</strong>
                                 </li>
                                 <li class="list-items" style="">
                                     <i class="fas fa-check"></i>
-                                    Numero de solicitud: <strong></strong>
+                                    Numero de solicitud: <strong>${ticket}</strong>
                                 </li>
                             </ul>
                         </div>

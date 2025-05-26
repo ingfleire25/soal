@@ -9,9 +9,8 @@ import SolicitudFormulario from './components/SolicitudFormulario/SolicitudFormu
 
 //import DashboardSolicitudes from './components/DashboardSolicitudes/DashboardSolicitudes';
 import SolicitudDetalle from './components/SolicitudDetalle/SolicitudDetalle';
-import Configuracion from './components/Configuracion/Configuracion';
+import AsignarAnalista from './components/AsignarAnalista/AsignarAnalista';
 import Dashboard from './components/Reportes/Dashboard';
-//import TablaSolicitudes from './components/Tabla solicitudes/TablaSolicitudes'
 import SolicitudesTabla from './components/Solicitudes/SolicitudesTabla'
 
 
@@ -35,7 +34,7 @@ const App = () => {
             <Route path='detalle-solicitud/:solicitudId' element={ <SolicitudDetalle /> } />
           {/* </Route> */}
           {/* <Route element={ <RequerirAuth rolesPermitidos={ [ 3008, 1709 ] } /> } > */}
-            <Route path='configuracion' element={ <Configuracion /> } /> {/** dashboard de admins y supervisores */ }
+            <Route path='asignar-analista' element={ <AsignarAnalista /> } /> {/** dashboard de admins y supervisores */ }
             <Route path='reportes' element={ <Dashboard /> } /> {/** dashboard de admins y supervisores */ }
           {/* </Route> */}
           {/* todo lo que no haga match*/ }

@@ -1,5 +1,6 @@
 const { Solicitud, Usuario, Tipo, Ua, Estado, Conteo, Categoria, Rol } = require( '../db' )
 const { sendEmail, getTemplate } = require( '../utils/nodemailer' )
+const moment = require('moment')
 
 
 //----------- GET -----------//
@@ -112,22 +113,27 @@ exports.postSolicitud = async ( req, res ) => { // findOrCreate devuelve [{insta
     }
     try {
         let enviados = [ correo ]
-        const usuario = await solicitud.getSolicitante()
-        const nombreCompleto = usuario.tx_nombre + " " + usuario.tx_apellido
-        
+        const usuario = await solicitud.getSolicitante()    
 
+        const tiposDeSolicitud = await solicitud.getTipos(); // Utiliza la función de asociación para obtener los tipos
+        const nombresTipos = tiposDeSolicitud.map(tipo => tipo.tx_nombre).join(', ')
+    //    console.log(nombresTipos)
+    //    const localidad = await ua.tx_nombre; 
+    //    console.log(localidad)
+    //    const fecha = await solicitud.fh_atencion;
+    //    console.log(fecha)
+    //    const ticket = await solicitud.n_ticket;
+    //    console.log(ticket)
+    //    const name = await usuario.tx_nombre + " " + usuario.tx_apellido;
+    //    console.log(name)
 
-    //    const tipos = await solicitud.Tipo
-    //    console.log(tipos)
-       const localidad = await ua.tx_nombre; // Obtener la localidad desde la UA
-       console.log(localidad)
-       const fecha = await solicitud.fh_atencion;
-       console.log(fecha)
-       const ticket = await solicitud.n_ticket;
-       console.log(ticket)
-       console.log(usuario.tx_cedula)
-
-        const mensaje = getTemplate( 'bienvenida', nombreCompleto)
+        const mensaje = getTemplate( 'bienvenida', {
+            name: await usuario.tx_nombre + " " + usuario.tx_apellido,
+            tipos: nombresTipos,
+            localidad,
+            fecha: moment(solicitud.fh_atencion).format('DD/MM/YYYY'),
+            ticket : await solicitud.n_ticket
+        })
         await sendEmail( correo, 'prueba', mensaje )
         if ( correo_alt ) {
             await sendEmail( correo_alt, 'prueba', mensaje )

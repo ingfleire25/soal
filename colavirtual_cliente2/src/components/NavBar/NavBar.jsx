@@ -9,11 +9,9 @@ const NavBar = () => {
             <nav className={styles.navbar}>
                 <p><Link to='/'><img className={styles.logo} src={logo} alt='PDVSA, S.A.' /></Link></p>
                 <ul className={styles.menuList}>
-                    {/* <li><Link to='/solicitudes'>Solicitudes</Link></li>
-                    <li><Link to='/solicitudes2'>Solicitudes2</Link></li> */}
                     <li><Link to='/solicitudes'>Solicitudes</Link></li>
                     <li><Link to='/reportes'>Reportes</Link></li>
-                    <li><Link to='/configuracion'>Configuración</Link></li>
+                    <li><Link to='/asignar-analista'>Asignar-Analista</Link></li>
                     <li><Link to='/cerrar-sesion'>Cerrar sesión</Link></li>
                 </ul>
             </nav>

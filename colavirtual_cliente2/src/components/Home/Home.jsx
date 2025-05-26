@@ -2,7 +2,8 @@ import React, { useEffect } from 'react'
 import { useSelector } from 'react-redux'
 import { Link, useNavigate } from 'react-router-dom'
 import { useFetch } from '../../hooks/useFetch';
-import DataTable from '../DataTable';
+// import {DataTable} from '../DataTable';
+import DataTable from 'react-data-table-component';
 import FullScreenLoader from '../Loader/FullScreenLoader'
 import { contenedor } from './Home.module.css'
 

@@ -16,4 +16,4 @@ router.use( '/auth', require( './auth' ) )
 router.use( '/auth/refrescar', require( './refrescar' ) ) // refrescar token de acceso una vez que este expira
 router.use( '/api/siga', require('./casosSiga' ) )
 
-module.exports = router
+module.exports = router 

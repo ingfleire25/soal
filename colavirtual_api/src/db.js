@@ -60,6 +60,7 @@ Rol.belongsToMany( Usuario, {
 Usuario.belongsToMany( Ua, {  // analistas por cait
     through: 'unidad_analista',
     foreignKey: 'analistaId',
+    as: 'analistas',
     onUpdate: 'CASCADE',
 } )
 Ua.belongsToMany( Usuario, {

@@ -3,7 +3,8 @@ const router = express.Router();
 const auth = require( '../controllers/auth' );
 
 router.post( '/login', auth.procesarLogin )
-router.get( '/logout', auth.procesarLogout )
+router.post( '/logout', auth.procesarLogout )
+router.get( '/refresh', auth.handleRefreshToken )
 
 
 module.exports = router

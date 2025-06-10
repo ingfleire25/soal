@@ -5,44 +5,96 @@ const moment = require('moment')
 
 //----------- GET -----------//
 exports.getAll = async ( req, res ) => {
-    // si el usuario es analista o supervisor, solo devuelve las solicitudes de las uas asignadas
-    // si el usuario es admin, devuelve todo
-    //const indicador = req.indicador //no entiendo porque pide buscar informacion en req.indicador po eso el cambio
-    const indicador = req.params
+//     // si el usuario es analista o supervisor, solo devuelve las solicitudes de las uas asignadas
+//     // si el usuario es admin, devuelve todo
+//     //const indicador = req.indicador //no entiendo porque pide buscar informacion en req.indicador po eso el cambio
+//     const indicador = req.params
      
+//     let opt = {
+//         include: [
+//             { model: Estado },
+//             { model: Tipo, include: [ { model: Categoria } ] },
+//             { model: Usuario, as: 'solicitante' },
+//             { model: Usuario, as: 'analista' },
+//             // { model: Ua } // quitar al terminar la prueba
+//         ]
+//     }
+// //     const rolesUsuario = await Usuario.findOne( {
+// //         where: { tx_indicador: indicador },
+// //         include: [
+// //             { model: Rol, attributes: [ 'tx_nombre', 'uuid' ], through: { attributes: [] } },
+// //             { model: Usuario, as: 'analista' }
+// //         ]
+// //     } )
+// //    // console.log(rolesUsuario())
+// //     const noEsAdmin = rolesUsuario.rols.every( r => r.tx_nombre !== 'Administrador' )
+// //     if ( noEsAdmin ) {
+// //         opt.include.push( { model: Ua, where: { analistaId: rolesUsuario.uuid } } ) // solo traer las solicitudes que tengan asignadas al usuario en su ua
+// //     } else {
+// //         opt.include.push( { model: Ua } ) // si es admin, sin filtro por usuario
+// //     }
+
+// try {
+//     const solicitudes = await Solicitud.findAll( opt )
+//     //return res.status( 200 ).json( { statusCode: 200, statusText: "OK", result: solicitudes } )
+    
+//     if ( !solicitudes ) return res.status( 404 ).json( { statusCode: 404, statusText: 'No se encontró la solicitud' } )
+//         return res.status( 200 ).json( { statusCode: 200, statusText: 'OK', result: solicitudes } )
+//     } catch ( error ) {
+//         console.log( error )
+//         return res.status( 400 ).json( { statusCode: 400, statusText: 'Error al consultar' } )
+//     }
+
+//modificado por leonardo fleire 04/06/25
+ const { indicador, roles } = req; // Ahora viene del middleware
+    
     let opt = {
         include: [
             { model: Estado },
-            { model: Tipo, include: [ { model: Categoria } ] },
+            { model: Tipo, include: [{ model: Categoria }] },
             { model: Usuario, as: 'solicitante' },
-            { model: Usuario, as: 'analista' },
-            // { model: Ua } // quitar al terminar la prueba
+            { model: Usuario, as: 'analista' }
         ]
-    }
-//     const rolesUsuario = await Usuario.findOne( {
-//         where: { tx_indicador: indicador },
-//         include: [
-//             { model: Rol, attributes: [ 'tx_nombre', 'uuid' ], through: { attributes: [] } },
-//             { model: Usuario, as: 'analista' }
-//         ]
-//     } )
-//    // console.log(rolesUsuario())
-//     const noEsAdmin = rolesUsuario.rols.every( r => r.tx_nombre !== 'Administrador' )
-//     if ( noEsAdmin ) {
-//         opt.include.push( { model: Ua, where: { analistaId: rolesUsuario.uuid } } ) // solo traer las solicitudes que tengan asignadas al usuario en su ua
-//     } else {
-//         opt.include.push( { model: Ua } ) // si es admin, sin filtro por usuario
-//     }
+    };
 
-try {
-    const solicitudes = await Solicitud.findAll( opt )
-    //return res.status( 200 ).json( { statusCode: 200, statusText: "OK", result: solicitudes } )
-    
-    if ( !solicitudes ) return res.status( 404 ).json( { statusCode: 404, statusText: 'No se encontró la solicitud' } )
-        return res.status( 200 ).json( { statusCode: 200, statusText: 'OK', result: solicitudes } )
-    } catch ( error ) {
-        console.log( error )
-        return res.status( 400 ).json( { statusCode: 400, statusText: 'Error al consultar' } )
+    try {
+        // Si no es admin, filtrar por UA asignada
+        const esAdmin = roles.includes(1709); // ID del rol Administrador
+        if (!esAdmin) {
+            const usuario = await Usuario.findOne({
+                where: { tx_indicador: indicador },
+                include: [{ model: Ua }]
+            });
+            
+            if (usuario && usuario.uas && usuario.uas.length > 0) {
+                const uaIds = usuario.uas.map(ua => ua.uaId);
+                opt.include.push({
+                    model: Ua,
+                    where: { uaId: { [Op.in]: uaIds } }
+                });
+            } else {
+                return res.status(403).json({ 
+                    statusCode: 403, 
+                    statusText: 'No tienes unidades de atención asignadas' 
+                });
+            }
+        } else {
+            opt.include.push({ model: Ua });
+        }
+
+        const solicitudes = await Solicitud.findAll(opt);
+        return res.status(200).json({ 
+            statusCode: 200, 
+            statusText: "OK", 
+            result: solicitudes 
+        });
+        
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ 
+            statusCode: 500, 
+            statusText: 'Error al consultar solicitudes' 
+        });
     }
    
 } 
@@ -117,15 +169,7 @@ exports.postSolicitud = async ( req, res ) => { // findOrCreate devuelve [{insta
 
         const tiposDeSolicitud = await solicitud.getTipos(); // Utiliza la función de asociación para obtener los tipos
         const nombresTipos = tiposDeSolicitud.map(tipo => tipo.tx_nombre).join(', ')
-    //    console.log(nombresTipos)
-    //    const localidad = await ua.tx_nombre; 
-    //    console.log(localidad)
-    //    const fecha = await solicitud.fh_atencion;
-    //    console.log(fecha)
-    //    const ticket = await solicitud.n_ticket;
-    //    console.log(ticket)
-    //    const name = await usuario.tx_nombre + " " + usuario.tx_apellido;
-    //    console.log(name)
+    
 
         const mensaje = getTemplate( 'bienvenida', {
             name: await usuario.tx_nombre + " " + usuario.tx_apellido,

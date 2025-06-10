@@ -1,0 +1,41 @@
+.contenedor {
+    margin: 8rem auto;
+    width: clamp(min(10vw, 20rem), 90vw, max(90vw, 55rem));
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    /* grid-template-rows: 1fr 1fr 1fr; */
+    gap: 1.25rem;
+    grid-template-areas:
+        "datos datos ubicacion"
+        "datos datos ubicacion"
+        "categorizacion categorizacion categorizacion"
+        "botones botones botones";
+    padding-bottom: 8rem;
+}
+@media (max-width: 68rem) {
+    .contenedor {
+        grid-template-areas:
+            "datos datos datos"
+            "ubicacion ubicacion ubicacion"
+            "categorizacion categorizacion categorizacion"
+            "botones botones botones";
+    }
+}
+
+.datos {
+    grid-area: datos;
+}
+.ubicacion {
+    grid-area: ubicacion;
+}
+.categorizacion {
+    grid-area: categorizacion;
+}
+.botones {
+    grid-area: botones;
+    display: flex;
+    justify-content: flex-end;
+}
+.botones button {
+    margin-left: 1.25rem;
+}

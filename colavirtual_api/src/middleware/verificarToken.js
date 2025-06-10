@@ -13,8 +13,11 @@ const verificarToken = ( req, res, next ) => {
         process.env.ACCESS_TOKEN_SECRET,
         ( error, resultado ) => {
             if ( error ) return res.sendStatus( 403 ) // prohibido. El token no se pudo validar
-            req.indicador = resultado.UserInfo.indicador
-            req.roles = resultado.UserInfo.roles
+             // Adaptación para ambos formatos de token
+            const userInfo = resultado.UserInfo || resultado;
+            req.indicador = userInfo.indicador;
+            req.roles = userInfo.roles;
+            req.co_roles = userInfo.co_roles;
             next()
         }
     )

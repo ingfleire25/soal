@@ -1,2 +1,2 @@
-export const LOGIN_URL = '/auth/login'
-export const LOGOUT_URL = '/auth/logout'
+export const BASE_LOGIN = 'http://localhost:3001/api/auth'
+export const BASE_URL_BACKEND = 'http://localhost:3001/api/'

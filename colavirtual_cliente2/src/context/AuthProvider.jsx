@@ -29,6 +29,9 @@ export const AuthProvider = ({ children }) => {
     const [loading, setLoading] = useState(true); // Nuevo estado de carga para la verificación inicial
     const navigate = useNavigate();
     const location = useLocation();
+    useEffect(() => {
+  console.log("Estado actual de auth:", auth); // Debug
+}, [auth]);
 
     // Función para manejar el inicio de sesión
     const login = async (indicador, contrasena) => {
@@ -39,16 +42,22 @@ export const AuthProvider = ({ children }) => {
             
             // Decodificar el token para obtener la estructura consistente
                     const decoded = jwtDecode(result.tokenAcceso);
-            setAuth({
-                indicador: decoded.indicador,  // Ahora está en la raíz del payload
-                roles: decoded.roles,          // No más UserInfo
-                co_roles: decoded.co_roles,
-                tokenAcceso: result.tokenAcceso
-            });
 
+             const newAuth = {
+            indicador: decoded.indicador,
+            roles: decoded.roles,
+            co_roles: decoded.co_roles,
+            tokenAcceso: result.tokenAcceso
+        };
+        
+        
+        setAuth(newAuth);
+        
+        localStorage.setItem('auth', JSON.stringify(newAuth));
 
             return { success: true, from: location.state?.from?.pathname || '/solicitudes' }; // Devuelve éxito y la ruta original
         } catch (error) {
+            localStorage.removeItem('auth');
             console.error("Error en login de AuthProvider:", error);
             setAuth({}); // Limpia el estado de autenticación en caso de error
             // Puedes lanzar el error de nuevo o manejarlo según tu UI/UX para InicioSesion
@@ -159,5 +168,6 @@ export const AuthProvider = ({ children }) => {
         </AuthContext.Provider>
     );
 };
+
 
 export default AuthContext;

@@ -154,27 +154,34 @@ import axios from "axios";
 import DataTable from 'react-data-table-component';
 import moment from 'moment';
 import styles from './SolicitudesTabla.module.css';
-import  useAuth  from '../../hooks/useAuth';
+//import  useAuth  from '../../hooks/useAuth';
 import api from '../../services/api';
+//import { getApiInstance } from "../../services/api";
+
 
 function DataTables() {
-    const { auth } = useAuth();
+ //   const { auth } = useAuth();
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [filterText, setFilterText] = useState('');
+     const [refreshCount, setRefreshCount] = useState(0);
+
 
     const fetchData = async () => {
          setLoading(true);
+         setError(null);
         try {
-            const response = await api.get('/solicitudes/', {
-                headers: {
-                    'Authorization': `Bearer ${auth.tokenAcceso}`
-                }
-            });
+            //const api = getApiInstance();
+            const response = await api.get('/solicitudes/')//, {
+                // headers: {
+                //     'Authorization': `Bearer ${auth.tokenAcceso}`
+                // }
+            //});
             
             if (response && Array.isArray(response.data.result)) {
                 setData(response.data.result);
+                console.log("respuest de  la consulta al endpoint" + response.data.result)
             } else {
                 setError("Respuesta de la API con formato incorrecto");
             }
@@ -188,7 +195,15 @@ function DataTables() {
 
     useEffect(() => {
         fetchData();
-    }, []);
+    }, []); // Refrescar cuando cambia el token o manualmente
+
+    // const handleRefresh = () => {
+    //     setRefreshCount(prev => prev + 1);
+    // };
+
+    // useEffect(() => {
+    //     fetchData();
+    // }, []);
 
     const customFilter = (filterText, row) => {
         const lowerCaseFilter = filterText.toLowerCase();
@@ -281,18 +296,64 @@ function DataTables() {
         return <div>No hay datos para mostrar</div>;
     }
 
+
+   
+
+    // return (
+    //     <section className={styles.contenedor}>
+    //         <div>
+    //             <input
+    //                 type="text"
+    //                 placeholder="Buscar..."
+    //                 value={filterText}
+    //                 onChange={e => setFilterText(e.target.value)}
+    //                 className={styles.searchInput}
+    //             />
+    //             <DataTable
+    //                 title='Solicitudes'
+    //                 columns={columns}
+    //                 data={filteredData}
+    //                 customStyles={customStyles}
+    //                 pagination
+    //                 highlightOnHover
+    //                 dense
+    //                 striped
+    //             />
+    //         </div>
+    //     </section>
+    // );
+
     return (
         <section className={styles.contenedor}>
-            <div>
-                <input
-                    type="text"
-                    placeholder="Buscar..."
-                    value={filterText}
-                    onChange={e => setFilterText(e.target.value)}
-                    className={styles.searchInput}
-                />
+            <div className={styles.header}>
+                <h2>Solicitudes</h2>
+                <div className={styles.controls}>
+                    <input
+                        type="text"
+                        placeholder="Buscar..."
+                        value={filterText}
+                        onChange={e => setFilterText(e.target.value)}
+                        className={styles.searchInput}
+                    />
+                    <button 
+                        onClick={handleRefresh}
+                        className={styles.refreshButton}
+                        disabled={loading}
+                    >
+                        {loading ? 'Cargando...' : 'Actualizar'}
+                    </button>
+                </div>
+            </div>
+            
+            {error && (
+                <div className={styles.error}>
+                    {error}
+                    <button onClick={handleRefresh}>Reintentar</button>
+                </div>
+            )}
+
+            {!error && (
                 <DataTable
-                    title='Solicitudes'
                     columns={columns}
                     data={filteredData}
                     customStyles={customStyles}
@@ -300,10 +361,14 @@ function DataTables() {
                     highlightOnHover
                     dense
                     striped
+                    progressPending={loading}
+                    progressComponent={<div>Cargando datos...</div>}
+                    noDataComponent={<div>No hay datos para mostrar</div>}
                 />
-            </div>
+            )}
         </section>
     );
 }
+//}
 
 export default DataTables;

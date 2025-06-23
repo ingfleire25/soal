@@ -91,20 +91,32 @@ exports.procesarLogin = async ( req, res ) => {
 // ]
     // generar token para control de acceso y sesión
     // console.log( "estoy creando tokens para el usuario: ", usuario )
-    const roles =  usuario.rols.map( r => r.rolId ) // me quedo con los código porque es más fácil luego validar las rutas
-    const co_roles =  usuario.rols.map( r => r.co_rol )
+    
+    // MODIFICADO PARA PUREBAS LA SING
+
+    // const roles =  usuario.rols.map( r => r.rolId ) // me quedo con los código porque es más fácil luego validar las rutas
+    // const co_roles =  usuario.rols.map( r => r.co_rol )
+    // const tokenAcceso = jwt.sign(
+    //         {
+    //             // Estructura simplificada
+    //             indicador: usuario.tx_indicador,
+    //             roles: roles,
+    //             co_roles: co_roles,
+    //             // Eliminamos UserInfo para simplificar
+    //         },
+    //         process.env.ACCESS_TOKEN_SECRET,
+    //         { expiresIn: '30m' }
+    //     );
     const tokenAcceso = jwt.sign(
-            {
-                // Estructura simplificada
-                indicador: usuario.tx_indicador,
-                roles: roles,
-                co_roles: co_roles,
-                // Eliminamos UserInfo para simplificar
-            },
-            process.env.ACCESS_TOKEN_SECRET,
-            { expiresIn: '30m' }
-        );
-     // console.log("Token generado:", tokenAcceso);
+    {
+        indicador: usuario.tx_indicador,
+        roles: usuario.rols.map(r => r.rolId),  // UUIDs
+        co_roles: usuario.rols.map(r => r.co_rol) // Códigos numéricos
+    },
+    process.env.ACCESS_TOKEN_SECRET,
+    { expiresIn: '30m' }
+);
+     console.log("Token generado:", tokenAcceso);
 
         //Respuesta de este console: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpbmRpY2Fkb3IiOiJmbGVpcmVsIiwicm9sZXMiOlsiZTRlY2YyOWEtMTdhMS00YzI3LWEzN2ItYzlhNjE5NTQ5ZDlhIl0sImNvX3JvbGVzIjpbMTcwN10sImlhdCI6MTc0ODg5MjA1MywiZXhwIjoxNz
 //Q4ODkzODUzfQ.k-e55MgGPHUERIiS7RY3_vm2gL8PekbGsUVQpe8ouds 
@@ -151,7 +163,8 @@ exports.procesarLogin = async ( req, res ) => {
     // Se crea la cookie que se utilizará en el cliente para refrescar el acceso
     // Durará 1 día. httpOnly es para que no se pueda acceder a ella por javascript
     res.cookie( 'jwt', tokenRefrescar, { httpOnly: true, sameSite: 'None', secure: true, maxAge: 24 * 60 * 60 * 1000 } )
-    return res.status( 200 ).json( { statusCode: 200, statusText: 'OK', result: { roles, tokenAcceso, co_roles } } )
+    // return res.status( 200 ).json( { statusCode: 200, statusText: 'OK', result: { roles, tokenAcceso, co_roles } } )
+    return res.status( 200 ).json( { statusCode: 200, statusText: 'OK', result: {tokenAcceso} } )
 }
 
 exports.procesarLogout = async ( req, res ) => { 

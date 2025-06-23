@@ -32,15 +32,18 @@ const verificarRoles = ( ...rolesPermitidos ) => { // verifica con id del rol, n
     return async (req, res, next) => {
         if (!req?.roles) return res.sendStatus(401);
         
-        // Convertir nombres de roles a IDs (ajusta según tu DB)
-        const roleIds = {
+        // Opción 1: Verificar por UUIDs (roles)
+        // Opción 2: Verificar por códigos numéricos (co_roles)
+        
+        // Usaremos co_roles (1707, 3008, 1709) por consistencia
+        const roleCodes = {
             'Analista': 1707,
             'Supervisor': 3008,
             'Administrador': 1709
         };
         
-        const requiredIds = rolesPermitidos.map(name => roleIds[name]);
-        const hasRole = req.roles.some(roleId => requiredIds.includes(roleId));
+        const requiredCodes = rolesPermitidos.map(name => roleCodes[name]);
+        const hasRole = req.co_roles?.some(code => requiredCodes.includes(code));
         
         if (!hasRole) return res.sendStatus(401);
         next();

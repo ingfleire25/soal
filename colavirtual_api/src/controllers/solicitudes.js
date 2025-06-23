@@ -46,7 +46,7 @@ exports.getAll = async ( req, res ) => {
 //     }
 
 //modificado por leonardo fleire 04/06/25
- const { indicador, roles } = req; // Ahora viene del middleware
+ const { indicador, co_roles = [] } = req; // Ahora viene del middleware
     
     let opt = {
         include: [
@@ -56,10 +56,14 @@ exports.getAll = async ( req, res ) => {
             { model: Usuario, as: 'analista' }
         ]
     };
-
+console.log("Datos recibidos en getAll:", {
+    indicador: req.indicador,
+    co_roles: req.co_roles,
+    roles: req.roles
+});
     try {
         // Si no es admin, filtrar por UA asignada
-        const esAdmin = roles.includes(1709); // ID del rol Administrador
+         const esAdmin = Array.isArray(co_roles) && co_roles.includes(1709);
         if (!esAdmin) {
             const usuario = await Usuario.findOne({
                 where: { tx_indicador: indicador },

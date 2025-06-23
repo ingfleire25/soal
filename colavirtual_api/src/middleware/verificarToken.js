@@ -16,8 +16,8 @@ const verificarToken = ( req, res, next ) => {
              // Adaptación para ambos formatos de token
             const userInfo = resultado.UserInfo || resultado;
             req.indicador = userInfo.indicador;
-            req.roles = userInfo.roles;
-            req.co_roles = userInfo.co_roles;
+            req.roles = userInfo.roles || [];
+            req.co_roles = userInfo.co_roles || [];
             next()
         }
     )

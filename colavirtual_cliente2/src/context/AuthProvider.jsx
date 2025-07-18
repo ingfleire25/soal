@@ -47,7 +47,8 @@ export const AuthProvider = ({ children }) => {
             indicador: decoded.indicador,
             roles: decoded.roles,
             co_roles: decoded.co_roles,
-            tokenAcceso: result.tokenAcceso
+            tokenAcceso: result.tokenAcceso,
+            uuid: decoded.uuid
         };
         
         

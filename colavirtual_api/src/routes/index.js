@@ -16,5 +16,6 @@ router.use( '/api/supervisores', require( './supervisores' ) )
 router.use( '/api/auth', require( './auth' ) )
 //router.use( '/auth/refrescar', require( './refrescar' ) ) // refrescar token de acceso una vez que este expira
 router.use( '/api/siga', require('./casosSiga' ) )
+router.use( '/api/estado', require('./estado' ) )
 
 module.exports = router  

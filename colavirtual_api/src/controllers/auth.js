@@ -107,11 +107,13 @@ exports.procesarLogin = async ( req, res ) => {
     //         process.env.ACCESS_TOKEN_SECRET,
     //         { expiresIn: '30m' }
     //     );
+    
     const tokenAcceso = jwt.sign(
     {
         indicador: usuario.tx_indicador,
         roles: usuario.rols.map(r => r.rolId),  // UUIDs
-        co_roles: usuario.rols.map(r => r.co_rol) // Códigos numéricos
+        co_roles: usuario.rols.map(r => r.co_rol), // Códigos numéricos
+        uuid: usuario.uuid
     },
     process.env.ACCESS_TOKEN_SECRET,
     { expiresIn: '30m' }

@@ -1,4 +1,69 @@
-.contenedor{
+.container{
     margin: 8rem auto;
     width: 90vw;
+}
+
+/* SolicitudesTabla.module.css */
+
+/* ... tus estilos existentes ... */
+
+.controls {
+    display: flex;
+    gap: 15px; /* Espacio entre los controles */
+    align-items: center;
+    flex-wrap: wrap; /* Permite que los controles se envuelvan en pantallas pequeñas */
+}
+
+.saveChangesButton {
+    background-color: #28a745; /* Color verde */
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.2s ease;
+}
+
+.saveChangesButton:hover:not(:disabled) {
+    background-color: #218838;
+}
+
+.saveChangesButton:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+}
+
+.analistaCell {
+    display: flex;
+    align-items: center;
+    justify-content: center; /* Centra el botón si es necesario */
+    min-height: 40px; /* Para asegurar que la celda tenga espacio para el botón */
+}
+
+.takeCaseButton {
+    background-color: #007bff; /* Color azul */
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: background-color 0.2s ease;
+    white-space: nowrap; /* Evita que el texto se rompa */
+}
+
+.takeCaseButton:hover:not(:disabled) {
+    background-color: #0056b3;
+}
+
+.takeCaseButton:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+}
+
+/* Asegúrate de que el FormSelect dentro de la celda no se desborde */
+.estadoCell .FormSelect select { /* Ajusta este selector a la estructura de tu FormSelect */
+    width: 100%;
+    min-width: 120px; /* Asegura un ancho mínimo para el select */
 }

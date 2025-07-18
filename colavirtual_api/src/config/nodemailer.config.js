@@ -25,7 +25,7 @@ let transporter = nodemailer.createTransport( {
     },
     // proxy: 'http://proxy-host:1234'
 } );
-
+// console.log("Estamos viendo el mail: "+ mail.user, mail.pass)
 const sendEmail = async ( email, subject, html ) => {
     try {
         await transporter.sendMail( {

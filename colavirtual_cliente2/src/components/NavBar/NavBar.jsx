@@ -46,7 +46,7 @@ const NavBar = () => {
         // y limpiar el estado de autenticación en el frontend.
         await logout();
         // Después de cerrar sesión, redirigimos al usuario a la página de inicio de sesión.
-        navigate('/iniciar-sesion');
+        navigate('/');
     };
 
     // --- Lógica para determinar la visibilidad de los enlaces según los roles ---
@@ -103,10 +103,7 @@ const NavBar = () => {
                             {/* Botón para "Cerrar sesión": Siempre visible si el usuario está autenticado. */}
                             <li>
                                 <button
-                                    onClick={handleLogout} // Ejecuta la función handleLogout al hacer clic
-                                    //className={styles.logoutButton} // Clase CSS para el botón (si la tienes)
-                                >
-                                    Cerrar sesión
+                                    onClick={handleLogout} className={styles.logoutButton}> Cerrar sesión
                                 </button>
                             </li>
                         </>

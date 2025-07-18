@@ -136,7 +136,7 @@ const AsignarAnalista = () => {
       {loading ? <FullScreenLoader /> : null}
       <div className={`${contenedor} `}>
         <div className={`section ${datos} `}>
-          <h2>Asignar analista</h2>
+          <h2>Asignar Supervisor</h2>
           <div className="input-wrapper-col">
             <label htmlFor="cedula">
               <strong>Cédula:</strong>

@@ -62,12 +62,14 @@ Usuario.belongsToMany( Ua, {  // analistas por cait
     foreignKey: 'analistaId',
     as: 'analistas',
     onUpdate: 'CASCADE',
+     targetKey: 'id',
 } )
 Ua.belongsToMany( Usuario, {
     through: 'unidad_analista',
     as: 'analistas',
     foreignKey: 'uaId',
     onUpdate: 'CASCADE',
+    sourceKey: 'id',
 } )
 
 Usuario.belongsToMany( Area, {  // supervisores por área

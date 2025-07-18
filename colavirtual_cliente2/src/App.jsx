@@ -92,110 +92,101 @@ import SolicitudesTabla from './components/Solicitudes/SolicitudesTabla';
 // Importa el AuthProvider y el useAuth para la lógica de autenticación
 import { AuthProvider } from './context/AuthProvider'; // Asegúrate de que la ruta sea correcta
 import useAuth from './hooks/useAuth'; // Asegúrate de que la ruta sea correcta
-import FullScreenLoader from './components/Loader/FullScreenLoader'; // Tu componente de carga global
+//import FullScreenLoader from './components/Loader/FullScreenLoader'; // Tu componente de carga global
 
-// --- Componente RequerirAuth (tu PrivateRoute) ---
-// Este componente envolverá las rutas que requieren autenticación y/o roles específicos.
-// Se ha renombrado de 'RequerirAuth' a 'PrivateRoute' para mantener la consistencia con ejemplos estándar,
-// pero puedes usar el nombre que prefieras.
+
+// const PrivateRoute = ({ children }) => {
+//   const { auth } = useAuth();
+//   const location = useLocation();
+
+//   if (!auth.tokenAcceso) {
+//     return <Navigate to="/iniciar-sesion" state={{ from: location }} replace />;
+//   }
+
+//   return children;
+// };
+
 const PrivateRoute = ({ allowedRoles = [], children }) => {
-    // Usa el hook useAuth para acceder al estado de autenticación
-    const { auth, loading } = useAuth();
-    const location = useLocation();
-    // 1. Mostrar loader mientras se verifica la autenticación inicial
-    if (loading) {
-        return <FullScreenLoader />;
-    }
+  const { auth } = useAuth();
+  const location = useLocation();
 
-// console.log("Auth state in PrivateRoute:", {
-//         token: !!auth.tokenAcceso,
-//         roles: auth.roles,
-//         allowedRoles,
-//         path: location.pathname,
-//         auth: auth
-//     });
+  console.log('[PrivateRoute] Verificando acceso para:', location.pathname);
+  console.log(' - Usuario autenticado:', !!auth.tokenAcceso);
+  console.log(' - Roles del usuario:', auth.co_roles);
+  console.log(' - Roles requeridos:', allowedRoles);
 
-    // 2. Si no hay token de acceso (no autenticado), redirige a la página de inicio de sesión
-    // Nota: 'auth.tokenAcceso' es el nuevo token de acceso de corta duración que se obtiene.
-    if (!auth.tokenAcceso) {
-        // Redirige a la página de login, pasando la ubicación actual
-        // para que después del login se pueda volver aquí.
-        return <Navigate to="/iniciar-sesion" replace state={{ from: location }} />;
-    }
+  if (!auth.tokenAcceso) {
+    console.log('[PrivateRoute] Redirigiendo a login');
+    return <Navigate to="/iniciar-sesion" state={{ from: location }} replace />;
+  }
 
-    // 3. Si se especificaron roles permitidos y el usuario no tiene ninguno de ellos
-    // `auth.roles` contendrá los IDs numéricos de los roles del usuario logueado (ej. [1707, 3008, 1709])
-    // if (allowedRoles.length > 0 && !auth.roles?.some(roleId => allowedRoles.includes(roleId))) {
-    //     // Redirige a la página de "No Autorizado"
-    //     return <Navigate to="/no-autorizado" replace />;
-    // }
-    const hasRequiredRole = allowedRoles.length === 0 || (auth.co_roles && auth.co_roles.some(role => allowedRoles.includes(role)));
+  if (allowedRoles.length > 0 && 
+      !auth.co_roles?.some(role => allowedRoles.includes(role))) {
+    console.log('[PrivateRoute] Redirigiendo a no-autorizado');
+    return <Navigate to="/no-autorizado" replace />;
+  }
 
-    if (!hasRequiredRole) {
-        console.warn("Acceso denegado. Roles necesarios:", allowedRoles, "Roles del usuario:", auth.roles);
-        return <Navigate to="/no-autorizado" replace />;
-    }
-
-
-    // 4. Si está autenticado y tiene los roles correctos, renderiza los componentes hijos
-    return children;
+  console.log('[PrivateRoute] Permitiendo acceso');
+  return children;
 };
-// --- Fin Componente RequerirAuth ---
 
 
 const App = () => {
-    return (
-        // Envuelve toda la aplicación con AuthProvider para que el contexto esté disponible globalmente
-        <AuthProvider>
-            <main className='App'>
-                {/* Layout ahora contiene NavBar internamente, así que no se importa aquí directamente */}
-                <Routes>
-                    {/* La ruta base '/' ahora tiene un Layout como elemento principal */}
-                    {/* <Route path='/' element={<Layout />}> */}
-                        {/* Rutas públicas */}
-                        {/* La ruta index se renderiza en el Outlet de Layout para '/' */}
-                        {/* <Route index element={<Inicio />} /> */}
-                        {/* La página de inicio de sesión */}
-                        <Route path='iniciar-sesion' element={<InicioSesion />} />
-                        {/* La página para crear solicitudes (accesible sin autenticación) */}
-                        <Route path='crear-solicitud' element={<SolicitudFormulario />} /> 
-                        {/* Página de "No Autorizado" */}
-                       
-                        <Route element={<Layout/>}>
-                        <Route index element={<Inicio />} />
-                         <Route path='no-autorizado' element={<SinAuth />} />
+  return (
+    <AuthProvider>
+      <Routes>
+        {/* Ruta Pública de Login */}
+       
+        
+        {/* Layout Principal */}
+        <Route element={<Layout />}>
+         <Route index element={ <Inicio /> } />
+          <Route path='iniciar-sesion' element={ <InicioSesion /> } />
+          <Route path='crear-solicitud' element={ <SolicitudFormulario /> } />
 
-                        {/* Rutas protegidas */}
 
-                        {/* Grupo de rutas para roles con permisos para 'SolicitudesTabla' y 'SolicitudDetalle' */}
-                        {/* Asumo que 1707 es Analista, 3008 es Supervisor, 1709 es Administrador */}
-                        <Route element={<PrivateRoute allowedRoles={[1707, 3008, 1709]} />}>
-                            {/* Dashboard de solicitudes para analistas, supervisores, administradores */}
-                            <Route path='solicitudes' element={<SolicitudesTabla />} />
-                            {/* Detalle de solicitud, accesible para los mismos roles */}
-                            <Route path='detalle-solicitud/:solicitudId' element={<SolicitudDetalle />} />
-                        </Route>
+          {/* Ruta Protegida de Solicitudes (que sabemos que funciona) */}
+          <Route path="solicitudes" element={
+            <PrivateRoute allowedRoles={[1707,3008, 1709]}>
+              {/* <div style={{ border: '2px solid red', padding: '20px' }}> */}
+                <SolicitudesTabla />
+              {/* </div> */}
+            </PrivateRoute>
+          } />
 
-                        {/* Grupo de rutas para roles con permisos para 'AsignarAnalista', 'AsignarSupervisor', 'Dashboard' (Reportes) */}
-                        {/* Asumo que 3008 es Supervisor, 1709 es Administrador */}
-                        <Route element={<PrivateRoute allowedRoles={[3008, 1709]} />}>
-                            {/* Asignar Analista: dashboard de admins y supervisores */}
-                            <Route path='asignar-analista' element={<AsignarAnalista />} />
-                            {/* Asignar Supervisor: dashboard de admins y supervisores */}
-                            <Route path='asignar-supervisor' element={<AsignarSupervisor />} />
-                            {/* Reportes: dashboard de admins y supervisores */}
-                            <Route path='reportes' element={<Dashboard />} />
-                        </Route>
+          <Route path="reportes" element={
+            <PrivateRoute allowedRoles={[3008, 1709]}>
+              <div style={{ border: '2px solid blue', padding: '20px' }}>
+                <Dashboard />
+              </div>
+            </PrivateRoute>
+          } />
 
-                        {/* Ruta comodín para todo lo que no haga match */}
-                        <Route path='*' element={<NoMatch />} />
+              <Route path="asignar-analista" element={
+           <PrivateRoute allowedRoles={[1709]}>
+            <div style={{ border: '2px solid green', padding: '20px' }}>
+              <AsignarAnalista />
+           </div>
+           </PrivateRoute>
+          } />
+             
 
-                    </Route> {/* Cierre del Route principal con Layout */}
-                </Routes>
-            </main>
-        </AuthProvider>
-    );
-};
+               <Route path="asignar-supervisor" element={
+           <PrivateRoute allowedRoles={[1709]}>
+            <div style={{ border: '2px solid green', padding: '20px' }}>
+              <AsignarSupervisor />
+           </div>
+           </PrivateRoute>
+          } />
+
+          {/* <Route path="no-autorizado" element={<SinAuth />} /> */}
+          <Route path="*" element={<NoMatch />} />
+        </Route>
+        
+      </Routes>
+    </AuthProvider>
+  )
+}
 
 export default App;
 

@@ -114,4 +114,5 @@ const DataTable = ({columns, data}) => {
 //     )
 // }
 
-export default DataTable
+//modificado por leonardo fleire 09/12/2025
+//export default DataTable

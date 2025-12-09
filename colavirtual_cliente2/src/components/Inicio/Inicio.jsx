@@ -64,7 +64,7 @@ const Inicio = () => {
             }
         }
         else { // error de validación a nivel de cliente
-            setError( err )
+            setError( err ) 
         }
     }
     return (

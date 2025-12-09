@@ -110,23 +110,23 @@ const PrivateRoute = ({ allowedRoles = [], children }) => {
   const { auth } = useAuth();
   const location = useLocation();
 
-  console.log('[PrivateRoute] Verificando acceso para:', location.pathname);
-  console.log(' - Usuario autenticado:', !!auth.tokenAcceso);
-  console.log(' - Roles del usuario:', auth.co_roles);
-  console.log(' - Roles requeridos:', allowedRoles);
+  // console.log('[PrivateRoute] Verificando acceso para:', location.pathname);
+  // console.log(' - Usuario autenticado:', !!auth.tokenAcceso);
+  // console.log(' - Roles del usuario:', auth.co_roles);
+  // console.log(' - Roles requeridos:', allowedRoles);
 
   if (!auth.tokenAcceso) {
-    console.log('[PrivateRoute] Redirigiendo a login');
+    // console.log('[PrivateRoute] Redirigiendo a login');
     return <Navigate to="/iniciar-sesion" state={{ from: location }} replace />;
   }
 
   if (allowedRoles.length > 0 && 
       !auth.co_roles?.some(role => allowedRoles.includes(role))) {
-    console.log('[PrivateRoute] Redirigiendo a no-autorizado');
+    // console.log('[PrivateRoute] Redirigiendo a no-autorizado');
     return <Navigate to="/no-autorizado" replace />;
   }
 
-  console.log('[PrivateRoute] Permitiendo acceso');
+  // console.log('[PrivateRoute] Permitiendo acceso');
   return children;
 };
 

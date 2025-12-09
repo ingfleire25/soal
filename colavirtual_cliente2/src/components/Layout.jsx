@@ -20,8 +20,8 @@ import { useLocation } from 'react-router-dom'
 const Layout = () => {
   const location = useLocation()
   
-  console.log('[Layout] Ruta actual:', location.pathname)
-  console.log('[Layout] Renderizando Layout con Outlet')
+  // console.log('[Layout] Ruta actual:', location.pathname)
+  // console.log('[Layout] Renderizando Layout con Outlet')
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>

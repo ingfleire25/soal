@@ -17,4 +17,5 @@ const RequerirAuth = ( { rolesPermitidos } ) => {
     )
 }
 
-export default RequerirAuth
+//modificado por leonardo fleire 09/12/2025
+//export default RequerirAuth

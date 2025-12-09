@@ -72,7 +72,7 @@ export const refreshToken = async () => {
         // }
         // throw error.response?.data || new Error("Error desconocido al refrescar token");
         if (error.response?.status === 401) {
-            console.log("No hay sesión activa");
+            // console.log("No hay sesión activa");
             return null; // No es un error, es estado inicial
         }
         

@@ -125,4 +125,5 @@ const Home = ( { url } ) => {
     )
 }
 
-export default Home
+//modificado por leonardo fleire 09/12/2025
+//export default Home

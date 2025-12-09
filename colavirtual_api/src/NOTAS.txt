@@ -1,0 +1,25 @@
+NOTAS DE DESARROLLO
+
+Se desarrolla la nota para acentuar el progtreso que falta en el aplicativo colavirtual
+
+FRONTEND
+Modificar modulo de solicitudes para subir la UA en la que esta y euq no salga en la tabla de solicitudes.
+Reducir el tamaño del boton tomarCaso que sea dinamico segun la pantalla.
+Modificar el espacio entre columnas de las tabla solicitudes.
+la tabla de solicitudes debe pasar por detras de la navbar se esta montando encima.
+
+
+
+
+
+El modulo de asigrnar supervisor debe asignar una o varias areas dependiendo de lass areas que supervise
+todos los modulos necesitan un boton de regreso a home.
+
+no aparece los diferentes estados en los que puede estar una solicitud.
+
+BACKEND
+
+funcionalidad para que el boton de tomar caso funcione
+crear la funcion de asignar area para las supervisores.
+
+

@@ -29,7 +29,8 @@ exports.procesarTokenRefresh = async ( req, res ) => { // genera nuevo token de 
                         UserInfo: {
                             indicador: resultado.indicador,
                             roles: usuario.rols.map( r => r.rolId ),
-                            co_roles: usuario.rols.map( r => r.co_rol )
+                            co_roles: usuario.rols.map( r => r.co_rol ),
+                            uuid: usuario.uuid
                         }
                     },
                     process.env.ACCESS_TOKEN_SECRET,

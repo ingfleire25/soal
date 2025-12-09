@@ -32,6 +32,7 @@ exports.procesarLogin = async ( req, res ) => {
                 }
             } ]
         } )
+        console.log(usuario)
         if ( !usuario ) return res.status( 400 ).json( { statusCode: 400, statusText: 'Usuario no registrado o sin autorización' } )
     } catch ( error ) {
         console.error( error )
@@ -118,6 +119,7 @@ exports.procesarLogin = async ( req, res ) => {
     process.env.ACCESS_TOKEN_SECRET,
     { expiresIn: '30m' }
 );
+     
      console.log("Token generado:", tokenAcceso);
 
         //Respuesta de este console: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpbmRpY2Fkb3IiOiJmbGVpcmVsIiwicm9sZXMiOlsiZTRlY2YyOWEtMTdhMS00YzI3LWEzN2ItYzlhNjE5NTQ5ZDlhIl0sImNvX3JvbGVzIjpbMTcwN10sImlhdCI6MTc0ODg5MjA1MywiZXhwIjoxNz
@@ -280,7 +282,8 @@ exports.handleRefreshToken = async (req, res) => {
                     {
                         indicador: usuario.tx_indicador,
                         roles: roles,
-                        co_roles: co_roles
+                        co_roles: co_roles,
+                        uuid: usuario.uuid
                     },
                     process.env.ACCESS_TOKEN_SECRET,
                     { expiresIn: '30m' }

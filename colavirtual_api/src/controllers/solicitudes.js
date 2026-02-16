@@ -331,35 +331,38 @@ exports.postSolicitud = async ( req, res ) => { // findOrCreate devuelve [{insta
 //     }
 // }
 
-exports.asignarAnalista = async ( req, res ) => {
-    const { solicitudId } = req.params
-    const { analistaId } = req.body
-    try {
-        const ua = await Ua.findOne( {
-            include: [ { model: Solicitud, where: { id: solicitudId } } ]
-        } )
-        // console.log( await ua.hasAnalista( analistaId ) )
-        if ( await ua.hasAnalista( analistaId ) ) {
-            try {
-                await Solicitud.update( {
-                    analistaId: analistaId,
-                    fh_asignacion: new Date() // formatear a zona horaria local
-                },
-                    { where: { id: solicitudId } }
-                )
-                return res.sendStatus( 204 )
-            } catch ( error ) {
-                console.log( error )
-                return res.status( 400 ).json( { statusCode: 400, statusText: 'Error al actualizar la solicitud' } )
-            }
-        }
-        return res.status( 400 ).json( { statusCode: 400, statusText: 'El analista no pertenece a la Unidad de Atención a la que pertenece la solicitud' } )
-    } catch ( error ) {
-        console.error( error )
-        return res.status( 400 ).json( { statusCode: 400, statusText: 'Error al actualizar la solicitud' } )
-    }
 
-}
+// comentado para crear un controlador mas robusto en la parte final de este archivo
+
+// exports.asignarAnalista = async ( req, res ) => {
+//     // const { solicitudId } = req.params
+//     const { analistaId, solicitudId} = req.body
+//     try {
+//         const ua = await Ua.findOne( {
+//             include: [ { model: Solicitud, where: { id: solicitudId } } ]
+//         } )
+//         // console.log( await ua.hasAnalista( analistaId ) )
+//         if ( await ua.hasAnalista( analistaId ) ) {
+//             try {
+//                 await Solicitud.update( {
+//                     analistaId: analistaId,
+//                     fh_asignacion: new Date() // formatear a zona horaria local
+//                 },
+//                     { where: { id: solicitudId } }
+//                 )
+//                 return res.sendStatus( 204 )
+//             } catch ( error ) {
+//                 console.log( error )
+//                 return res.status( 400 ).json( { statusCode: 400, statusText: 'Error al actualizar la solicitud' } )
+//             }
+//         }
+//         return res.status( 400 ).json( { statusCode: 400, statusText: 'El analista no pertenece a la Unidad de Atención a la que pertenece la solicitud' } )
+//     } catch ( error ) {
+//         console.error( error )
+//         return res.status( 400 ).json( { statusCode: 400, statusText: 'Error al actualizar la solicitud' } )
+//     }
+
+// }
 
 exports.actualizarEstado = async ( req, res ) => {
     const { solicitudId } = req.params
@@ -373,3 +376,96 @@ exports.actualizarEstado = async ( req, res ) => {
         return res.status( 400 ).json( { statusCode: 400, statusText: 'Error al actualizar' } )
     }
 }
+
+
+//creado por Leonardo Fleire 03/09/25
+exports.asignarAnalista = async (req, res) => {
+    const { analistaId, solicitudId } = req.body;
+
+    // 1. Validar la entrada de datos.
+    if (!analistaId || !solicitudId) {
+        return res.status(400).json({
+            statusCode: 400,
+            statusText: 'Faltan parámetros requeridos (analistaId o solicitudId).'
+        });
+    }
+
+    try {
+        // 2. Cargar la solicitud con su UA asociada y el analista con su UA asociada en consultas separadas.
+        // Esto es claro, legible y evita consultas complejas.
+        const solicitud = await Solicitud.findByPk(solicitudId, {
+            include: [{
+                model: Ua,
+                as: 'ua' // Asume que la relación se llama 'ua'
+            }]
+        });
+
+        const analista = await Usuario.findByPk(analistaId, {
+            include: [{
+                model: Ua,
+                as: 'analistas' // La relación se llama 'analistas'
+            }]
+        });
+
+        // 3. Manejar casos de "no encontrado".
+        if (!solicitud) {
+            return res.status(404).json({
+                statusCode: 404,
+                statusText: 'Solicitud no encontrada.'
+            });
+        }
+        
+        if (!analista) {
+            return res.status(404).json({
+                statusCode: 404,
+                statusText: 'Analista no encontrado.'
+            });
+        }
+
+        // 4. Validar si la solicitud ya tiene un analista asignado.
+        if (solicitud.analistaId) {
+            return res.status(409).json({
+                statusCode: 409,
+                statusText: 'Esta solicitud ya ha sido asignada a un analista.'
+            });
+        }
+        
+        // 5. Validar que el analista esté asignado a la UA de la solicitud.
+        // Se utiliza la relación many-to-many para verificar la pertenencia.
+        // const uaDeSolicitudId = solicitud.ua.id;
+        // const analistaPerteneceAUa = analista.analistas.some(ua => ua.id === uaDeSolicitudId);
+
+        // if (!analistaPerteneceAUa) {
+        //     return res.status(400).json({
+        //         statusCode: 400,
+        //         statusText: 'El analista no pertenece a la Unidad de Atención de la solicitud.'
+        //     });
+        // }
+
+        // 6. Actualizar la solicitud.
+        await Solicitud.update(
+            {
+                analistaId: analistaId,
+                fh_asignacion: new Date()
+            },
+            {
+                where: { id: solicitudId }
+            }
+        );
+
+        // 7. Enviar una respuesta exitosa y descriptiva.
+        return res.status(200).json({
+            statusCode: 200,
+            statusText: 'Analista asignado correctamente a la solicitud.'
+        });
+
+    } catch (error) {
+        // 8. Manejo de errores centralizado.
+        console.error('Error al asignar el analista:', error);
+        return res.status(500).json({
+            statusCode: 500,
+            statusText: 'Ocurrió un error interno al procesar la solicitud.',
+            error: error.message
+        });
+    }
+};

@@ -450,5 +450,6 @@ const DashboardSolicitudes = () => {
     )
 }
 
-export default DashboardSolicitudes
+//modificado por leonardo fleire 09/12/2025
+//export default DashboardSolicitudes
 // construime en react componentes que me sirvan para generar una tabla con filtros por columna. Las columnas son de tipo texto, fecha y numéricos. Luego, a este mismo componente, agregale paginación y la posibilidad de cambiar el número de filas mostradas por página

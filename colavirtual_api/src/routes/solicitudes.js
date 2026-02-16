@@ -12,7 +12,9 @@ router.get( '/', [ verificarToken, verificarRoles( 'Analista', 'Supervisor', 'Ad
 router.get( '/:solicitudId', [ verificarToken, verificarRoles( 'Analista', 'Supervisor', 'Administrador' ) ], solicitudes.getPorId )
 // router.get( '/:solicitudId',  solicitudes.getPorId )
 router.post( '/', solicitudes.postSolicitud )
-router.put( '/:solicitudId/analistas', [ verificarToken, verificarRoles( 'Supervisor', 'Administrador' ) ], solicitudes.asignarAnalista )
+// router.put( '/:solicitudId/analistas', [ verificarToken, verificarRoles( 'Analista','Supervisor', 'Administrador' ) ], solicitudes.asignarAnalista ) //ruta original
+router.put( '/:solicitudId/analistas', solicitudes.asignarAnalista )
+
 router.put( '/:solicitudId/estado', [ verificarToken, verificarRoles( 'Analista', 'Supervisor', 'Administrador' ) ], solicitudes.actualizarEstado )
 
 

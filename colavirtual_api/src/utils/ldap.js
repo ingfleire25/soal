@@ -4,7 +4,10 @@ const ldap = require( 'ldapjs' );
 const conectar = () => {
     return new Promise( ( resolve, reject ) => {
         const client = ldap.createClient( { // crear cliente solo cuando necesite conectarme por ldap
-            url: 'ldap://167.134.177.66'
+            url: 'ldap://167.134.177.66' //ORIGINAL
+           //url: 'ldap://10.121.101.201'
+            //url: 'ldap://10.121.101.103' //PRUEBA 2
+            //mbocpe101.pdvsa.com --> servidor alterno para acceso al DA
         } )
         client.on( 'connect', conn => {
             // console.log( "Entramos" )

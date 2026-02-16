@@ -45,4 +45,5 @@ const Paginacion = ( { pagina, setPagina, totalPaginas } ) => {
     )
 }
 
-export default Paginacion
+//modificado por leonardo fleire 09/12/2025
+//export default Paginacion

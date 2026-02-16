@@ -1,0 +1,32 @@
+{
+  "menuItems": [
+    {
+      "id": "solicitudes",
+      "title": "Solicitudes",
+      "icon": "toc",
+      "routeName": "solicitudes",
+      "type": "simple"
+    },
+    {
+      "id": "asignarAnalista",
+      "title": "Asignar Analista",
+      "icon": "person_add",
+      "routeName": "asignarAnalista",
+      "type": "simple"
+    },
+    {
+      "id": "AsignarSupervisor",
+      "title": "Asignar Supervisor",
+      "icon": "security",
+      "routeName": "AsignarSupervisores",
+      "type": "simple" 
+    },
+    {
+      "id": "estadisticas",
+      "title": "Estadisticas",
+      "icon": "bar_chart",
+      "routeName": "estadisticas",
+      "type": "simple"
+    }
+  ]
+}

@@ -8,7 +8,7 @@
         <div class="not-found">
             <h1>404 - Página no encontrada</h1>
             <p>La página que buscas no existe o fue movida.</p>
-            <router-link to="/" class="btn"> <i class="fas fa-undo"></i> Volver al inicio</router-link>
+            <router-link :to="{ name: 'login' }" class="btn"> <i class="fas fa-undo"></i> Volver al inicio</router-link>
         </div>
       </div>
     </div>

@@ -1,9 +1,9 @@
 <template>
   <li class="sidebar-item">
-    <a v-if="!submenu" :href="to" class="sidebar-link">
+    <router-link v-if="!submenu" :to="to" class="sidebar-link">
       <i class="material-icons">{{ icon }}</i>
       <span v-if="!$parent.collapsed">{{ text }}</span>
-    </a>
+    </router-link>
 
     <div v-else>
       <a href="#" class="sidebar-link" @click.prevent="toggle">
@@ -13,10 +13,10 @@
       </a>
       <ul v-show="open" class="sidebar-dropdown">
         <li v-for="item in submenu" :key="item.text">
-          <a :href="item.to" class="sidebar-link">
+          <router-link :to="item.to" class="sidebar-link">
             <img v-if="item.img" :src="`@/assets/${item.img}`" width="20" class="me-2" />
             {{ item.text }}
-          </a>
+          </router-link> 
         </li>
       </ul>
     </div>

@@ -4,7 +4,10 @@ import { useRouter } from 'vue-router'
 import Swal from 'sweetalert2'
 import { validarFormato } from '../validaciones/validarFormato';
 import { validarLlenado } from '../validaciones/validarLlenado'
-import { getUsuario, postAnalista } from '../services'
+import { getUsuario, postAnalista, getZonas, getAreas, getLocalidades, getUAs } from '../services'
+import { onMounted, watch } from 'vue'
+import FormInput from './FormInput.vue'
+import FormSelect from './FormSelect.vue'
 
 const router = useRouter()
 
@@ -25,6 +28,12 @@ const initialState = {
 const input = ref({ ...initialState })
 const error = ref({})
 const loading = ref(false)
+
+// placeholder options (will be populated from services later)
+const zonasOptions = ref([{ value: '0', label: 'Seleccione una opción' }])
+const areasOptions = ref([{ value: '0', label: 'Seleccione una opción' }])
+const localidadesOptions = ref([{ value: '0', label: 'Seleccione una opción' }])
+const uasOptions = ref([{ value: '0', label: 'Seleccione una opción' }])
 
 const buscarPorCI = async () => {
   if (!input.value.cedula) return
@@ -53,6 +62,80 @@ const buscarPorCI = async () => {
     loading.value = false
   }
 }
+
+const loadZonas = async () => {
+  try {
+    const res = await getZonas()
+    zonasOptions.value = [ { value: '0', label: 'Seleccione una opción' }, ...res.map(z => ({ value: String(z.id || z.uuid || z.zonaId || z.pk || z.id_zona), label: z.tx_nombre })) ]
+  } catch (err) {
+    console.error('Error cargando zonas', err)
+  }
+}
+
+const loadAreas = async (zonaId) => {
+  if (!zonaId || zonaId === '0') {
+    areasOptions.value = [ { value: '0', label: 'Seleccione una opción' } ]
+    return
+  }
+  try {
+    const res = await getAreas(zonaId)
+    areasOptions.value = [ { value: '0', label: 'Seleccione una opción' }, ...res.map(a => ({ value: String(a.id || a.areaId), label: a.tx_nombre })) ]
+  } catch (err) {
+    console.error('Error cargando areas', err)
+  }
+}
+
+const loadLocalidades = async (areaId) => {
+  if (!areaId || areaId === '0') {
+    localidadesOptions.value = [ { value: '0', label: 'Seleccione una opción' } ]
+    return
+  }
+  try {
+    const res = await getLocalidades(areaId)
+    localidadesOptions.value = [ { value: '0', label: 'Seleccione una opción' }, ...res.map(l => ({ value: String(l.id || l.localidadId), label: l.tx_nombre })) ]
+  } catch (err) {
+    console.error('Error cargando localidades', err)
+  }
+}
+
+const loadUAs = async (localidadId) => {
+  if (!localidadId || localidadId === '0') {
+    uasOptions.value = [ { value: '0', label: 'Seleccione una opción' } ]
+    return
+  }
+  try {
+    const res = await getUAs(localidadId)
+    uasOptions.value = [ { value: '0', label: 'Seleccione una opción' }, ...res.map(u => ({ value: String(u.id || u.uaId), label: u.tx_nombre })) ]
+  } catch (err) {
+    console.error('Error cargando UAs', err)
+  }
+}
+
+onMounted(() => {
+  loadZonas()
+})
+
+watch(() => input.value.zona, (nv) => {
+  // reset downstream selects
+  input.value.area = '0'
+  input.value.localidad = '0'
+  input.value.uaId = '0'
+  loadAreas(nv)
+  localidadesOptions.value = [ { value: '0', label: 'Seleccione una opción' } ]
+  uasOptions.value = [ { value: '0', label: 'Seleccione una opción' } ]
+})
+
+watch(() => input.value.area, (nv) => {
+  input.value.localidad = '0'
+  input.value.uaId = '0'
+  loadLocalidades(nv)
+  uasOptions.value = [ { value: '0', label: 'Seleccione una opción' } ]
+})
+
+watch(() => input.value.localidad, (nv) => {
+  input.value.uaId = '0'
+  loadUAs(nv)
+})
 
 const handleInput = (name, value) => {
   if (name === 'cedula') {
@@ -126,7 +209,7 @@ const stateReset = () => {
         <div class="input-wrapper-col">
           <label for="cedula"><strong>Cédula:</strong></label>
           <div class="input-wrapper-row">
-            <input id="cedula" name="cedula" type="text" v-model="input.cedula" @input="handleInput('cedula', $event.target.value)" />
+            <FormInput id="cedula" name="cedula" v-model="input.cedula" @update:modelValue="val => handleInput('cedula', val)" />
             <button class="btn btn-primary-lined-fit" type="button" @click="buscarPorCI">Buscar</button>
           </div>
           <span class="small error">{{ error.cedula ? error.cedula : '\u00A0' }}</span>
@@ -134,27 +217,19 @@ const stateReset = () => {
 
         <div class="input-wrapper-row">
           <div class="input-wrapper-col">
-            <label for="nombre"><strong>Nombre:</strong></label>
-            <input id="nombre" name="nombre" type="text" v-model="input.nombre" @input="handleInput('nombre', $event.target.value)" />
-            <span class="small error">{{ error.nombre ? error.nombre : '\u00A0' }}</span>
+            <FormInput label="Nombre:" name="nombre" v-model="input.nombre" @update:modelValue="val => handleInput('nombre', val)" :error="error.nombre" />
           </div>
           <div class="input-wrapper-col">
-            <label for="apellido"><strong>Apellido:</strong></label>
-            <input id="apellido" name="apellido" type="text" v-model="input.apellido" @input="handleInput('apellido', $event.target.value)" />
-            <span class="small error">{{ error.apellido ? error.apellido : '\u00A0' }}</span>
+            <FormInput label="Apellido:" name="apellido" v-model="input.apellido" @update:modelValue="val => handleInput('apellido', val)" :error="error.apellido" />
           </div>
           <div class="input-wrapper-col">
-            <label for="correo"><strong>Correo:</strong></label>
-            <input id="correo" name="correo" type="text" v-model="input.correo" @input="handleInput('correo', $event.target.value)" />
-            <span class="small error">{{ error.correo ? error.correo : '\u00A0' }}</span>
+            <FormInput label="Correo:" name="correo" v-model="input.correo" @update:modelValue="val => handleInput('correo', val)" :error="error.correo" />
           </div>
         </div>
 
         <div class="input-wrapper-row" v-if="input.estado === 'ACTIVO'">
           <div class="input-wrapper-col">
-            <label for="indicador"><strong>Indicador:</strong></label>
-            <input id="indicador" name="indicador" type="text" v-model="input.indicador" @input="handleInput('indicador', $event.target.value)" />
-            <span class="small error">{{ error.indicador ? error.indicador : '\u00A0' }}</span>
+            <FormInput label="Indicador:" name="indicador" v-model="input.indicador" @update:modelValue="val => handleInput('indicador', val)" :error="error.indicador" />
           </div>
         </div>
       </div>
@@ -164,32 +239,16 @@ const stateReset = () => {
             <div class="section ubicacion">
         <h2>Ubicación CAIT/CAIJ</h2>
         <div class="input-wrapper-col">
-          <label for="zona"><strong>Zona:</strong></label>
-          <select id="zona" v-model="input.zona" @change="handleInput('zona', $event.target.value)">
-            <option value="0">Seleccione una opción</option>
-          </select>
-          <span class="small error">{{ error.zona ? error.zona : '\u00A0' }}</span>
+          <FormSelect label="Zona:" name="zona" v-model="input.zona" :options="zonasOptions" @update:modelValue="val => handleInput('zona', val)" :error="error.zona" />
         </div>
         <div class="input-wrapper-col">
-          <label for="area"><strong>Área:</strong></label>
-          <select id="area" v-model="input.area" @change="handleInput('area', $event.target.value)">
-            <option value="0">Seleccione una opción</option>
-          </select>
-          <span class="small error">{{ error.area ? error.area : '\u00A0' }}</span>
+          <FormSelect label="Área:" name="area" v-model="input.area" :options="areasOptions" @update:modelValue="val => handleInput('area', val)" :error="error.area" />
         </div>
         <div class="input-wrapper-col">
-          <label for="localidad"><strong>Localidad:</strong></label>
-          <select id="localidad" v-model="input.localidad" @change="handleInput('localidad', $event.target.value)">
-            <option value="0">Seleccione una opción</option>
-          </select>
-          <span class="small error">{{ error.localidad ? error.localidad : '\u00A0' }}</span>
+          <FormSelect label="Localidad:" name="localidad" v-model="input.localidad" :options="localidadesOptions" @update:modelValue="val => handleInput('localidad', val)" :error="error.localidad" />
         </div>
         <div class="input-wrapper-col">
-          <label for="uaId"><strong>Unidad de Atención:</strong></label>
-          <select id="uaId" v-model="input.uaId" @change="handleInput('uaId', $event.target.value)">
-            <option value="0">Seleccione una opción</option>
-          </select>
-          <span class="small error">{{ error.uaId ? error.uaId : '\u00A0' }}</span>
+          <FormSelect label="Unidad de Atención:" name="uaId" v-model="input.uaId" :options="uasOptions" @update:modelValue="val => handleInput('uaId', val)" :error="error.uaId" />
         </div>
       </div>
       </div>

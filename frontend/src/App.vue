@@ -1,32 +1,27 @@
 <template>
   <!-- Vista de Login si no está autenticado -->
   <Login v-if="!authStore.isAuthenticated" />
-  
-  <!-- Layout principal cuando está autenticado -->
+
+  <!-- Cuando está autenticado mostramos la vista principal con sidebar -->
   <div v-else>
-    <Header @toggle-sidebar="toggleSidebar" />
-    <div class="wrapper">
-      <Sidebar :collapsed="isSidebarCollapsed" />
-      <div class="content">
+    <Header />
+    <div class="app-root">
+      <Sidebar />
+      <main class="main-content">
         <router-view />
-      </div>
+      </main>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { onMounted } from "vue";
 import { useAuthStore } from '@/stores/auth';
-import Header from "@/components/Header.vue";
-import Sidebar from "@/components/Sidebar.vue";
 import Login from "@/views/Login.vue";
+import Sidebar from '@/components/Sidebar.vue'
+import Header from '@/components/Header.vue'
 
 const authStore = useAuthStore();
-const isSidebarCollapsed = ref(false);
-
-function toggleSidebar() {
-  isSidebarCollapsed.value = !isSidebarCollapsed.value;
-}
 
 // Verificar autenticación al cargar
 onMounted(() => {
@@ -43,4 +38,7 @@ onMounted(() => {
   padding: 20px;
   transition: margin-left 0.3s ease;
 }
+
+.app-root { display:flex; }
+.main-content { flex:1; padding: 20px; }
 </style>

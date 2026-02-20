@@ -1,0 +1,30 @@
+[
+  {
+    "id": 1,
+    "username": "admin",
+    "displayName": "Administrador",
+    "co_roles": [1709],
+    "token": "token-admin-000"
+  },
+  {
+    "id": 2,
+    "username": "supervisor",
+    "displayName": "Supervisor",
+    "co_roles": [3008],
+    "token": "token-supervisor-000"
+  },
+  {
+    "id": 3,
+    "username": "analista",
+    "displayName": "Analista",
+    "co_roles": [1707],
+    "token": "token-analista-000"
+  },
+  {
+    "id": 4,
+    "username": "invitado",
+    "displayName": "Invitado",
+    "co_roles": [1802],
+    "token": "token-invitado-000"
+  }
+]

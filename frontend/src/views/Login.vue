@@ -117,6 +117,7 @@
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { getMockUsers } from '@/services/mockUsers'
 
 // Importar imágenes estáticamente (igual que en Sidebar.vue)
 import nombreAppImg from '@/assets/img/nombre_del_nombre.png'
@@ -169,30 +170,39 @@ function validateForm() {
 
 // Login Handler
 async function handleLogin() {
-  if (!validateForm()) return
+  if (!validateForm()) return  
   
   loading.value = true
   
   try {
-    // Simular autenticación - reemplazar con tu API real
-    await new Promise(resolve => setTimeout(resolve, 1500))
-    
-    // Validación de ejemplo - reemplazar con tu lógica real
-    // Para demo, acepta cualquier combinación no vacía
-    if (loginData.indicador && loginData.clave) {
+    // Intentar autenticar contra usuarios mock
+    const users = await getMockUsers()
+    // Buscar por username (campo 'username' en mockUsers.json)
+    const found = users.find(u => String(u.username).toLowerCase() === String(loginData.indicador).toLowerCase())
+
+    // Para el mock aceptamos cualquier clave válida (ya validada por longitud)
+    if (found) {
+      // Mapear co_roles numéricos a nombres de rol legibles para el frontend
+      const roleMap = {
+        1709: 'Administrador',
+        3008: 'Supervisor',
+        1707: 'Analista',
+        1802: 'Invitado'
+      }
+      let mappedRoles = []
+      if (found.co_roles && Array.isArray(found.co_roles)) {
+        mappedRoles = found.co_roles.map(r => roleMap[r] || String(r))
+      }
+      // Añadir propiedad `roles` con nombres legibles para que los guards la usen
+      const userWithRoles = { ...found, roles: mappedRoles }
+
       await authStore.login({
-        user: {
-          id: 1,
-          indicador: loginData.indicador,
-          nombre: 'Usuario ' + loginData.indicador, 
-          role: 'user'
-        },
-        token: 'fake-jwt-token-' + Date.now(),
+        user: userWithRoles,
+        token: found.token || ('fake-jwt-token-' + Date.now()),
         recordar: loginData.recordar
       })
-      
-      // Redirigir al home
-      router.push('/')
+      // Redirigir a solicitudes
+      router.push('/solicitudes')
     } else {
       errorMessage.value = 'Indicador o clave incorrectos'
     }

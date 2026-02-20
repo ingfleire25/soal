@@ -10,15 +10,21 @@
               style="border: 0; border-radius: 9px;">
         <i class="icon-preview material-icons">perm_identity</i>
         <span class="d-none d-md-inline" :class="{ 'd-none': !isExpanded }">
-          Usuario&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+          {{ userDisplay || 'Usuario' }}
         </span>
       </button>
       <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-        <li>
-          <a class="dropdown-item d-flex align-items-center" href="./src/login.html">
+        <li v-if="isAuth">
+          <a class="dropdown-item d-flex align-items-center" href="#" @click.prevent="handleLogout">
             <i class="material-icons me-2">input</i>
             <span style="font-size: 0.89rem;">Cerrar Sesión</span>
           </a>
+        </li>
+        <li v-else>
+          <router-link class="dropdown-item d-flex align-items-center" to="/login">
+            <i class="material-icons me-2">login</i>
+            <span style="font-size: 0.89rem;">Iniciar Sesión</span>
+          </router-link>
         </li>
       </ul>
     </div>
@@ -28,11 +34,17 @@
         <i class="material-icons">perm_identity</i>
       </button>
       <ul class="dropdown-menu">
-        <li>
-          <a class="dropdown-item d-flex align-items-center" href="./src/login.html">
+        <li v-if="isAuth">
+          <a class="dropdown-item d-flex align-items-center" href="#" @click.prevent="handleLogout">
             <i class="material-icons">input</i>
             <span style="font-size: 0.89rem;">Cerrar Sesión</span>
           </a>
+        </li>
+        <li v-else>
+          <router-link class="dropdown-item d-flex align-items-center" to="/login">
+            <i class="material-icons">login</i>
+            <span style="font-size: 0.89rem;">Iniciar Sesión</span>
+          </router-link>
         </li>
       </ul>
     </div>
@@ -104,8 +116,9 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from "vue";
+import { ref, computed, onMounted, onBeforeUnmount } from "vue";
 import { useRouter } from 'vue-router';
+import { useAuthStore } from '@/stores/auth'
 import MaterializeIcon from '@/assets/icons/Materialize-32x32.png';
 import BootstrapIcon from '@/assets/icons/Bootstrap-32x32.png';
 
@@ -116,8 +129,15 @@ const imageMap = {
 };
 
 const router = useRouter();
+const authStore = useAuthStore()
 const isExpanded = ref(true);
 const menuItems = ref([]);
+const isAuth = computed(() => authStore.isAuthenticated)
+const userDisplay = computed(() => {
+  const u = authStore.user
+  if (!u) return ''
+  return u.nombre || u.displayName || u.indicador || u.username || ''
+})
 
 // Función de navegación
 function navigateTo(routeName) {
@@ -164,6 +184,12 @@ function getImageUrl(path) {
 
 function toggleSidebar() {
   isExpanded.value = !isExpanded.value;
+}
+
+function handleLogout() {
+  // Clear auth state and redirect to login
+  authStore.logout()
+  router.push('/login')
 }
 
 function handleResize() {

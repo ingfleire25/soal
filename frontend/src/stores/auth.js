@@ -1,6 +1,18 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 
+// Mapea códigos numéricos de `co_roles` a nombres de rol cortos usados por el frontend
+function mapRolesFromCodes(codes) {
+  if (!codes || !Array.isArray(codes)) return []
+  const map = {
+    1709: 'admin',
+    3008: 'supervisor',
+    1707: 'analista',
+    1802: 'invitado'
+  }
+  return codes.map(c => map[c] || String(c))
+}
+
 export const useAuthStore = defineStore('auth', () => {
   const user = ref(null)
   const token = ref(null)
@@ -20,7 +32,15 @@ export const useAuthStore = defineStore('auth', () => {
     
     if (savedToken && savedUser) {
       token.value = savedToken
-      user.value = JSON.parse(savedUser)
+      try {
+        const parsed = JSON.parse(savedUser)
+        if ((!parsed.roles || parsed.roles.length === 0) && parsed.co_roles) {
+          parsed.roles = mapRolesFromCodes(parsed.co_roles)
+        }
+        user.value = parsed
+      } catch (e) {
+        user.value = null
+      }
       return true
     }
     
@@ -29,17 +49,21 @@ export const useAuthStore = defineStore('auth', () => {
 
   // Login
   function login(authData) {
-    user.value = authData.user
+    const u = { ...authData.user }
+    if ((!u.roles || u.roles.length === 0) && u.co_roles) {
+      u.roles = mapRolesFromCodes(u.co_roles)
+    }
+    user.value = u
     token.value = authData.token
     
     if (authData.recordar) {
       localStorage.setItem('auth_token', authData.token)
-      localStorage.setItem('auth_user', JSON.stringify(authData.user))
+      localStorage.setItem('auth_user', JSON.stringify(user.value))
       sessionStorage.removeItem('auth_token')
       sessionStorage.removeItem('auth_user')
     } else {
       sessionStorage.setItem('auth_token', authData.token)
-      sessionStorage.setItem('auth_user', JSON.stringify(authData.user))
+      sessionStorage.setItem('auth_user', JSON.stringify(user.value))
       localStorage.removeItem('auth_token')
       localStorage.removeItem('auth_user')
     }

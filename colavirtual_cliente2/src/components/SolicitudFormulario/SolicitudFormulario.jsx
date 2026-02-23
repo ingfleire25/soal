@@ -12,7 +12,7 @@ import { useNavigate, useLocation } from 'react-router-dom'
 
 
 
-const SolicitudFormulario = () => {
+const SolicitudFormulario = () => { 
     const navigate = useNavigate()
     const location = useLocation()
     const initialState = {

@@ -305,6 +305,11 @@ const stateReset = () => {
   width: 100%;
   box-sizing: border-box;
 }
+
+/* Make labels match AsignarSupervisor (primary red tone) */
+.form-label {
+  color: var(--primary-clr-500);
+}
 .categorizacion {
     grid-area: categorizacion;
 }

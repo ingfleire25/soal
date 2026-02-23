@@ -98,6 +98,11 @@
                       </button>
                     </div>
 
+                    <!-- Enlace público para crear solicitudes sin cuenta -->
+                    <div class="mt-1">
+                      <router-link to="/crear-solicitud" class="btn btn-link">Crear Solicitud (sin cuenta)</router-link>
+                    </div>
+
                     <!-- Mensaje de error general -->
                     <div v-if="errorMessage" class="alert alert-danger mt-2 mx-3">
                       {{ errorMessage }}

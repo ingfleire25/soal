@@ -1,12 +1,9 @@
 <template>
-  <!-- Vista de Login si no está autenticado -->
-  <Login v-if="!authStore.isAuthenticated" />
-
-  <!-- Cuando está autenticado mostramos la vista principal con sidebar -->
-  <div v-else>
-    <Header />
+  <!-- Mostrar siempre el router-view (rutas públicas funcionarán) -->
+  <div>
+    <Header v-if="authStore.isAuthenticated" />
     <div class="app-root">
-      <Sidebar />
+      <Sidebar v-if="authStore.isAuthenticated" />
       <main class="main-content">
         <router-view />
       </main>

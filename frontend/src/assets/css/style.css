@@ -503,6 +503,9 @@ border-color:#7F7F7F;}
 .bold { font-weight: 700; }
 .error { color: var(--primary-clr-500); }
 
+/* Global form label style for migrated components */
+.form-label { color: var(--primary-clr-500); display: block; margin-bottom: 0.25rem; font-weight: 600; }
+
 .btn { cursor: pointer; text-decoration: none; display: inline-block; transition-duration: .3s; font-family: inherit; }
 .btn-primary-lined-fit { border: 1px solid var(--primary-clr-500); border-radius: 8px; background-color: var(--neutral-clr-0); color: var(--primary-clr-500); font-weight: bold; padding: var(--padding-small); }
 .btn-primary-lined-fit:hover { background-color: var(--primary-clr-500); color: var(--primary-clr-0); }

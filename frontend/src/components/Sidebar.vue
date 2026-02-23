@@ -64,7 +64,7 @@
     
     <!-- Menú dinámico -->
     <ul class="sidebar-nav" id="the-hr">
-      <li v-for="item in menuItems" :key="item.id" 
+      <li v-for="item in visibleMenuItems" :key="item.id" 
           :class="['sidebar-item', item.id ? `sidebar-item-${item.id}` : '']">
         
         <!-- Elemento simple del menú -->
@@ -116,7 +116,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount } from "vue";
+import { ref, computed, onMounted, onBeforeUnmount, watch } from "vue";
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth'
 import MaterializeIcon from '@/assets/icons/Materialize-32x32.png';
@@ -132,6 +132,7 @@ const router = useRouter();
 const authStore = useAuthStore()
 const isExpanded = ref(true);
 const menuItems = ref([]);
+const visibleMenuItems = ref([])
 const isAuth = computed(() => authStore.isAuthenticated)
 const userDisplay = computed(() => {
   const u = authStore.user
@@ -209,6 +210,64 @@ onMounted(() => {
 onBeforeUnmount(() => {
   window.removeEventListener("resize", handleResize);
 });
+
+// Recalcular visibilidad cuando cambia el usuario o el menú
+watch([() => authStore.user, menuItems], () => {
+  computeVisibleMenu()
+}, { immediate: true })
+
+function computeVisibleMenu() {
+  const u = authStore.user || {}
+  const userRolesRaw = u.roles || u.co_roles || []
+  // Normalizar a set de nombres cortos en minúscula
+  const userRoles = new Set()
+  if (Array.isArray(userRolesRaw)) {
+    userRolesRaw.forEach(r => {
+      if (!r) return
+      let name = ''
+      if (typeof r === 'string') name = r
+      else if (r.tx_nombre) name = r.tx_nombre
+      else if (r.name) name = r.name
+      name = String(name).toLowerCase()
+      if (name.includes('admin') || name.includes('administrador')) userRoles.add('admin')
+      else if (name.includes('supervisor')) userRoles.add('supervisor')
+      else if (name.includes('analista')) userRoles.add('analista')
+      else if (name.includes('invit')) userRoles.add('invitado')
+    })
+  }
+
+  // Helper para comprobar acceso a una ruta por nombre
+  function hasAccessToRoute(routeName) {
+    if (!routeName) return true
+    const r = router.getRoutes().find(x => x.name === routeName)
+    if (!r) return true
+    const meta = r.meta || {}
+    // Si requiere autenticación y el usuario no está autenticado -> ocultar
+    if (meta.requiresAuth && !authStore.isAuthenticated) return false
+    const allowed = meta.allowedRoles
+    if (!allowed || !Array.isArray(allowed) || allowed.length === 0) return true
+    // Admin bypass
+    if (userRoles.has('admin')) return true
+    // Intersección
+    return allowed.some(ar => userRoles.has(ar))
+  }
+
+  const out = []
+  menuItems.value.forEach(item => {
+    if (item.type === 'simple') {
+      if (hasAccessToRoute(item.routeName)) out.push(item)
+    } else if (item.type === 'dropdown') {
+      const children = (item.children || []).filter(c => hasAccessToRoute(c.routeName))
+      if (children.length > 0) {
+        out.push({ ...item, children })
+      }
+    } else {
+      out.push(item)
+    }
+  })
+
+  visibleMenuItems.value = out
+}
 </script>
 
 <style scoped>

@@ -1,38 +1,27 @@
 {
-  "name": "colavirtual_api",
+  "name": "soal_api",
   "version": "2.0.0",
-  "description": "Back End de la apliación ColaVirtual",
+  "description": "Back End de la apliación soal",
   "main": "index.js",
   "scripts": {
     "start": "node index",
     "dev": "nodemon index.js",
-    "sync": "node --trace-warnings ./syncDB/sync.js",
     "test": "npm test"
   },
   "keywords": [
-    "colavirtual",
+    "soal_api",
     "pdvsa",
     "rrhh",
-    "ait",
-    "cait"
+    "ait"
   ],
-  "author": "Leonardo Fleire Jovana Davalillo",
+  "author": "Leonardo Fleire",
   "license": "ISC",
   "dependencies": {
-    "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
-    "date-fns": "^2.29.3",
     "dotenv": "^16.0.3",
     "express": "^4.18.1",
-    "jsonwebtoken": "^9.0.0",
-    "ldapjs": "^2.3.3",
-    "moment": "^2.30.1",
-    "morgan": "^1.10.0",
-    "nodemailer": "^6.8.0",
-    "nodemailer-express-handlebars": "^5.0.0",
     "pg": "^8.13.2",
-    "sequelize": "^6.24.0",
-    "uuid": "^9.0.0" 
+    "sequelize": "^6.24.0"
   },
   "devDependencies": {
     "nodemon": "^2.0.20"

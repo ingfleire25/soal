@@ -1,8 +1,13 @@
-const server = require( './src/app.js' );
-require( 'dotenv' ).config();
+const server = require('./src/app.js');
+require('dotenv').config();
+const { conn } = require('./src/db');
 const PUERTO = process.env.PORT || 3001;
 
-
-server.listen( PUERTO, () => {
-    console.log( `Servidor ejecutándose en el puerto ${PUERTO}` ); // eslint-disable-line no-console
-} );
+// sincronizar modelos y arrancar servidor
+conn.sync().then(() => {
+  server.listen(PUERTO, () => {
+    console.log(`Servidor ejecutándose en el puerto ${PUERTO}`);
+  });
+}).catch(err => {
+  console.error('Error al sincronizar la base de datos:', err);
+});

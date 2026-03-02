@@ -5,3 +5,4 @@ router.get('/', (req, res) => res.send('API mínima de solicitudes de transporte
 router.use('/api/solicitudes', require('./solicitudes'));
 
 module.exports = router;
+ 

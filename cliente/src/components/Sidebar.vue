@@ -63,7 +63,7 @@ onBeforeUnmount(() => {
   background: #f5f5f5;
   min-height: 100vh;
   transition: width 0.3s ease;
-  overflow-x: hidden; /* Evita que el texto "asome" durante la transición */
+  /* overflow-x: hidden; Evita que el texto "asome" durante la transición */
 }
 
 /* Cuando está colapsado, reducimos el ancho */

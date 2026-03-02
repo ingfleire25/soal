@@ -54,7 +54,7 @@ body {
     width: 50px; /* Ancho minimizado */
 }
 #sidebar:not(.expand) .sidebar-logo, #sidebar:not(.expand) a.sidebar-link span, #sidebar:not(.expand) #titulo-menu, #sidebar:not(.expand) #m-usuario, #sidebar .icon-preview3 {
-    display: none;
+    display: flex;
 }
 #sidebar:not(.expand) .icon-preview3 {
     display: block!important;

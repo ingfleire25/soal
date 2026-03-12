@@ -1,7 +1,7 @@
 <template>
     <header class="row position-relative">
         <img class="header-h p-0" src="@/assets/img/nueva-cintilla.png" alt="cintillo">
-        <img class="nombre-app" src="@/assets/img/nombre_app.png" alt="Nombre de Aplicación">
+        <img class="nombre-app" src="@/assets/img/nombre_app.jpg" alt="Nombre de Aplicación">
         <a class="d-flex" href="index.html">
             <img class="imagen-cintillo" src="@/assets/img/Logo_PDVSA.png" alt="logo imagen pdvsa"/>
         </a>

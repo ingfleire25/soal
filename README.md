@@ -4,15 +4,25 @@ Este repositorio contiene una **API sencilla** construida con Node.js, Express y
 
 ## Estructura
 
-- `colavirtual_api/` – backend Express/Sequelize.
-- `frontend/` – aplicación Vue 3 con Vite.
+- `server` – backend Express/Sequelize.
+- `cliente/` – aplicación Vue 3 con Vite.
 
 ## Backend
+ Crea un archivo .env con las siguientes variables de entorno:
+#Entorno de ejecicion local
+PORT=3001
+DB_USER=postgres
+DB_PASSWORD=postgres
+DB_HOST=localhost
+DB_NAME=soaldb
+DB_PORT=5432
+
+crea una base de datos en postgres con el mismo nombre que DB_NAME.
 
 1. Copiar `.env.example` a `.env` y configurar la conexión a la base de datos.
 2. Instalar dependencias y ejecutar:
    ```bash
-   cd colavirtual_api
+   cd server
    npm install
    npm run dev   # inicia en localhost:3001
    ```
@@ -36,7 +46,7 @@ Endpoints disponibles:
 
 1. Instalar dependencias y ejecutar:
    ```bash
-   cd frontend
+   cd cliente
    npm install
    npm run dev   # abre en http://localhost:5173 por defecto
    ```
@@ -46,6 +56,3 @@ Endpoints disponibles:
 
 No se requiere autenticación ni lógica adicional; la API y el cliente hablan directamente.
 
----
-
-Este repositorio fue adaptado a partir de un proyecto anterior para servir como ejemplo básico de API+front reutilizando estructuras existentes.

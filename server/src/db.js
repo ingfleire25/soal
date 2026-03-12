@@ -1,3 +1,5 @@
+// ACTUALIZACION PARA MANEJAR DOS INSTANCIAS DE BASES DE DATOS POSTGRES Y ORACLE
+// FECHA DE CAMBIO: 03/03/2026
 
 // Carga las variables de entorno desde el archivo .env a process.env
 require( 'dotenv' ).config();
@@ -6,36 +8,68 @@ require( 'dotenv' ).config();
 const { Sequelize, UUID } = require( 'sequelize' );
 const path = require('path');
 
-// Desestructuración de las credenciales de la base de datos desde las variables de entorno
+// Credenciales para PostgreSQL
 const { DB_USER, DB_PASSWORD, DB_HOST, DB_NAME, DB_PORT } = process.env;
 
+// --- NUEVO: Credenciales para Oracle ---
+// Asegúrate de tener estas variables en tu archivo .env
+const { ORA_USER, ORA_PASSWORD, ORA_HOST, ORA_SERVICE_NAME, ORA_PORT } = process.env;
+
 /**
- * Configuración de la instancia de Sequelize
- * Se utiliza un Template String para construir la URL de conexión a PostgreSQL
+ * Configuración de la instancia de Sequelize para PostgreSQL
  */
 const sequelize = new Sequelize( `postgres://${DB_USER}:${DB_PASSWORD}@${DB_HOST}/${DB_NAME}`, {
-    logging: false,      // Desactiva los logs de SQL en la consola para mantenerla limpia
-    native: false,       // Desactiva el uso de la librería nativa de pg (Postgres)
-    port: DB_PORT,       // Define el puerto de conexión (usualmente 5432)
+    logging: false,      
+    native: false,       
+    port: DB_PORT,       
     define: {
-        freezeTableName: true // Evita que Sequelize pluralice automáticamente los nombres de las tablas
+        freezeTableName: true 
     }
 } );
 
-// Importa y define el modelo 'solicitud' pasándole la instancia de sequelize
-require( path.join( __dirname, '/models/solicitud' ) )( sequelize );
+/**
+ * NUEVO: Configuración de la instancia de Sequelize para Oracle
+ * Se utiliza el dialecto 'oracle'. Importante: Requiere instalar la librería 'oracledb'.
+ */
+const sequelizeOracle = new Sequelize(ORA_SERVICE_NAME, ORA_USER, ORA_PASSWORD, {
+    host: ORA_HOST,
+    port: ORA_PORT, // || 1521 Puerto por defecto de Oracle
+    dialect: 'oracle',
+    logging: false,
+    dialectOptions: {
+        // El modo 'thin' no requiere instalación de Oracle Instant Client en versiones recientes
+        connectString: `${ORA_HOST}:${ORA_PORT || 1521}/${ORA_SERVICE_NAME}`
+    },
+    define: {
+        freezeTableName: true // Mantenemos la consistencia de no pluralizar tablas
+    }
+});
+
+// Importa y define el modelo 'solicitud' pasándole la instancia de sequelize (Postgres)
+require( path.join( __dirname, '/models/modserv' ) )( sequelize );
+
+// NUEVO: Aquí podrías importar modelos específicos para Oracle
+// require( path.join( __dirname, '/models/oracleModel' ) )( sequelizeOracle );
 
 /**
- * Estandarización de nombres de modelos:
- * Este bloque recorre todos los modelos definidos y se asegura de que 
- * la primera letra del nombre esté en mayúscula (ej: 'solicitud' -> 'Solicitud').
+ * Estandarización de nombres de modelos (Postgres):
  */
 let entries = Object.entries( sequelize.models );
 let capsEntries = entries.map( ( entry ) => [ entry[ 0 ][ 0 ].toUpperCase() + entry[ 0 ].slice( 1 ), entry[ 1 ] ] );
 sequelize.models = Object.fromEntries( capsEntries );
 
-// Exportación de los modelos y de la conexión (conn) para usarlos en el resto de la App
+/**
+ * NUEVO: Estandarización de nombres de modelos (Oracle):
+ * Aplicamos la misma lógica de capitalización para los modelos de Oracle.
+ */
+let oraEntries = Object.entries( sequelizeOracle.models );
+let oraCapsEntries = oraEntries.map( ( entry ) => [ entry[ 0 ][ 0 ].toUpperCase() + entry[ 0 ].slice( 1 ), entry[ 1 ] ] );
+sequelizeOracle.models = Object.fromEntries( oraCapsEntries );
+
+// Exportación de los modelos y las conexiones
 module.exports = {
-    ...sequelize.models, // Esparce los modelos (ej: Solicitud) como propiedades individuales
-    conn: sequelize,     // Exporta la instancia de conexión para sincronizar la base de datos
+    ...sequelize.models,       // Modelos de Postgres  
+    ...sequelizeOracle.models, // Modelos de Oracle
+    conn: sequelize,           // Conexión principal Postgres
+    connOracle: sequelizeOracle // Nueva conexión Oracle
 };

@@ -11,3 +11,5 @@ conn.sync().then(() => {
 }).catch(err => {
   console.error('Error al sincronizar la base de datos:', err);
 });
+
+ 

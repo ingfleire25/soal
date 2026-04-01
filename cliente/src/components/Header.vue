@@ -10,7 +10,7 @@
 
 <script setup>
 </script>
-
+<!-- 
 <style scoped>
 header {
   background: #f5f5f5;
@@ -18,4 +18,4 @@ header {
   display: flex;
   align-items: center;
 }
-</style>
+</style> -->

@@ -5,8 +5,23 @@
 require( 'dotenv' ).config();
 
 // Importa Sequelize para el ORM y UUID por si se necesita en las definiciones
+const fs = require('fs');
 const { Sequelize, UUID } = require( 'sequelize' );
 const path = require('path');
+const oracledb = require('oracledb');
+
+
+// --- CONFIGURACIÓN PARA MODO THICK (NECESARIA PARA VERSIONES ANTIGUAS) ---
+try {
+    // Aquí pones la ruta exacta donde descomprimiste el Instant Client
+    oracledb.initOracleClient({ libDir: 'C:\\ORACLE\\instantclient' }); 
+    console.log("✅ Oracle Client inicializado en modo Thick");
+} catch (err) {
+    console.error("❌ Error al inicializar Oracle Client:", err);
+    // Si ya estaba inicializado, el error se puede ignorar
+}
+
+// ... después sigue tu código de Sequelize normal
 
 // Credenciales para PostgreSQL
 const { DB_USER, DB_PASSWORD, DB_HOST, DB_NAME, DB_PORT } = process.env;
@@ -24,21 +39,24 @@ const sequelize = new Sequelize( `postgres://${DB_USER}:${DB_PASSWORD}@${DB_HOST
     port: DB_PORT,       
     define: {
         freezeTableName: true 
-    }
+    } 
 } );
 
 /**
  * NUEVO: Configuración de la instancia de Sequelize para Oracle
  * Se utiliza el dialecto 'oracle'. Importante: Requiere instalar la librería 'oracledb'.
  */
+
+// console.log("Intentando conectar a:", ORA_HOST, ORA_PORT, ORA_SERVICE_NAME);
 const sequelizeOracle = new Sequelize(ORA_SERVICE_NAME, ORA_USER, ORA_PASSWORD, {
     host: ORA_HOST,
-    port: ORA_PORT, // || 1521 Puerto por defecto de Oracle
+    port: ORA_PORT, 
     dialect: 'oracle',
     logging: false,
     dialectOptions: {
-        // El modo 'thin' no requiere instalación de Oracle Instant Client en versiones recientes
-        connectString: `${ORA_HOST}:${ORA_PORT || 1521}/${ORA_SERVICE_NAME}`
+       
+        // connectString: `${ORA_HOST}:${ORA_PORT || 1521}/${ORA_SERVICE_NAME}` 
+        connectString: `(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=${ORA_HOST})(PORT=${ORA_PORT}))(CONNECT_DATA=(SID=${ORA_SERVICE_NAME})))`
     },
     define: {
         freezeTableName: true // Mantenemos la consistencia de no pluralizar tablas
@@ -46,11 +64,33 @@ const sequelizeOracle = new Sequelize(ORA_SERVICE_NAME, ORA_USER, ORA_PASSWORD, 
 });
 
 // Importa y define el modelo 'solicitud' pasándole la instancia de sequelize (Postgres)
-require( path.join( __dirname, '/models/modserv' ) )( sequelize );
+//require( path.join( __dirname, '/models/solicitud' ) )( sequelize );
 
 // NUEVO: Aquí podrías importar modelos específicos para Oracle
-// require( path.join( __dirname, '/models/oracleModel' ) )( sequelizeOracle );
+//require( path.join( __dirname, '/models/modserv' ) )( sequelizeOracle );
 
+
+//codigo inteligente para leer las carpetas de modelos y cargar automáticamente cada modelo en su respectiva instancia de Sequelize
+// 1. Cargar modelos de Postgres
+const pgModelsPath = path.join(__dirname, '/models/postgres');
+if (fs.existsSync(pgModelsPath)) {
+    fs.readdirSync(pgModelsPath)
+        .filter(file => file.endsWith('.js'))
+        .forEach(file => {
+            require(path.join(pgModelsPath, file))(sequelize);
+        });
+}
+
+// 2. Cargar modelos de Oracle
+const oraModelsPath = path.join(__dirname, '/models/oracle');
+if (fs.existsSync(oraModelsPath)) {
+    fs.readdirSync(oraModelsPath)
+        .filter(file => file.endsWith('.js'))
+        .forEach(file => {
+            require(path.join(oraModelsPath, file))(sequelizeOracle);
+        });
+}
+ 
 /**
  * Estandarización de nombres de modelos (Postgres):
  */

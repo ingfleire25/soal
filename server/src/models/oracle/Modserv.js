@@ -10,6 +10,7 @@ module.exports = (sequelize) => {
         modnum: { 
             type: DataTypes.STRING(4), 
             allowNull: false,
+            primaryKey: true,
             field: 'MODNUM'
         },
         description: { 

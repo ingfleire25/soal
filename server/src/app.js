@@ -11,8 +11,11 @@ server.name = 'SOAL-API';
  * MIDDLEWARES
  */
 
-// Permite peticiones desde otros dominios (Cross-Origin Resource Sharing)
-server.use(cors());
+// Permite peticiones desde el frontend configurado para evitar error CORS con withCredentials
+server.use(cors({
+  origin: 'http://localhost:5173',
+  credentials: true
+}));
 
 // Permite que el servidor entienda datos enviados a través de formularios (URL encoded)
 server.use(express.urlencoded({ extended: true }));

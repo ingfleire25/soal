@@ -1,9 +1,10 @@
 <template>
+  <!-- Mostrar siempre el router-view (rutas públicas funcionarán) -->
   <div>
-    <Header />
-    <div class="app-layout">
-      <Sidebar />
-      <main class="app-main">
+    <Header v-if="authStore.isAuthenticated.value" />
+    <div class="app-root">
+      <Sidebar v-if="authStore.isAuthenticated.value" />
+      <main class="main-content">
         <router-view />
       </main>
     </div>
@@ -11,11 +12,19 @@
 </template>
 
 <script setup>
-import Header from './components/Header.vue'
-import Sidebar from './components/Sidebar.vue'
+import { onMounted } from 'vue'
+import { useAuthStore } from '@/stores/auth'
+import Sidebar from '@/components/Sidebar.vue'
+import Header from '@/components/Header.vue'
+
+const authStore = useAuthStore()
+
+onMounted(() => {
+  if (authStore.checkAuth) authStore.checkAuth()
+})
 </script>
 
 <style>
-.app-layout { display: flex; min-height: calc(100vh - 56px); }
-.app-main { flex: 1; padding: 1rem; }
+.app-root { display: flex; }
+.main-content { flex: 1; padding: 20px; transition: margin-left 0.3s ease; }
 </style>

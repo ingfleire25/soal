@@ -10,6 +10,11 @@
     </div>
 
     <hr />
+    <div class="px-3 py-2 user-info">
+      <small>Usuario: <strong>{{ username }}</strong></small><br>
+      <small>Rol: <strong>{{ (auth.user?.value?.roles || []).join(', ') || 'N/A' }}</strong></small>
+    </div>
+    <hr />
 
    <ul class="sidebar-nav p-0 m-0">  <!-- Todo el cuerpo del sidebar -->
       <li class="sidebar-item"><!-- LI para crear solicitudes -->
@@ -36,12 +41,12 @@
             
             <ul v-if="submenus.transporte" class="submenu-inner p-0">
               <li>
-                <a href="#" class="sidebar-link ps-5" @click.prevent="navigateTo('transporte-ocasional')">
+                <a href="#" class="sidebar-link ps-5" @click.prevent="navigateTo('transporte-ocasional','crear')">
                   <span class="link-text small">• Ocasional</span>
                 </a>
               </li>
               <li>
-                <a href="#" class="sidebar-link ps-5" @click.prevent="navigateTo('transporte-recurrente')">
+                <a href="#" class="sidebar-link ps-5" @click.prevent="navigateTo('transporte-recurrente','crear')">
                   <span class="link-text small">• Recurrente</span>
                 </a>
               </li>
@@ -71,7 +76,7 @@
 
       <li class="sidebar-item">
         <a href="#" class="sidebar-link d-flex align-items-center justify-content-between px-3" 
-           @click.prevent="toggleSubmenu('tabla')">
+           @click.prevent="navigateTo('ver-todas')">
           <div class="d-flex align-items-center">
             <i class="material-icons">add_circle</i>
             <span v-if="isExpanded" class="link-text ms-2">Ver Solicitudes</span>
@@ -93,12 +98,12 @@
             
             <ul v-if="submenus.transporte" class="submenu-inner p-0">
               <li>
-                <a href="#" class="sidebar-link ps-5" @click.prevent="navigateTo('transporte-ocasional')">
+                <a href="#" class="sidebar-link ps-5" @click.prevent="navigateTo('transporte-ocasional','ver')">
                   <span class="link-text small">• Ocasional</span>
                 </a>
               </li>
               <li>
-                <a href="#" class="sidebar-link ps-5" @click.prevent="navigateTo('transporte-recurrente')">
+                <a href="#" class="sidebar-link ps-5" @click.prevent="navigateTo('transporte-recurrente','ver')">
                   <span class="link-text small">• Recurrente</span>
                 </a>
               </li>
@@ -106,19 +111,19 @@
           </li>
 
           <li>
-            <a href="#" class="sidebar-link ps-4" @click.prevent="navigateTo('movimiento-unidades')">
+            <a href="#" class="sidebar-link ps-4" @click.prevent="navigateTo('movimiento-unidades', 'ver')">
               <i class="material-icons">local_shipping</i>
               <span class="link-text ms-2">Movimiento unidades mayores</span>
             </a>
           </li>
           <li>
-            <a href="#" class="sidebar-link ps-4" @click.prevent="navigateTo('suministro-lacustre')">
+            <a href="#" class="sidebar-link ps-4" @click.prevent="navigateTo('suministro-lacustre', 'ver')">
               <i class="material-icons">water</i>
               <span class="link-text ms-2">Suministro lacustre</span>
             </a>
           </li>
           <li>
-            <a href="#" class="sidebar-link ps-4" @click.prevent="navigateTo('servicios-portuarios')">
+            <a href="#" class="sidebar-link ps-4" @click.prevent="navigateTo('servicios-portuarios', 'ver')">
               <i class="material-icons">anchor</i>
               <span class="link-text ms-2">Servicios portuarios</span>
             </a>
@@ -126,7 +131,7 @@
         </ul>
       </li>
       <!-- LI para ODST -->
-      <li class="sidebar-item">
+      <li v-if="isSupervisor || isGerente || isSubgerente" class="sidebar-item">
         <a href="#" class="sidebar-link d-flex align-items-center justify-content-between px-3" 
            @click.prevent="toggleSubmenu('ODTS')">
           <div class="d-flex align-items-center">
@@ -137,7 +142,7 @@
         </a>
       </li>
       <!-- LI para PLAN -->
-      <li class="sidebar-item">
+      <li v-if="isGerente || isSubgerente" class="sidebar-item">
         <a href="#" class="sidebar-link d-flex align-items-center justify-content-between px-3" 
            @click.prevent="toggleSubmenu('plan')">
           <div class="d-flex align-items-center">
@@ -148,9 +153,9 @@
         </a>
       </li>
       <!-- LI para Evaluacion -->
-      <li class="sidebar-item">
+      <li v-if="isGerente || isSubgerente || isSupervisor || isAnalista" class="sidebar-item">
         <a href="#" class="sidebar-link d-flex align-items-center justify-content-between px-3" 
-           @click.prevent="toggleSubmenu('ODTS')">
+           @click.prevent="toggleSubmenu('evaluacion')">
           <div class="d-flex align-items-center">
             <i class="material-icons">add_circle</i>
             <span v-if="isExpanded" class="link-text ms-2">Evaluacion</span>
@@ -159,14 +164,13 @@
         </a>
       </li>
       <!-- LI para Administracion -->
-      <li class="sidebar-item">
+      <li v-if="isGerente" class="sidebar-item">
         <a href="#" class="sidebar-link d-flex align-items-center justify-content-between px-3" 
-           @click.prevent="toggleSubmenu('ODTS')">
+           @click.prevent="navigateTo('administracion')">
           <div class="d-flex align-items-center">
-            <i class="material-icons">add_circle</i>
+            <i class="material-icons">admin_panel_settings</i>
             <span v-if="isExpanded" class="link-text ms-2">Administracion</span>
           </div>
-          <i v-if="isExpanded" class="material-icons arrow-icon" :class="{ 'rotate': submenus.administracion }">expand_more</i>
         </a>
       </li>
       <!-- LI para ayuda -->
@@ -181,18 +185,35 @@
         </a>
       </li>
 
-
+      <!-- Logout -->
+      <li class="sidebar-item">
+        <a href="#" class="sidebar-link d-flex align-items-center justify-content-between px-3" @click.prevent="auth.logout()">
+          <div class="d-flex align-items-center">
+            <i class="material-icons">logout</i>
+            <span v-if="isExpanded" class="link-text ms-2">Cerrar sesión</span>
+          </div>
+        </a>
+      </li>
 
     </ul><!-- cierre del cuerpo del sidebar -->
   </aside>
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, onBeforeUnmount } from 'vue'
+import { ref, reactive, onMounted, onBeforeUnmount, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()
+const auth = useAuthStore()
 const isExpanded = ref(true)
+
+const isGerente = computed(() => auth.hasRole('Gerente'))
+const isSubgerente = computed(() => auth.hasRole('Subgerente'))
+const isSupervisor = computed(() => auth.hasRole('Supervisor'))
+const isAnalista = computed(() => auth.hasRole('Analista'))
+
+const username = computed(() => (auth.user?.value?.username) || 'Invitado')
 
 // Estado para controlar qué menús están abiertos
 const submenus = reactive({
@@ -217,8 +238,44 @@ function toggleSubmenu(menu) {
   submenus[menu] = !submenus[menu]
 }
 
-function navigateTo(name) {
-  if (name) router.push({ name })
+function navigateTo(name, mode = 'crear') {
+  if (name === 'transporte-ocasional') {
+    if (mode === 'crear') {
+      router.push({ name: 'transporte-personal', query: { subtipo: 'Ocasional' } });
+    } else {
+      router.push({ name: 'tabla', query: { tipoSolicitud: 'Transporte de Personal', subtipo: 'Ocasional' } });
+    }
+  } else if (name === 'transporte-recurrente') {
+    if (mode === 'crear') {
+      router.push({ name: 'transporte-personal', query: { subtipo: 'Recurrente' } });
+    } else {
+      router.push({ name: 'tabla', query: { tipoSolicitud: 'Transporte de Personal', subtipo: 'Recurrente' } });
+    }
+  } else if (name === 'movimiento-unidades') {
+    if (mode === 'crear') {
+      router.push({ name: 'movimiento-unidades-mayores' });
+    } else {
+      router.push({ name: 'tabla', query: { tipoSolicitud: 'Movimiento Unidades Mayores' } });
+    }
+  } else if (name === 'suministro-lacustre') {
+    if (mode === 'crear') {
+      router.push({ name: 'suministro-lacustre' });
+    } else {
+      router.push({ name: 'tabla', query: { tipoSolicitud: 'Suministro Lacustre' } });
+    }
+  } else if (name === 'servicios-portuarios') {
+    if (mode === 'crear') {
+      router.push({ name: 'crear-servicios-portuarios' });
+    } else {
+      router.push({ name: 'tabla', query: { tipoSolicitud: 'Servicios Portuarios' } });
+    }
+  } else if (name === 'ver-todas') {
+    router.push({ name: 'tabla' });
+  } else if (name === 'administracion') {
+    router.push({ name: 'administracion' });
+  } else {
+    router.push({ name });
+  }
 }
 
 const handleResize = () => {

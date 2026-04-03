@@ -1,11 +1,12 @@
 import axios from 'axios';
-import { BASE_URL_BACKEND } from '../config/constantes';
-//import { useAuth } from '../hooks/useAuth';
+
+const BACKEND_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
 // Crear instancia base
 const api = axios.create({
-  baseURL: BASE_URL_BACKEND,
-  withCredentials: true
+  baseURL: BACKEND_URL,
+  // con backend CORS configurado (credentials true), cabeceras de auth via token localStorage
+  withCredentials: false
 });
 
 // Interceptor para agregar el token

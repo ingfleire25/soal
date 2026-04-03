@@ -1,0 +1,45 @@
+LOGIN: Excelente, todo funcionando bien: proceso de login completo
+¡Muy buena noticia! Ya está funcionando de manera estable. 2 cosas claves:
+
+Se protege correctamente con roles.
+Se muestra Login primero, y luego Sidebar/Header según auth.
+Todo el flujo de sesión se maneja desde auth.js (store + localStorage).
+🧩 Flujo de login (paso a paso)
+Usuario entra a la app (ruta /iniciar-sesion)
+Login muestra Login.vue (ningún componente protegido visible)
+Usuario escribe indicador + clave:
+handleLogin() valida campos.
+Llama loginApi(indicador, clave) (POST a http://localhost:3001/api/auth/login)
+Backend (src/controllers/auth.js) verifica:
+Usuario.findOne({ where: { username } })
+valida password
+genera token (fake JWT aquí)
+devuelve JSON:
+result.user (datos + rol, roles)
+result.token
+Front recibe respuesta en Login.vue y hace:
+authStore.login({ user, token, recordar })
+En useAuthStore:
+state.user = user
+state.token = token
+state.isAuthenticated = true
+state.remember = recordar
+saveAuth() guarda/localiza si remember true
+🗄️ Dónde se guarda la sesión
+localStorage clave: auth (STORAGE_KEY en src/stores/auth.js)
+Contenido JSON (si remember true):
+checkAuth() lee localStorage.auth en App.vue / onMounted para mantener sesión entre recargas.
+🔐 Ruta protegidas y visualización
+En router/index.js:
+Si no auth -> redirije a login
+Si auth -> permite dashboard, crear, tabla
+Rol insuficiente -> no-autorizado
+App.vue muestra Header/Sidebar solo si authStore.isAuthenticated.value === true.
+🔁 Logout
+authStore.logout():
+limpia state.user, token, isAuthenticated, remember
+saveAuth() elimina localStorage.auth
+redirige a /iniciar-sesion
+📌 Nota final
+localStorage no se escribe si no se marca Recordar en login, pero estado en memoria sigue activo hasta cerrar pestaña.
+Para mantener entre refresh: usar Recordar (true) y checkAuth() rehidrata.

@@ -98,15 +98,7 @@
                       </button>
                     </div>
 
-                    <!-- Roles disponibles (mock) -->
-                    <div class="mt-1 text-start">
-                      <small>Roles disponibles: <strong>Gerente</strong>, <strong>Subgerente</strong>, <strong>Supervisor</strong>, <strong>Analista</strong></small>
-                    </div>
-
-                    <!-- Enlace público para crear solicitudes sin cuenta -->
-                    <div class="mt-1">
-                      <router-link to="/crear-solicitud" class="btn btn-link">Crear Solicitud (sin cuenta)</router-link>
-                    </div>
+                    
 
                     <!-- Mensaje de error general -->
                     <div v-if="errorMessage" class="alert alert-danger mt-2 mx-3">

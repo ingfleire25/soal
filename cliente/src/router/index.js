@@ -23,8 +23,8 @@ const routes = [
     meta: { roles: ['Gerente', 'Subgerente', 'Supervisor', 'Analista'] }
   },
   {
-    path: '/crear',
-    name: 'crear',
+    path: '/crearViejo',
+    name: 'crearViejo',
     component: Crear,
     meta: { roles: ['Gerente', 'Subgerente', 'Supervisor', 'Analista'] }
   },

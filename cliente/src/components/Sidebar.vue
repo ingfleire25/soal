@@ -56,19 +56,19 @@
           <li>
             <a href="#" class="sidebar-link ps-4" @click.prevent="navigateTo('movimiento-unidades')">
               <i class="material-icons">local_shipping</i>
-              <span class="link-text ms-2">Movimiento unidades mayores</span>
+              <span class="link-text ms-2">Unidades Mayores</span>
             </a>
           </li>
           <li>
             <a href="#" class="sidebar-link ps-4" @click.prevent="navigateTo('suministro-lacustre')">
               <i class="material-icons">water</i>
-              <span class="link-text ms-2">Suministro lacustre</span>
+              <span class="link-text ms-2">Suministro Lacustre</span>
             </a>
           </li>
           <li>
             <a href="#" class="sidebar-link ps-4" @click.prevent="navigateTo('servicios-portuarios')">
               <i class="material-icons">anchor</i>
-              <span class="link-text ms-2">Servicios portuarios</span>
+              <span class="link-text ms-2">Servicios Portuarios</span>
             </a>
           </li>
         </ul>
@@ -113,7 +113,7 @@
           <li>
             <a href="#" class="sidebar-link ps-4" @click.prevent="navigateTo('movimiento-unidades', 'ver')">
               <i class="material-icons">local_shipping</i>
-              <span class="link-text ms-2">Movimiento unidades mayores</span>
+              <span class="link-text ms-2">Unidades mayores</span>
             </a>
           </li>
           <li>
@@ -144,7 +144,7 @@
       <!-- LI para PLAN -->
       <li v-if="isGerente || isSubgerente" class="sidebar-item">
         <a href="#" class="sidebar-link d-flex align-items-center justify-content-between px-3" 
-           @click.prevent="toggleSubmenu('plan')">
+           @click.prevent="navigateTo('crearViejo')">
           <div class="d-flex align-items-center">
             <i class="material-icons">add_circle</i>
             <span v-if="isExpanded" class="link-text ms-2">PLAN</span>
@@ -273,6 +273,8 @@ function navigateTo(name, mode = 'crear') {
     router.push({ name: 'tabla' });
   } else if (name === 'administracion') {
     router.push({ name: 'administracion' });
+  } else if (name === 'crearViejo') {
+    router.push({ name: 'crearViejo' });
   } else {
     router.push({ name });
   }
@@ -294,7 +296,7 @@ onBeforeUnmount(() => {
 
 <style scoped>
 #sidebar {
-  width: 260px; /* Un poco más ancho para acomodar el texto largo */
+  width: 284px; /* Un poco más ancho para acomodar el texto largo */
   background: #f5f5f5;
   min-height: 100vh;
   transition: width 0.3s ease;

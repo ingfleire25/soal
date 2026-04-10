@@ -91,7 +91,12 @@
           </div>
           <div class="col-md-6">
             <label class="form-label">Tipo de Servicio</label>
-            <input v-model="form.tipoServicio" type="text" class="form-control form-control-sm" required>
+            <select v-model="form.tipoServicio" class="form-control form-control-sm" required>
+              <option value="">Seleccione un tipo de servicio</option>
+              <option v-for="type in serviceTypes" :key="type.valdesc" :value="type.valdesc">
+                {{ type.valdesc }}
+              </option>
+            </select>
           </div>
           <div class="col-md-6">
             <label class="form-label">Aprobador</label>
@@ -151,13 +156,14 @@ export default {
         aprobador: '',
         correo: '',
         solicitante: '',
-        cedulaSolicitante: '',
-        tipoSolicitud: 'Transporte de Personal',
+        cedulaSolicitante: '',        organizacion: '',
+        codigoOrganizacion: '',        tipoSolicitud: 'Transporte de Personal',
         subtipo: 'Ocasional'
       },
-      loading: false
-    };
-  },
+      loading: false,
+      
+      // Tipos de servicio
+      serviceTypes: []
   mounted() {
     if (this.$route.query.subtipo) {
       this.form.subtipo = this.$route.query.subtipo;
@@ -168,6 +174,8 @@ export default {
       this.form.solicitante = `${user.nombres} ${user.apellidos}`;
       this.form.cedulaSolicitante = user.cedula;
     }
+    this.cargarUbicaciones();
+    this.cargarServiceTypes();
   },
   computed: {
     titulo() {
@@ -183,6 +191,13 @@ export default {
     },
     removeCcOi(index) {
       this.form.multiplesCcOi.splice(index, 1);
+    },
+    async cargarServiceTypes() {
+      try {
+        this.serviceTypes = await getServiceTypes('SUBTYPETP');
+      } catch (error) {
+        console.error("Error cargando tipos de servicio", error);
+      }
     },
     async enviar() {
       if (this.sumatoriaPorcentaje !== 100 && this.form.multiplesCcOi.length > 0) {
@@ -343,9 +358,10 @@ export default {
 </template>
 
 <script>
-import axios from 'axios'; // Asegúrate de tener axios instalado
 import { postSolicitud } from '@/services/postSolicitud';
 import { useAuthStore } from '@/stores/auth';
+import { getLocations } from '@/services/getLocations';
+import { getServiceTypes } from '@/services/getServiceTypes';
 
 export default {
   name: 'TransportePersonal',
@@ -401,8 +417,7 @@ export default {
     async cargarUbicaciones() {
       this.loadingLocations = true;
       try {
-        const response = await axios.get('http://localhost:3001/api/consultasOracle/locations/');
-        this.locations = response.data.result;
+        this.locations = await getLocations();
       } catch (error) {
         console.error("Error cargando locaciones", error);
       } finally {
@@ -547,6 +562,19 @@ export default {
             <label class="form-label fw-bold">Organización de CC/OI</label>
             <input v-model="form.organizacionCcOi" type="text" class="form-control form-control-sm" required>
           </div>
+          <div class="col-md-6">
+            <label class="form-label fw-bold">Organización</label>
+            <div class="input-group input-group-sm">
+              <input v-model="form.organizacion" type="text" class="form-control" placeholder="Buscar empresa..." readonly required>
+              <button class="btn btn-outline-primary" type="button" @click="abrirSelectorEmpresa()">
+                <i class="bi bi-search"></i>
+              </button>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-bold">Código Organización</label>
+            <input v-model="form.codigoOrganizacion" type="text" class="form-control form-control-sm" readonly>
+          </div>
 
           <div class="col-md-12">
             <label class="form-label fw-bold">Múltiples CC/OI</label>
@@ -586,9 +614,18 @@ export default {
             <label class="form-label fw-bold">Cantidad de Pasajeros</label>
             <input v-model.number="form.cantidadPasajeros" type="number" class="form-control form-control-sm" min="1" required>
           </div>
-          <div class="col-md-6">
+          <!-- <div class="col-md-6">
             <label class="form-label fw-bold">Tipo de Servicio</label>
             <input v-model="form.tipoServicio" type="text" class="form-control form-control-sm" required>
+          </div> -->
+          <div class="col-md-6">
+            <label class="form-label">Tipo de Servicio</label>
+            <select v-model="form.tipoServicio" class="form-control form-control-sm" required>
+              <option value="">Seleccione un tipo de servicio</option>
+              <option v-for="type in serviceTypes" :key="type.valdesc" :value="type.valdesc">
+                {{ type.valdesc }}
+              </option>
+            </select>
           </div>
 
           <div class="col-md-6">
@@ -673,12 +710,68 @@ export default {
       </div>
     </div>
   </Transition>
+
+  <Transition name="fade">
+    <div v-if="mostrarCompanyModal" class="modal-custom-overlay" @click.self="mostrarCompanyModal = false">
+      <div class="modal-custom-content shadow-lg">
+        <div class="modal-header bg-primary text-white p-3 d-flex justify-content-between">
+          <h5 class="mb-0">Buscar Compañía</h5>
+          <button type="button" class="btn-close btn-close-white" @click="mostrarCompanyModal = false"></button>
+        </div>
+        <div class="p-3">
+          <div class="input-group mb-3">
+            <span class="input-group-text"><i class="bi bi-search"></i></span>
+            <input
+              ref="companySearchField"
+              type="text"
+              v-model="filtroCompany"
+              class="form-control"
+              placeholder="Buscar por nombre o código"
+            >
+          </div>
+
+          <div class="results-container border rounded">
+            <div v-if="loadingCompanies" class="text-center p-5">
+              <div class="spinner-border text-primary" role="status"></div>
+              <p class="mt-2 text-muted">Cargando compañías...</p>
+            </div>
+
+            <div v-else-if="companiesFiltradas.length > 0" class="list-group list-group-flush">
+              <button
+                v-for="(company, index) in companiesFiltradas"
+                :key="index"
+                type="button"
+                class="list-group-item list-group-item-action py-2"
+                @click="seleccionarEmpresa(company)"
+              >
+                <div class="d-flex w-100 justify-content-between">
+                  <h6 class="mb-1 text-primary fw-bold">{{ company.name }}</h6>
+                  <small class="text-muted">{{ company.company }}</small>
+                </div>
+              </button>
+            </div>
+
+            <div v-else class="text-center p-5 text-muted">
+              {{ filtroCompany.length < 2 ? 'Escriba al menos 2 caracteres para buscar...' : 'No se encontraron resultados.' }}
+            </div>
+          </div>
+
+          <div class="mt-2 d-flex justify-content-between align-items-center">
+            <small class="text-muted">Mostrando {{ companiesFiltradas.length }} compañías.</small>
+            <button class="btn btn-sm btn-secondary" @click="mostrarCompanyModal = false">Cerrar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </Transition>
 </template>
 
 <script>
-import axios from 'axios';
 import { postSolicitud } from '@/services/postSolicitud';
 import { useAuthStore } from '@/stores/auth';
+import { getLocations } from '@/services/getLocations';
+import { getServiceTypes } from '@/services/getServiceTypes';
+import { getCompanies } from '@/services/getCompanies';
 
 export default {
   name: 'TransportePersonal',
@@ -693,6 +786,8 @@ export default {
         fechaInicio: '',
         fechaFin: '',
         organizacionCcOi: '',
+        organizacion: '',
+        codigoOrganizacion: '',
         multiplesCcOi: [],
         lunes: false,
         martes: false,
@@ -718,6 +813,15 @@ export default {
       mostrarModal: false,
       campoActivo: '', 
       filtroBusqueda: '',
+      
+      // Tipos de servicio
+      serviceTypes: [],
+
+      // Empresas
+      companies: [],
+      loadingCompanies: false,
+      mostrarCompanyModal: false,
+      filtroCompany: '',
       
       // Configuración de vista
       diasConfig: [
@@ -752,6 +856,16 @@ export default {
           loc.DESCRIPTION.toLowerCase().includes(termino)
         )
         .slice(0, 40); // Solo renderizamos 40 para mantener el DOM liviano
+    },
+    companiesFiltradas() {
+      const termino = this.filtroCompany.trim().toLowerCase();
+      if (termino.length < 2) return [];
+      return this.companies
+        .filter(company =>
+          (company.name || '').toLowerCase().includes(termino) ||
+          (company.company || '').toLowerCase().includes(termino)
+        )
+        .slice(0, 50);
     }
   },
   async mounted() {
@@ -768,25 +882,40 @@ export default {
       this.form.cedulaSolicitante = user.cedula;
     }
 
-    // 3. Precargar locaciones (Cache en memoria)
+    // 3. Precargar locaciones y compañías
     this.cargarUbicaciones();
+    this.cargarCompanies();
+    this.cargarServiceTypes();
   },
   methods: {
     async cargarUbicaciones() {
       if (this.locations.length > 0) return;
       this.loadingLocations = true;
       try {
-        const response = await axios.get('http://localhost:3001/api/consultasOracle/locations/');
-        if (response.data && response.data.result) {
-          this.locations = response.data.result;
-        }
+        this.locations = await getLocations();
       } catch (error) {
         console.error("Error al obtener ubicaciones:", error);
       } finally {
         this.loadingLocations = false;
       }
     },
-
+    async cargarCompanies() {
+      this.loadingCompanies = true;
+      try {
+        this.companies = await getCompanies();
+      } catch (error) {
+        console.error('Error cargando empresas:', error);
+      } finally {
+        this.loadingCompanies = false;
+      }
+    },
+    async cargarServiceTypes() {
+      try {
+        this.serviceTypes = await getServiceTypes('SUBTYPETP');
+      } catch (error) {
+        console.error("Error cargando tipos de servicio", error);
+      }
+    },
     abrirSelector(campo) {
       this.campoActivo = campo;
       this.filtroBusqueda = '';
@@ -806,6 +935,23 @@ export default {
         this.form.descripcionDestino = loc.DESCRIPTION;
       }
       this.mostrarModal = false;
+    },
+
+    abrirSelectorEmpresa() {
+      this.filtroCompany = '';
+      this.mostrarCompanyModal = true;
+      if (this.companies.length === 0) {
+        this.cargarCompanies();
+      }
+      this.$nextTick(() => {
+        this.$refs.companySearchField?.focus();
+      });
+    },
+
+    seleccionarEmpresa(company) {
+      this.form.organizacion = company.name || '';
+      this.form.codigoOrganizacion = company.company || '';
+      this.mostrarCompanyModal = false;
     },
 
     addCcOi() {

@@ -1,0 +1,15 @@
+Con la ruta http://localhost:3001/api/consultasOracle/valuelist/listname pasandole por body O PARAMS: {
+  "listname": "subtypesl"
+} para el form de servicio lacustre y servicios portuarios, {
+  "listname": "SUBTYPETP"
+} para los item de transporte personal bien sea ocacional o reccurente, y {
+  "listname": "SUBTYPEMUM"
+} para movimientos de unidades mayores, para todos los formularios llenaremos los campos de tipos de servicios de cada formulario, 
+en donde pondremo el valor de "valdesc" que viene en la consulta realizada de manera que cada formulario mostrara una lista desplegable 
+con las opciones que corresponde segun el formulario que la persone entre en el sidebar.
+ igualmente puedes crear el servicio y que cada formulario pase por body el campo listname que corresponda.
+
+
+ haremos un ultimo cambio... para servicios portuarios no vamos a hacer la busqueda de tipos de servicios. en servicios portuarios el tipo de 
+ servicio será exclusivamente de Maniobras Especiales y se especifica que la unidad a movilizar solo será Tanquero - Buque Petrolero. 
+ para transporte de personal no me aparece la opcion tipo de servicio desplegable corrigela por favor

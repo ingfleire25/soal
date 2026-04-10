@@ -1,4 +1,4 @@
-const { Labor } = require('../db');
+const { Labor } = require('../../db');
 
 const getActiveLabor = async (req, res) => {
   try {

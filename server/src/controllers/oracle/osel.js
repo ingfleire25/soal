@@ -1,4 +1,4 @@
-const { Osel } = require('../db');
+const { Osel } = require('../../db');
 
 const getOselData = async (req, res) => {
   try {

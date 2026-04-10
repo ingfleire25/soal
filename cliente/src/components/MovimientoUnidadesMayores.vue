@@ -15,19 +15,45 @@
           </div>
           <div class="col-md-6">
             <label class="form-label">Origen</label>
-            <input v-model="form.origen" type="text" class="form-control form-control-sm" required>
+            <div class="input-group input-group-sm">
+              <span class="input-group-text bg-light"><i class="bi bi-geo-alt"></i></span>
+              <input 
+                v-model="form.origen" 
+                type="text" 
+                class="form-control" 
+                placeholder="Click en buscar..." 
+                readonly 
+                required
+              >
+              <button class="btn btn-outline-primary" type="button" @click="abrirSelector('origen')">
+                <i class="bi bi-search"></i> Buscar
+              </button>
+            </div>
           </div>
           <div class="col-md-6">
             <label class="form-label">Descripción Origen</label>
-            <textarea v-model="form.descripcionOrigen" class="form-control form-control-sm" rows="2"></textarea>
+            <textarea v-model="form.descripcionOrigen" class="form-control form-control-sm" rows="2" readonly></textarea>
           </div>
           <div class="col-md-6">
             <label class="form-label">Destino</label>
-            <input v-model="form.destino" type="text" class="form-control form-control-sm" required>
+            <div class="input-group input-group-sm">
+              <span class="input-group-text bg-light"><i class="bi bi-geo-alt"></i></span>
+              <input 
+                v-model="form.destino" 
+                type="text" 
+                class="form-control" 
+                placeholder="Click en buscar..." 
+                readonly 
+                required
+              >
+              <button class="btn btn-outline-primary" type="button" @click="abrirSelector('destino')">
+                <i class="bi bi-search"></i> Buscar
+              </button>
+            </div>
           </div>
           <div class="col-md-6">
             <label class="form-label">Descripción Destino</label>
-            <textarea v-model="form.descripcionDestino" class="form-control form-control-sm" rows="2"></textarea>
+            <textarea v-model="form.descripcionDestino" class="form-control form-control-sm" rows="2" readonly></textarea>
           </div>
           <div class="col-md-6">
             <label class="form-label">Fecha Requerida de Inicio</label>
@@ -55,7 +81,12 @@
           </div>
           <div class="col-md-6">
             <label class="form-label">Tipo de Servicio</label>
-            <input v-model="form.tipoServicio" type="text" class="form-control form-control-sm" required>
+            <select v-model="form.tipoServicio" class="form-control form-control-sm" required>
+              <option value="">Seleccione un tipo de servicio</option>
+              <option v-for="type in serviceTypes" :key="type.valdesc" :value="type.valdesc">
+                {{ type.valdesc }}
+              </option>
+            </select>
           </div>
           <div class="col-md-6">
             <label class="form-label">Unidad a Movilizar</label>
@@ -88,12 +119,50 @@
         </div>
       </fieldset>
       <div class="d-flex justify-content-end">
-        <button type="submit" class="btn btn-primary" :disabled="loading">
+        <button type="submit" class="btn btn-primary" :disabled="loading || loadingLocations">
           <span v-if="loading" class="spinner-border spinner-border-sm me-2"></span>
           Enviar Solicitud
         </button>
       </div>
     </form>
+  </div>
+
+  <!-- Modal para seleccionar ubicaciones -->
+  <div v-if="mostrarModal" class="modal-overlay">
+    <div class="modal-content shadow-lg p-4">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="m-0">Seleccionar Ubicación ({{ campoActivo.toUpperCase() }})</h5>
+        <button type="button" class="btn-close" @click="mostrarModal = false"></button>
+      </div>
+
+      <div class="mb-3">
+        <input 
+          type="text" 
+          v-model="filtroBusqueda" 
+          class="form-control" 
+          placeholder="Escriba para buscar (Ej: VLA0539 o Pozo...)"
+          ref="searchField"
+        >
+        <small class="text-muted" v-if="loadingLocations">Cargando ubicaciones...</small>
+        <small class="text-muted" v-else>{{ ubicacionesFiltradas.length }} resultados encontrados</small>
+      </div>
+
+      <div class="list-group list-container">
+        <button 
+          v-for="(loc, index) in ubicacionesFiltradas" 
+          :key="index"
+          type="button"
+          class="list-group-item list-group-item-action"
+          @click="seleccionarUbicacion(loc)"
+        >
+          <strong>{{ loc.LOCATION }}</strong><br>
+          <small>{{ loc.DESCRIPTION }}</small>
+        </button>
+        <div v-if="ubicacionesFiltradas.length === 0 && !loadingLocations" class="text-center p-3">
+          No se encontraron resultados.
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -101,6 +170,9 @@
 import { postSolicitud } from '@/services/postSolicitud';
 import { useAuthStore } from '@/stores/auth';
 import { v4 as uuidv4 } from 'uuid';
+import { getLocations } from '@/services/getLocations';
+import { getServiceTypes } from '@/services/getServiceTypes';
+import { getCompanies } from '@/services/getCompanies';
 
 export default {
   name: 'MovimientoUnidadesMayores',
@@ -115,6 +187,8 @@ export default {
         descripcionDestino: '',
         fechaInicio: '',
         organizacionCcOi: '',
+        organizacion: '',
+        codigoOrganizacion: '',
         multiplesCcOi: [],
         tipoServicio: '',
         unidadMovilizar: '',
@@ -127,7 +201,21 @@ export default {
         tipoSolicitud: 'Movimiento Unidades Mayores',
         subtipo: 'Ocasional'
       },
-      loading: false
+      loading: false,
+      
+      // Lógica de ubicaciones
+      locations: [],
+      loadingLocations: false,
+      mostrarModal: false,
+      campoActivo: '', // 'origen' o 'destino'
+      filtroBusqueda: '',
+      
+      // Tipos de servicio
+      serviceTypes: [],
+      companies: [],
+      loadingCompanies: false,
+      mostrarCompanyModal: false,
+      filtroCompany: ''
     };
   },
   mounted() {
@@ -142,6 +230,9 @@ export default {
       this.form.solicitante = `${user.nombres} ${user.apellidos}`;
       this.form.cedulaSolicitante = user.cedula;
     }
+    this.cargarUbicaciones();
+    this.cargarCompanies();
+    this.cargarServiceTypes();
   },
   computed: {
     titulo() {
@@ -149,9 +240,87 @@ export default {
     },
     sumatoriaPorcentaje() {
       return this.form.multiplesCcOi.reduce((sum, cc) => sum + (cc.porcentaje || 0), 0);
+    },
+    // FILTRO INTELIGENTE: Filtra registros de forma eficiente
+    ubicacionesFiltradas() {
+      if (!this.filtroBusqueda) return []; // No mostrar nada si no hay búsqueda para no saturar el DOM
+      const term = this.filtroBusqueda.toLowerCase();
+      return this.locations
+        .filter(loc => 
+          loc.LOCATION.toLowerCase().includes(term) || 
+          loc.DESCRIPTION.toLowerCase().includes(term)
+        )
+        .slice(0, 50); // Limitamos a 50 resultados visibles por rendimiento
+    },
+    companiesFiltradas() {
+      const term = this.filtroCompany.toLowerCase().trim();
+      if (term.length < 2) return [];
+      return this.companies
+        .filter(company =>
+          (company.name || '').toLowerCase().includes(term) ||
+          (company.company || '').toLowerCase().includes(term)
+        )
+        .slice(0, 50);
     }
   },
   methods: {
+    async cargarUbicaciones() {
+      this.loadingLocations = true;
+      try {
+        this.locations = await getLocations();
+      } catch (error) {
+        console.error("Error cargando locaciones", error);
+      } finally {
+        this.loadingLocations = false;
+      }
+    },
+    async cargarServiceTypes() {
+      try {
+        this.serviceTypes = await getServiceTypes('SUBTYPEMUM');
+      } catch (error) {
+        console.error("Error cargando tipos de servicio", error);
+      }
+    },
+    async cargarCompanies() {
+      this.loadingCompanies = true;
+      try {
+        this.companies = await getCompanies();
+      } catch (error) {
+        console.error('Error cargando compañías:', error);
+      } finally {
+        this.loadingCompanies = false;
+      }
+    },
+    abrirSelectorEmpresa() {
+      this.filtroCompany = '';
+      this.mostrarCompanyModal = true;
+      if (this.companies.length === 0) {
+        this.cargarCompanies();
+      }
+      this.$nextTick(() => this.$refs.companySearchField?.focus());
+    },
+    seleccionarEmpresa(company) {
+      this.form.organizacion = company.name || '';
+      this.form.codigoOrganizacion = company.company || '';
+      this.mostrarCompanyModal = false;
+    },
+    abrirSelector(tipo) {
+      this.campoActivo = tipo;
+      this.filtroBusqueda = '';
+      this.mostrarModal = true;
+      // Pequeño timeout para dar foco al input
+      setTimeout(() => this.$refs.searchField?.focus(), 100);
+    },
+    seleccionarUbicacion(loc) {
+      if (this.campoActivo === 'origen') {
+        this.form.origen = loc.LOCATION;
+        this.form.descripcionOrigen = loc.DESCRIPTION;
+      } else {
+        this.form.destino = loc.LOCATION;
+        this.form.descripcionDestino = loc.DESCRIPTION;
+      }
+      this.mostrarModal = false;
+    },
     addCcOi() {
       this.form.multiplesCcOi.push({ ccOi: '', porcentaje: 0 });
     },
@@ -209,5 +378,24 @@ export default {
 </script>
 
 <style scoped>
+/* Estilos para el Modal */
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,0.5);
+  display: flex; justify-content: center; align-items: center;
+  z-index: 1050;
+}
+.modal-content {
+  background: white;
+  width: 90%; max-width: 600px;
+  max-height: 80vh;
+  border-radius: 8px;
+  overflow: hidden;
+}
+.list-container {
+  max-height: 400px;
+  overflow-y: auto;
+}
 /* Add any specific styles if needed */
 </style>

@@ -1,7 +1,7 @@
-const { ValueList } = require('../db');
+const { ValueList } = require('../../db');
 
 const getValueListBySubtype = async (req, res) => {
-  const { listname } = req.params; 
+  const { listname } = req.body; 
   // Podrás llamar a /api/valuelist/SUBTYPETP, etc.
   try {
     const values = await ValueList.findAll({

@@ -14,13 +14,10 @@ router.get('/modserv', consultasOracle.getAll);
 router.get('/locations', locations.getAll);
 
 router.get('/companies', companies.getCompaniesSimple);
-router.get('/valuelist/:listname', valuelist.getValueListBySubtype); // Aquí pasas SUBTYPETP, SUBTYPESL, etc.
+router.post('/valuelist/listname', valuelist.getValueListBySubtype); // Aquí pasas SUBTYPETP, SUBTYPESL, etc.
 router.get('/labor/active', labor.getActiveLabor);
 router.get('/osel', osel.getOselData);
-// router.get('/companies', oracle.getCompaniesSimple);
-// router.get('/valuelist/:listname', oracle.getValueListBySubtype); // Aquí pasas SUBTYPETP, SUBTYPESL, etc.
-// router.get('/labor/active', oracle.getActiveLabor);
-// router.get('/osel', oracle.getOselData);
+
 
 
 module.exports = router;

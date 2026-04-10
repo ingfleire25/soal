@@ -1,4 +1,4 @@
-const { Companies } = require('../db'); // Ajusta la ruta a tu archivo de unión de modelos
+const { Companies } = require('../../db'); // Ajusta la ruta a tu archivo de unión de modelos
 
 const getCompaniesSimple = async (req, res) => {
   try {

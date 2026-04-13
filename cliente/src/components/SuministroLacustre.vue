@@ -67,6 +67,19 @@
             <label class="form-label">Organización de CC/OI</label>
             <input v-model="form.organizacionCcOi" type="text" class="form-control form-control-sm" required>
           </div>
+          <div class="col-md-6">
+            <label class="form-label">Organización</label>
+            <div class="input-group input-group-sm">
+              <input v-model="form.organizacion" type="text" class="form-control" placeholder="Buscar empresa..." readonly required>
+              <button class="btn btn-outline-primary" type="button" @click="abrirSelectorEmpresa()">
+                <i class="bi bi-search"></i>
+              </button>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Código Organización</label>
+            <input v-model="form.codigoOrganizacion" type="text" class="form-control form-control-sm" readonly>
+          </div>
           <div class="col-md-12">
             <label class="form-label">Múltiples CC/OI</label>
             <div v-for="(cc, index) in form.multiplesCcOi" :key="index" class="row g-2 mb-2">
@@ -208,6 +221,45 @@
       </div>
     </div>
   </div>
+
+  <div v-if="mostrarCompanyModal" class="modal-overlay">
+    <div class="modal-content shadow-lg p-4">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="m-0">Seleccionar Organización</h5>
+        <button type="button" class="btn-close" @click="mostrarCompanyModal = false"></button>
+      </div>
+      <div class="mb-3">
+        <input
+          type="text"
+          ref="companySearchField"
+          v-model="filtroCompany"
+          class="form-control"
+          placeholder="Buscar por nombre o código"
+        >
+        <small class="text-muted" v-if="loadingCompanies">Cargando compañías...</small>
+      </div>
+      <div class="list-group list-container">
+        <button
+          v-for="(company, index) in companiesFiltradas"
+          :key="index"
+          type="button"
+          class="list-group-item list-group-item-action py-2"
+          @click="seleccionarEmpresa(company)"
+        >
+          <div class="d-flex w-100 justify-content-between">
+            <h6 class="mb-1 text-primary fw-bold">{{ company.name }}</h6>
+            <small class="text-muted">{{ company.company }}</small>
+          </div>
+        </button>
+        <div v-if="companiesFiltradas.length === 0 && !loadingCompanies" class="text-center p-3 text-muted">
+          {{ filtroCompany.length < 2 ? 'Escriba al menos 2 caracteres para buscar...' : 'No se encontraron resultados.' }}
+        </div>
+      </div>
+      <div class="mt-2 d-flex justify-content-end">
+        <button class="btn btn-sm btn-secondary" type="button" @click="mostrarCompanyModal = false">Cerrar</button>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script>
@@ -217,6 +269,7 @@ import { useAuthStore } from '@/stores/auth';
 import { v4 as uuidv4 } from 'uuid';
 import { getLocations } from '@/services/getLocations';
 import { getServiceTypes } from '@/services/getServiceTypes';
+import { getCompanies } from '@/services/getCompanies';
 
 export default {
   name: 'SuministroLacustre',
@@ -232,6 +285,8 @@ export default {
         fechaInicio: '',
         fechaFin: '',
         organizacionCcOi: '',
+        organizacion: '',
+        codigoOrganizacion: '',
         multiplesCcOi: [],
         tipoServicio: '',
         personaEnvia: '',
@@ -258,7 +313,11 @@ export default {
       filtroBusqueda: '',
       
       // Tipos de servicio
-      serviceTypes: []
+      serviceTypes: [],
+      companies: [],
+      loadingCompanies: false,
+      mostrarCompanyModal: false,
+      filtroCompany: ''
     };
   },
   mounted() {
@@ -275,6 +334,7 @@ export default {
     }
     this.loadMateriales();
     this.cargarUbicaciones();
+    this.cargarCompanies();
     this.cargarServiceTypes();
   },
   computed: {
@@ -283,6 +343,16 @@ export default {
     },
     sumatoriaPorcentaje() {
       return this.form.multiplesCcOi.reduce((sum, cc) => sum + (cc.porcentaje || 0), 0);
+    },
+    companiesFiltradas() {
+      const term = this.filtroCompany.trim().toLowerCase();
+      if (term.length < 2) return [];
+      return this.companies
+        .filter(company =>
+          (company.name || '').toLowerCase().includes(term) ||
+          (company.company || '').toLowerCase().includes(term)
+        )
+        .slice(0, 50);
     },
     // FILTRO INTELIGENTE: Filtra registros de forma eficiente
     ubicacionesFiltradas() {
@@ -313,6 +383,29 @@ export default {
       } finally {
         this.loadingLocations = false;
       }
+    },
+    async cargarCompanies() {
+      this.loadingCompanies = true;
+      try {
+        this.companies = await getCompanies();
+      } catch (error) {
+        console.error('Error cargando compañías:', error);
+      } finally {
+        this.loadingCompanies = false;
+      }
+    },
+    abrirSelectorEmpresa() {
+      this.filtroCompany = '';
+      this.mostrarCompanyModal = true;
+      if (this.companies.length === 0) {
+        this.cargarCompanies();
+      }
+      this.$nextTick(() => this.$refs.companySearchField?.focus());
+    },
+    seleccionarEmpresa(company) {
+      this.form.organizacion = company.name || '';
+      this.form.codigoOrganizacion = company.company || '';
+      this.mostrarCompanyModal = false;
     },
     async cargarServiceTypes() {
       try {
@@ -410,6 +503,8 @@ export default {
         fechaInicio: '',
         fechaFin: '',
         organizacionCcOi: '',
+        organizacion: '',
+        codigoOrganizacion: '',
         multiplesCcOi: [],
         tipoServicio: '',
         personaEnvia: '',

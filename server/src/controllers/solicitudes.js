@@ -1,4 +1,27 @@
 const { Solicitud, SuministroLacustre, ServiciosPortuarios, Materiales } = require('../db');
+const { Op } = require('sequelize');
+
+const getNextSequentialId = async (model, prefix) => {
+  const latest = await model.findOne({
+    where: { id: { [Op.like]: `${prefix}-%` } },
+    order: [['id', 'DESC']],
+    attributes: ['id']
+  });
+
+  let nextNumber = 1;
+  if (latest && latest.id) {
+    const match = latest.id.match(new RegExp(`^${prefix}-(\\d{4})$`));
+    if (match) {
+      nextNumber = parseInt(match[1], 10) + 1;
+    }
+  }
+
+  return `${prefix}-${String(nextNumber).padStart(4, '0')}`;
+};
+
+const normalizeOrganizacionCcOi = (body) => {
+  return body.organizacionCcOi || body.codigoOrganizacion || body.organizacion || '';
+};
 
 // Controller for storing and retrieving transport requests
 
@@ -20,13 +43,16 @@ exports.getAll = async (req, res) => {
 };
 
 exports.postSolicitud = async (req, res) => {
-  const {
+  let {
     descripcion, origen, descripcionOrigen, destino, descripcionDestino,
     fechaInicio, fechaFin, organizacionCcOi, multiplesCcOi,
     lunes, martes, miercoles, jueves, viernes, sabado, domingo,
     cantidadPasajeros, tipoServicio, aprobador, correo, solicitante,
-    cedulaSolicitante, tipoSolicitud, subtipo, unidadMovilizar, descripcionUnidad, fecha
+    cedulaSolicitante, tipoSolicitud, subtipo, unidadMovilizar, descripcionUnidad, fecha, modserv
   } = req.body;
+
+  organizacionCcOi = normalizeOrganizacionCcOi(req.body);
+  const payload = { ...req.body, organizacionCcOi };
 
   // Required fields validation based on tipoSolicitud
   const requiredFields = ['descripcion', 'origen', 'destino', 'fechaInicio', 'organizacionCcOi', 'tipoServicio', 'aprobador', 'correo', 'solicitante', 'cedulaSolicitante', 'tipoSolicitud'];
@@ -35,7 +61,7 @@ exports.postSolicitud = async (req, res) => {
   }
 
   for (const field of requiredFields) {
-    if (!req.body[field]) {
+    if (!payload[field]) {
       return res.status(400).json({ statusCode: 400, statusText: `Falta el campo obligatorio: ${field}` });
     }
   }
@@ -50,7 +76,9 @@ exports.postSolicitud = async (req, res) => {
       }
     }
 
+    const id = await getNextSequentialId(Solicitud, tipoSolicitud === 'Movimiento Unidades Mayores' ? 'MUN' : 'TP');
     const nueva = await Solicitud.create({
+      id,
       descripcion,
       origen,
       descripcionOrigen,
@@ -80,7 +108,8 @@ exports.postSolicitud = async (req, res) => {
       motivoRechazo: null,
       unidadMovilizar,
       descripcionUnidad,
-      fecha
+      fecha,
+      modserv
     });
     res.status(201).json({ statusCode: 201, statusText: 'Solicitud creada', result: nueva });
   } catch (err) {
@@ -91,13 +120,15 @@ exports.postSolicitud = async (req, res) => {
 
 exports.updateSolicitud = async (req, res) => {
   const { id } = req.params;
-  const {
+  let {
     descripcion, origen, descripcionOrigen, destino, descripcionDestino,
     fechaInicio, fechaFin, organizacionCcOi, multiplesCcOi,
     lunes, martes, miercoles, jueves, viernes, sabado, domingo,
     cantidadPasajeros, tipoServicio, aprobador, correo, tipoSolicitud,
-    subtipo
+    subtipo, modserv
   } = req.body;
+
+  organizacionCcOi = normalizeOrganizacionCcOi(req.body);
 
   try {
     let solicitud = await Solicitud.findByPk(id);
@@ -105,6 +136,10 @@ exports.updateSolicitud = async (req, res) => {
     if (!solicitud) {
       solicitud = await SuministroLacustre.findByPk(id);
       modelo = 'SuministroLacustre';
+    }
+    if (!solicitud) {
+      solicitud = await ServiciosPortuarios.findByPk(id);
+      modelo = 'ServiciosPortuarios';
     }
 
     if (!solicitud) {
@@ -115,10 +150,10 @@ exports.updateSolicitud = async (req, res) => {
       descripcion, origen, descripcionOrigen, destino, descripcionDestino,
       fechaInicio, fechaFin, organizacionCcOi, multiplesCcOi,
       lunes, martes, miercoles, jueves, viernes, sabado, domingo,
-      cantidadPasajeros, tipoServicio, aprobador, correo, tipoSolicitud, subtipo
+      cantidadPasajeros, tipoServicio, aprobador, correo, tipoSolicitud, subtipo, modserv
     });
 
-    res.status(200).json({ statusCode: 200, statusText: 'Solicitud actualizada', result: { ...solicitud.dataValues, tipoTabla: modelo === 'Solicitud' ? 'solicitudes' : 'suministroLacustre' } });
+    res.status(200).json({ statusCode: 200, statusText: 'Solicitud actualizada', result: { ...solicitud.dataValues, tipoTabla: modelo === 'Solicitud' ? 'solicitudes' : modelo === 'SuministroLacustre' ? 'suministroLacustre' : 'serviciosPortuarios' } });
   } catch (err) {
     console.error(err);
     res.status(500).json({ statusCode: 500, statusText: 'Error al actualizar solicitud', error: err.message });
@@ -140,6 +175,10 @@ exports.cambiarEstado = async (req, res) => {
       solicitud = await SuministroLacustre.findByPk(id);
       modelo = 'SuministroLacustre';
     }
+    if (!solicitud) {
+      solicitud = await ServiciosPortuarios.findByPk(id);
+      modelo = 'ServiciosPortuarios';
+    }
 
     if (!solicitud) {
       return res.status(404).json({ statusCode: 404, statusText: 'Solicitud no encontrada' });
@@ -150,7 +189,7 @@ exports.cambiarEstado = async (req, res) => {
       motivoRechazo: estado === 'rechazada' ? motivoRechazo || null : null
     });
 
-    res.status(200).json({ statusCode: 200, statusText: 'Estado actualizado', result: { ...solicitud.dataValues, tipoTabla: modelo === 'Solicitud' ? 'solicitudes' : 'suministroLacustre' } });
+    res.status(200).json({ statusCode: 200, statusText: 'Estado actualizado', result: { ...solicitud.dataValues, tipoTabla: modelo === 'Solicitud' ? 'solicitudes' : modelo === 'SuministroLacustre' ? 'suministroLacustre' : 'serviciosPortuarios' } });
   } catch (err) {
     console.error(err);
     res.status(500).json({ statusCode: 500, statusText: 'Error al actualizar estado', error: err.message });
@@ -158,18 +197,21 @@ exports.cambiarEstado = async (req, res) => {
 };
 
 exports.postSuministroLacustre = async (req, res) => {
-  const {
+  let {
     descripcion, origen, descripcionOrigen, destino, descripcionDestino,
     fechaInicio, fechaFin, organizacionCcOi, multiplesCcOi,
     tipoServicio, personaEnvia, descripcionPersonaEnvia, personaRecibe, descripcionPersonaRecibe,
     aprobador, correo, solicitante, cedulaSolicitante, fecha, subtipo, materiales
   } = req.body;
 
+  organizacionCcOi = normalizeOrganizacionCcOi(req.body);
+  const payload = { ...req.body, organizacionCcOi };
+
   // Required fields
   const requiredFields = ['descripcion', 'origen', 'destino', 'fechaInicio', 'fechaFin', 'organizacionCcOi', 'tipoServicio', 'personaEnvia', 'descripcionPersonaEnvia', 'personaRecibe', 'descripcionPersonaRecibe', 'aprobador', 'correo', 'solicitante', 'cedulaSolicitante', 'materiales'];
 
   for (const field of requiredFields) {
-    if (!req.body[field]) {
+    if (!payload[field]) {
       return res.status(400).json({ statusCode: 400, statusText: `Falta el campo obligatorio: ${field}` });
     }
   }
@@ -188,7 +230,9 @@ exports.postSuministroLacustre = async (req, res) => {
       }
     }
 
+    const id = await getNextSequentialId(SuministroLacustre, 'SL');
     const nueva = await SuministroLacustre.create({
+      id,
       descripcion,
       origen,
       descripcionOrigen,
@@ -209,6 +253,7 @@ exports.postSuministroLacustre = async (req, res) => {
       solicitante,
       cedulaSolicitante,
       fecha,
+      tipoSolicitud: 'Suministro Lacustre',
       subtipo,
       estado: 'pendiente',
       motivoRechazo: null
@@ -234,22 +279,27 @@ exports.postSuministroLacustre = async (req, res) => {
 };
 
 exports.postServiciosPortuarios = async (req, res) => {
-  const {
+  let {
     descripcion, origen, descripcionOrigen, destino, descripcionDestino,
     fechaInicio, organizacionCcOi, multiplesCcOi, sumatoriaPorcentaje,
     tipoServicio, unidadMovilizar, aprobador, correo, solicitante, cedulaSolicitante,
     fecha, subtipo
   } = req.body;
 
+  organizacionCcOi = normalizeOrganizacionCcOi(req.body);
+  const payload = { ...req.body, organizacionCcOi };
+
   const requiredFields = ['descripcion', 'origen', 'destino', 'fechaInicio', 'organizacionCcOi', 'tipoServicio', 'unidadMovilizar', 'aprobador', 'correo', 'solicitante', 'cedulaSolicitante', 'fecha'];
   for (const field of requiredFields) {
-    if (!req.body[field]) {
+    if (!payload[field]) {
       return res.status(400).json({ statusCode: 400, statusText: `Falta el campo obligatorio: ${field}` });
     }
   }
 
   try {
+    const id = await getNextSequentialId(ServiciosPortuarios, 'SP');
     const nuevo = await ServiciosPortuarios.create({
+      id,
       descripcion,
       origen,
       descripcionOrigen,
@@ -266,6 +316,7 @@ exports.postServiciosPortuarios = async (req, res) => {
       solicitante,
       cedulaSolicitante,
       fecha,
+      tipoSolicitud: 'Servicios Portuarios',
       subtipo,
       estado: 'pendiente',
       motivoRechazo: null

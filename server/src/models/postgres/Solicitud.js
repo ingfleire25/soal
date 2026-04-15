@@ -3,8 +3,7 @@ const { DataTypes } = require( 'sequelize' );
 module.exports = ( sequelize ) => {
     sequelize.define('solicitud', {
         id: {
-            type: DataTypes.UUID,
-            defaultValue: DataTypes.UUIDV4,
+            type: DataTypes.STRING,
             primaryKey: true,
             allowNull: false
         },
@@ -37,6 +36,7 @@ module.exports = ( sequelize ) => {
         motivoRechazo: { type: DataTypes.TEXT, allowNull: true },
         unidadMovilizar: { type: DataTypes.STRING, allowNull: true },
         descripcionUnidad: { type: DataTypes.TEXT, allowNull: true },
-        fecha: { type: DataTypes.DATE, allowNull: true }
+        fecha: { type: DataTypes.DATE, allowNull: true },
+        modserv: { type: DataTypes.STRING, allowNull: true }
     }, { timestamps: true });
 };

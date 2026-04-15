@@ -1,494 +1,3 @@
-<!-- <template>
-<h4 class="text-primary mb-4">{{ titulo }}</h4>
-  <div class="container bg-white p-4 shadow-sm rounded">
-    <form @submit.prevent="enviar">
-      <fieldset class="border p-3 mb-4 rounded">
-        <legend class="w-auto px-2 fs-5 text-primary">Detalles de la Solicitud</legend>
-        <div class="row g-3">
-          <div class="col-md-6">
-            <label class="form-label">Descripción</label>
-            <textarea v-model="form.descripcion" class="form-control form-control-sm" rows="2" required></textarea>
-          </div>
-          <div></div>
-          <div class="col-md-6">
-            <label class="form-label">Origen</label>
-            <input v-model="form.origen" type="text" class="form-control form-control-sm" required>
-          </div>
-          <div class="col-md-6">
-            <label class="form-label">Descripción Origen</label>
-            <textarea v-model="form.descripcionOrigen" class="form-control form-control-sm" rows="2"></textarea>
-          </div>
-          <div class="col-md-6">
-            <label class="form-label">Destino</label>
-            <input v-model="form.destino" type="text" class="form-control form-control-sm" required>
-          </div>
-          <div class="col-md-6">
-            <label class="form-label">Descripción Destino</label>
-            <textarea v-model="form.descripcionDestino" class="form-control form-control-sm" rows="2"></textarea>
-          </div>
-          <div class="col-md-6">
-            <label class="form-label">Fecha Requerida de Inicio</label>
-            <input v-model="form.fechaInicio" type="date" class="form-control form-control-sm" required>
-          </div>
-          <div class="col-md-6">
-            <label class="form-label">Fecha Requerida de Finalización</label>
-            <input v-model="form.fechaFin" type="date" class="form-control form-control-sm" required>
-          </div>
-          <div class="col-md-6">
-            <label class="form-label">Organización de CC/OI</label>
-            <input v-model="form.organizacionCcOi" type="text" class="form-control form-control-sm" required>
-          </div>
-          <div class="col-md-12">
-            <label class="form-label">Múltiples CC/OI</label>
-            <div v-for="(cc, index) in form.multiplesCcOi" :key="index" class="row g-2 mb-2">
-              <div class="col-md-8">
-                <input v-model="cc.ccOi" type="text" class="form-control form-control-sm" placeholder="CC/OI">
-              </div>
-              <div class="col-md-3">
-                <input v-model.number="cc.porcentaje" type="number" class="form-control form-control-sm" placeholder="Porcentaje">
-              </div>
-              <div class="col-md-1">
-                <button type="button" class="btn btn-sm btn-outline-danger" @click="removeCcOi(index)">X</button>
-              </div>
-            </div>
-            <button type="button" class="btn btn-sm btn-outline-primary" @click="addCcOi">Agregar CC/OI</button>
-            <div class="mt-2">Sumatoria %: {{ sumatoriaPorcentaje }}%</div>
-          </div>
-          <div class="col-md-12">
-            <label class="form-label">Días de la Semana</label>
-            <div class="form-check form-check-inline">
-              <input v-model="form.lunes" class="form-check-input" type="checkbox" id="lunes">
-              <label class="form-check-label" for="lunes">L</label>
-            </div>
-            <div class="form-check form-check-inline">
-              <input v-model="form.martes" class="form-check-input" type="checkbox" id="martes">
-              <label class="form-check-label" for="martes">M</label>
-            </div>
-            <div class="form-check form-check-inline">
-              <input v-model="form.miercoles" class="form-check-input" type="checkbox" id="miercoles">
-              <label class="form-check-label" for="miercoles">M</label>
-            </div>
-            <div class="form-check form-check-inline">
-              <input v-model="form.jueves" class="form-check-input" type="checkbox" id="jueves">
-              <label class="form-check-label" for="jueves">J</label>
-            </div>
-            <div class="form-check form-check-inline">
-              <input v-model="form.viernes" class="form-check-input" type="checkbox" id="viernes">
-              <label class="form-check-label" for="viernes">V</label>
-            </div>
-            <div class="form-check form-check-inline">
-              <input v-model="form.sabado" class="form-check-input" type="checkbox" id="sabado">
-              <label class="form-check-label" for="sabado">S</label>
-            </div>
-            <div class="form-check form-check-inline">
-              <input v-model="form.domingo" class="form-check-input" type="checkbox" id="domingo">
-              <label class="form-check-label" for="domingo">D</label>
-            </div>
-          </div>
-          <div class="col-md-6">
-            <label class="form-label">Cantidad de Pasajeros</label>
-            <input v-model.number="form.cantidadPasajeros" type="number" class="form-control form-control-sm" required>
-          </div>
-          <div class="col-md-6">
-            <label class="form-label">Tipo de Servicio</label>
-            <select v-model="form.tipoServicio" class="form-control form-control-sm" required>
-              <option value="">Seleccione un tipo de servicio</option>
-              <option v-for="type in serviceTypes" :key="type.valdesc" :value="type.valdesc">
-                {{ type.valdesc }}
-              </option>
-            </select>
-          </div>
-          <div class="col-md-6">
-            <label class="form-label">Aprobador</label>
-            <input v-model="form.aprobador" type="text" class="form-control form-control-sm" required>
-          </div>
-          <div class="col-md-6">
-            <label class="form-label">Correo</label>
-            <input v-model="form.correo" type="email" class="form-control form-control-sm" required>
-          </div>
-          <div class="col-md-6">
-            <label class="form-label">Solicitante</label>
-            <input v-model="form.solicitante" type="text" class="form-control form-control-sm" readonly>
-          </div>
-          <div class="col-md-6">
-            <label class="form-label">Cédula Solicitante</label>
-            <input v-model="form.cedulaSolicitante" type="text" class="form-control form-control-sm" readonly>
-          </div>
-        </div>
-      </fieldset>
-      <div class="d-flex justify-content-end">
-        <button type="submit" class="btn btn-primary" :disabled="loading">
-          <span v-if="loading" class="spinner-border spinner-border-sm me-2"></span>
-          Enviar Solicitud
-        </button>
-      </div>
-    </form>
-  </div>
-</template>
-
-<script>
-import { postSolicitud } from '@/services/postSolicitud';
-import { useAuthStore } from '@/stores/auth';
-
-export default {
-  name: 'TransportePersonal',
-  data() {
-    return {
-      form: {
-        descripcion: '',
-        origen: '',
-        descripcionOrigen: '',
-        destino: '',
-        descripcionDestino: '',
-        fechaInicio: '',
-        fechaFin: '',
-        organizacionCcOi: '',
-        multiplesCcOi: [],
-        lunes: false,
-        martes: false,
-        miercoles: false,
-        jueves: false,
-        viernes: false,
-        sabado: false,
-        domingo: false,
-        cantidadPasajeros: 1,
-        tipoServicio: '',
-        aprobador: '',
-        correo: '',
-        solicitante: '',
-        cedulaSolicitante: '',        organizacion: '',
-        codigoOrganizacion: '',        tipoSolicitud: 'Transporte de Personal',
-        subtipo: 'Ocasional'
-      },
-      loading: false,
-      
-      // Tipos de servicio
-      serviceTypes: []
-  mounted() {
-    if (this.$route.query.subtipo) {
-      this.form.subtipo = this.$route.query.subtipo;
-    }
-    const authStore = useAuthStore();
-    const user = authStore.user?.value;
-    if (user) {
-      this.form.solicitante = `${user.nombres} ${user.apellidos}`;
-      this.form.cedulaSolicitante = user.cedula;
-    }
-    this.cargarUbicaciones();
-    this.cargarServiceTypes();
-  },
-  computed: {
-    titulo() {
-      return `Crear Solicitud (${this.form.subtipo}) - Transporte de Personal`;
-    },
-    sumatoriaPorcentaje() {
-      return this.form.multiplesCcOi.reduce((sum, cc) => sum + (cc.porcentaje || 0), 0);
-    }
-  },
-  methods: {
-    addCcOi() {
-      this.form.multiplesCcOi.push({ ccOi: '', porcentaje: 0 });
-    },
-    removeCcOi(index) {
-      this.form.multiplesCcOi.splice(index, 1);
-    },
-    async cargarServiceTypes() {
-      try {
-        this.serviceTypes = await getServiceTypes('SUBTYPETP');
-      } catch (error) {
-        console.error("Error cargando tipos de servicio", error);
-      }
-    },
-    async enviar() {
-      if (this.sumatoriaPorcentaje !== 100 && this.form.multiplesCcOi.length > 0) {
-        alert('La suma de porcentajes debe ser 100%');
-        return;
-      }
-      this.loading = true;
-      try {
-        await postSolicitud(this.form);
-        alert('Solicitud enviada exitosamente');
-        this.resetForm();
-      } catch (error) {
-        alert('Error al enviar solicitud: ' + error.statusText);
-      } finally {
-        this.loading = false;
-      }
-    },
-    resetForm() {
-      const currentSolicitante = this.form.solicitante;
-      const currentCedula = this.form.cedulaSolicitante;
-      const currentSubtipo = this.form.subtipo;
-      // Reset form
-      Object.assign(this.form, {
-        descripcion: '',
-        origen: '',
-        descripcionOrigen: '',
-        destino: '',
-        descripcionDestino: '',
-        fechaInicio: '',
-        fechaFin: '',
-        organizacionCcOi: '',
-        multiplesCcOi: [],
-        lunes: false,
-        martes: false,
-        miercoles: false,
-        jueves: false,
-        viernes: false,
-        sabado: false,
-        domingo: false,
-        cantidadPasajeros: 1,
-        tipoServicio: '',
-        aprobador: '',
-        correo: '',
-        solicitante: currentSolicitante,
-        cedulaSolicitante: currentCedula,
-        tipoSolicitud: 'Transporte de Personal',
-        subtipo: currentSubtipo
-      });
-    }
-  }
-};
-</script>
-
-<style scoped>
-/* Add any specific styles if needed */
-</style> -->
-
-
-
-<!-- 
-<template>
-  <h4 class="text-primary mb-4">{{ titulo }}</h4>
-  <div class="container bg-white p-4 shadow-sm rounded">
-    <form @submit.prevent="enviar">
-      <fieldset class="border p-3 mb-4 rounded">
-        <legend class="w-auto px-2 fs-5 text-primary">Detalles de la Solicitud</legend>
-        <div class="row g-3">
-          <div class="col-md-6">
-            <label class="form-label">Descripción</label>
-            <textarea v-model="form.descripcion" class="form-control form-control-sm" rows="2" required></textarea>
-          </div>
-          <div></div>
-
-          <div class="col-md-6">
-            <label class="form-label">Origen</label>
-            <div class="input-group input-group-sm">
-              <input v-model="form.origen" type="text" class="form-control" readonly placeholder="Seleccione origen..." required>
-              <button class="btn btn-outline-primary" type="button" @click="abrirSelector('origen')">
-                <i class="bi bi-search"></i> Buscar
-              </button>
-            </div>
-          </div>
-          <div class="col-md-6">
-            <label class="form-label">Descripción Origen</label>
-            <textarea v-model="form.descripcionOrigen" class="form-control form-control-sm" rows="2" readonly></textarea>
-          </div>
-
-          <div class="col-md-6">
-            <label class="form-label">Destino</label>
-            <div class="input-group input-group-sm">
-              <input v-model="form.destino" type="text" class="form-control" readonly placeholder="Seleccione destino..." required>
-              <button class="btn btn-outline-primary" type="button" @click="abrirSelector('destino')">
-                <i class="bi bi-search"></i> Buscar
-              </button>
-            </div>
-          </div>
-          <div class="col-md-6">
-            <label class="form-label">Descripción Destino</label>
-            <textarea v-model="form.descripcionDestino" class="form-control form-control-sm" rows="2" readonly></textarea>
-          </div>
-
-          <div class="col-md-6">
-            <label class="form-label">Fecha Requerida de Inicio</label>
-            <input v-model="form.fechaInicio" type="date" class="form-control form-control-sm" required>
-          </div>
-          <div class="col-md-6">
-            <label class="form-label">Fecha Requerida de Finalización</label>
-            <input v-model="form.fechaFin" type="date" class="form-control form-control-sm" required>
-          </div>
-          </div>
-      </fieldset>
-
-      <div class="d-flex justify-content-end mt-3">
-        <button type="submit" class="btn btn-primary" :disabled="loading || loadingLocations">
-          <span v-if="loading" class="spinner-border spinner-border-sm me-2"></span>
-          Enviar Solicitud
-        </button>
-      </div>
-    </form>
-  </div>
-
-  <div v-if="mostrarModal" class="modal-overlay">
-    <div class="modal-content shadow-lg p-4">
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <h5 class="m-0">Seleccionar Ubicación ({{ campoActivo.toUpperCase() }})</h5>
-        <button type="button" class="btn-close" @click="mostrarModal = false"></button>
-      </div>
-
-      <div class="mb-3">
-        <input 
-          type="text" 
-          v-model="filtroBusqueda" 
-          class="form-control" 
-          placeholder="Escriba para buscar (Ej: VLA0539 o Pozo...)"
-          ref="searchField"
-        >
-        <small class="text-muted" v-if="loadingLocations">Cargando ubicaciones...</small>
-        <small class="text-muted" v-else>{{ ubicacionesFiltradas.length }} resultados encontrados</small>
-      </div>
-
-      <div class="list-group list-container">
-        <button 
-          v-for="(loc, index) in ubicacionesFiltradas" 
-          :key="index"
-          type="button"
-          class="list-group-item list-group-item-action"
-          @click="seleccionarUbicacion(loc)"
-        >
-          <strong>{{ loc.LOCATION }}</strong><br>
-          <small>{{ loc.DESCRIPTION }}</small>
-        </button>
-        <div v-if="ubicacionesFiltradas.length === 0 && !loadingLocations" class="text-center p-3">
-          No se encontraron resultados.
-        </div>
-      </div>
-    </div>
-  </div>
-</template>
-
-<script>
-import { postSolicitud } from '@/services/postSolicitud';
-import { useAuthStore } from '@/stores/auth';
-import { getLocations } from '@/services/getLocations';
-import { getServiceTypes } from '@/services/getServiceTypes';
-
-export default {
-  name: 'TransportePersonal',
-  data() {
-    return {
-      form: {
-        descripcion: '', origen: '', descripcionOrigen: '', destino: '', descripcionDestino: '',
-        fechaInicio: '', fechaFin: '', organizacionCcOi: '', multiplesCcOi: [],
-        lunes: false, martes: false, miercoles: false, jueves: false, viernes: false, sabado: false, domingo: false,
-        cantidadPasajeros: 1, tipoServicio: '', aprobador: '', correo: '', solicitante: '', cedulaSolicitante: '',
-        tipoSolicitud: 'Transporte de Personal', subtipo: 'Ocasional'
-      },
-      loading: false,
-      
-      // Lógica de ubicaciones
-      locations: [],
-      loadingLocations: false,
-      mostrarModal: false,
-      campoActivo: '', // 'origen' o 'destino'
-      filtroBusqueda: ''
-    };
-  },
-  computed: {
-    titulo() {
-      return `Crear Solicitud (${this.form.subtipo}) - Transporte de Personal`;
-    },
-    sumatoriaPorcentaje() {
-      return this.form.multiplesCcOi.reduce((sum, cc) => sum + (cc.porcentaje || 0), 0);
-    },
-    // FILTRO INTELIGENTE: Filtra 40,000 registros de forma eficiente
-    ubicacionesFiltradas() {
-      if (!this.filtroBusqueda) return []; // No mostrar nada si no hay búsqueda para no saturar el DOM
-      const term = this.filtroBusqueda.toLowerCase();
-      return this.locations
-        .filter(loc => 
-          loc.LOCATION.toLowerCase().includes(term) || 
-          loc.DESCRIPTION.toLowerCase().includes(term)
-        )
-        .slice(0, 50); // Limitamos a 50 resultados visibles por rendimiento
-    }
-  },
-  mounted() {
-    this.cargarUbicaciones();
-    // (Tu lógica original de auth...)
-    const authStore = useAuthStore();
-    const user = authStore.user?.value;
-    if (user) {
-      this.form.solicitante = `${user.nombres} ${user.apellidos}`;
-      this.form.cedulaSolicitante = user.cedula;
-    }
-  },
-  methods: {
-    async cargarUbicaciones() {
-      this.loadingLocations = true;
-      try {
-        this.locations = await getLocations();
-      } catch (error) {
-        console.error("Error cargando locaciones", error);
-      } finally {
-        this.loadingLocations = false;
-      }
-    },
-    abrirSelector(tipo) {
-      this.campoActivo = tipo;
-      this.filtroBusqueda = '';
-      this.mostrarModal = true;
-      // Pequeño timeout para dar foco al input
-      setTimeout(() => this.$refs.searchField?.focus(), 100);
-    },
-    seleccionarUbicacion(loc) {
-      if (this.campoActivo === 'origen') {
-        this.form.origen = loc.LOCATION;
-        this.form.descripcionOrigen = loc.DESCRIPTION;
-      } else {
-        this.form.destino = loc.LOCATION;
-        this.form.descripcionDestino = loc.DESCRIPTION;
-      }
-      this.mostrarModal = false;
-    },
-    // ... Tus métodos addCcOi, removeCcOi, enviar y resetForm se mantienen igual
-    addCcOi() { this.form.multiplesCcOi.push({ ccOi: '', porcentaje: 0 }); },
-    removeCcOi(index) { this.form.multiplesCcOi.splice(index, 1); },
-    async enviar() {
-        if (this.sumatoriaPorcentaje !== 100 && this.form.multiplesCcOi.length > 0) {
-            alert('La suma de porcentajes debe ser 100%');
-            return;
-        }
-        this.loading = true;
-        try {
-            await postSolicitud(this.form);
-            alert('Solicitud enviada exitosamente');
-            this.resetForm();
-        } catch (error) {
-            alert('Error al enviar solicitud');
-        } finally {
-            this.loading = false;
-        }
-    },
-    resetForm() {
-        // ... misma lógica que ya tenías
-    }
-  }
-};
-</script>
-
-<style scoped>
-/* Estilos para el Modal */
-.modal-overlay {
-  position: fixed;
-  top: 0; left: 0; width: 100%; height: 100%;
-  background: rgba(0,0,0,0.5);
-  display: flex; justify-content: center; align-items: center;
-  z-index: 1050;
-}
-.modal-content {
-  background: white;
-  width: 90%; max-width: 600px;
-  max-height: 80vh;
-  border-radius: 8px;
-  overflow: hidden;
-}
-.list-container {
-  max-height: 400px;
-  overflow-y: auto;
-}
-</style> -->
-
 <template>
   <h4 class="text-primary mb-4">{{ titulo }}</h4>
   <div class="container bg-white p-4 shadow-sm rounded">
@@ -501,7 +10,13 @@ export default {
             <label class="form-label fw-bold">Descripción</label>
             <textarea v-model="form.descripcion" class="form-control form-control-sm" rows="2" required></textarea>
           </div>
-          <div class="col-md-6"></div>
+          <div v-if="form.subtipo === 'Recurrente'" class="col-md-6">
+            <label class="form-label fw-bold">Servicio Recurrente</label>
+            <select v-model="form.modserv" class="form-control form-control-sm" required>
+              <option value="">Seleccione un servicio</option>
+              <option v-for="serv in modserv" :key="serv.modnum" :value="serv.modnum">{{ serv.modnum }} - {{ serv.moddesc }}</option>
+            </select>
+          </div>
 
           <div class="col-md-6">
             <label class="form-label fw-bold">Origen</label>
@@ -558,10 +73,6 @@ export default {
             <input v-model="form.fechaFin" type="date" class="form-control form-control-sm" required>
           </div>
 
-          <div class="col-md-6">
-            <label class="form-label fw-bold">Organización de CC/OI</label>
-            <input v-model="form.organizacionCcOi" type="text" class="form-control form-control-sm" required>
-          </div>
           <div class="col-md-6">
             <label class="form-label fw-bold">Organización</label>
             <div class="input-group input-group-sm">
@@ -772,6 +283,7 @@ import { useAuthStore } from '@/stores/auth';
 import { getLocations } from '@/services/getLocations';
 import { getServiceTypes } from '@/services/getServiceTypes';
 import { getCompanies } from '@/services/getCompanies';
+import { getModserv } from '@/services/getModserv';
 
 export default {
   name: 'TransportePersonal',
@@ -803,7 +315,8 @@ export default {
         solicitante: '',
         cedulaSolicitante: '',
         tipoSolicitud: 'Transporte de Personal',
-        subtipo: 'Ocasional'
+        subtipo: 'Ocasional',
+        modserv: ''
       },
       loading: false,
       
@@ -822,8 +335,9 @@ export default {
       loadingCompanies: false,
       mostrarCompanyModal: false,
       filtroCompany: '',
+      modserv: [],
       
-      // Configuración de vista
+      // Configuración de vista 
       diasConfig: [
         { label: 'L', model: 'lunes' },
         { label: 'M', model: 'martes' },
@@ -886,6 +400,7 @@ export default {
     this.cargarUbicaciones();
     this.cargarCompanies();
     this.cargarServiceTypes();
+    this.cargarModserv();
   },
   methods: {
     async cargarUbicaciones() {
@@ -914,6 +429,13 @@ export default {
         this.serviceTypes = await getServiceTypes('SUBTYPETP');
       } catch (error) {
         console.error("Error cargando tipos de servicio", error);
+      }
+    },
+    async cargarModserv() {
+      try {
+        this.modserv = await getModserv();
+      } catch (error) {
+        console.error("Error cargando modserv", error);
       }
     },
     abrirSelector(campo) {
@@ -951,6 +473,7 @@ export default {
     seleccionarEmpresa(company) {
       this.form.organizacion = company.name || '';
       this.form.codigoOrganizacion = company.company || '';
+      this.form.organizacionCcOi = company.company || company.name || '';
       this.mostrarCompanyModal = false;
     },
 

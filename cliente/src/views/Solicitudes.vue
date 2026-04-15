@@ -5,12 +5,14 @@ import { useAuthStore } from '@/stores/auth';
 import { getSolicitudes } from '@/services/getSolicitudes';
 import { updateSolicitud } from '@/services/updateSolicitud';
 import { cambiarEstado } from '@/services/cambiarEstado';
+import { getCompanies } from '@/services/getCompanies';
 
 const route = useRoute();
 const auth = useAuthStore();
 const lista = ref([]);
 const error = ref('');
 const loading = ref(false);
+const companies = ref([]);
 
 const userFullName = computed(() => {
   const usuario = auth.user?.value;
@@ -37,6 +39,14 @@ const cargarSolicitudes = async () => {
     error.value = e.statusText || 'No se pudieron cargar las solicitudes';
   } finally {
     loading.value = false;
+  }
+};
+
+const cargarCompanies = async () => {
+  try {
+    companies.value = await getCompanies();
+  } catch (e) {
+    console.error('Error cargando compañías:', e);
   }
 };
 
@@ -106,7 +116,6 @@ const guardarEdicion = async () => {
       fechaInicio: editForm.value.fechaInicio,
       fechaFin: editForm.value.fechaFin,
       organizacionCcOi: editForm.value.organizacionCcOi,
-      multiplesCcOi: editForm.value.multiplesCcOi,
       lunes: editForm.value.lunes,
       martes: editForm.value.martes,
       miercoles: editForm.value.miercoles,
@@ -128,7 +137,10 @@ const guardarEdicion = async () => {
   }
 };
 
-onMounted(cargarSolicitudes);
+onMounted(() => {
+  cargarSolicitudes();
+  cargarCompanies();
+});
 watch([filtroTipo, filtroSubtipo], cargarSolicitudes);
 </script>
 
@@ -142,54 +154,56 @@ watch([filtroTipo, filtroSubtipo], cargarSolicitudes);
     <p v-if="error" class="error">{{ error }}</p>
     <p v-if="loading" class="text-info">Cargando solicitudes...</p>
 
-    <table v-if="!loading && lista.length" class="table table-striped table-left">
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Tipo</th>
-          <th>Subtipo</th>
-          <th>Solicitante</th>
-          <th>Cédula</th>
-          <th>Origen</th>
-          <th>Destino</th>
-          <th>Fecha Inicio</th>
-          <th>Fecha Fin</th>
-          <th>Estado</th>
-          <th>Motivo Rechazo</th>
-          <th>Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="s in lista" :key="s.id">
-          <td>{{ s.id }}</td>
-          <td>{{ s.tipoSolicitud }}</td>
-          <td>{{ s.subtipo }}</td>
-          <td>{{ s.solicitante }}</td>
-          <td>{{ s.cedulaSolicitante }}</td>
-          <td>{{ s.origen }}</td>
-          <td>{{ s.destino }}</td>
-          <td>{{ new Date(s.fechaInicio).toLocaleDateString() }}</td>
-          <td>{{ s.fechaFin ? new Date(s.fechaFin).toLocaleDateString() : '-' }}</td>
-          <td>
-            <span
-              :class="{
-                'badge bg-warning': s.estado === 'pendiente',
-                'badge bg-success': s.estado === 'aprobada',
-                'badge bg-danger': s.estado === 'rechazada'
-              }"
-            >
-              {{ s.estado }}
-            </span>
-          </td>
-          <td>{{ s.motivoRechazo || '-' }}</td>
-          <td>
-            <button v-if="puedeEditar(s)" @click="iniciarEdicion(s)" class="btn btn-sm btn-primary me-1">Editar</button>
-            <button v-if="puedeAprobar(s)" @click="aprobar(s)" class="btn btn-sm btn-success me-1">Aprobar</button>
-            <button v-if="puedeAprobar(s)" @click="rechazar(s)" class="btn btn-sm btn-danger">Rechazar</button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+    <div class="table-responsive">
+      <table v-if="!loading && lista.length" class="table table-striped table-left">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Tipo</th>
+            <th>Subtipo</th>
+            <th>Solicitante</th>
+            <th>Cédula</th>
+            <th>Origen</th>
+            <th>Destino</th>
+            <th>Fecha Inicio</th>
+            <th>Fecha Fin</th>
+            <th>Estado</th>
+            <th>Motivo Rechazo</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="s in lista" :key="s.id">
+            <td>{{ s.id }}</td>
+            <td>{{ s.tipoSolicitud }}</td>
+            <td>{{ s.subtipo }}</td>
+            <td>{{ s.solicitante }}</td>
+            <td>{{ s.cedulaSolicitante }}</td>
+            <td>{{ s.origen }}</td>
+            <td>{{ s.destino }}</td>
+            <td>{{ new Date(s.fechaInicio).toLocaleDateString() }}</td>
+            <td>{{ s.fechaFin ? new Date(s.fechaFin).toLocaleDateString() : '-' }}</td>
+            <td>
+              <span
+                :class="{
+                  'badge bg-warning': s.estado === 'pendiente',
+                  'badge bg-success': s.estado === 'aprobada',
+                  'badge bg-danger': s.estado === 'rechazada'
+                }"
+              >
+                {{ s.estado }}
+              </span>
+            </td>
+            <td>{{ s.motivoRechazo || '-' }}</td>
+            <td>
+              <button v-if="puedeEditar(s)" @click="iniciarEdicion(s)" class="btn btn-sm btn-primary me-1">Editar</button>
+              <button v-if="puedeAprobar(s)" @click="aprobar(s)" class="btn btn-sm btn-success me-1">Aprobar</button>
+              <button v-if="puedeAprobar(s)" @click="rechazar(s)" class="btn btn-sm btn-danger">Rechazar</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
 
     <p v-if="!loading && !lista.length" class="text-secondary">No hay solicitudes.</p>
 
@@ -232,8 +246,11 @@ watch([filtroTipo, filtroSubtipo], cargarSolicitudes);
                 <input type="date" class="form-control" v-model="editForm.fechaFin" />
               </div>
               <div class="col-md-6">
-                <label class="form-label">Organización CC/OI</label>
-                <input class="form-control" v-model="editForm.organizacionCcOi" />
+                <label class="form-label">Código de Organización</label>
+                <select class="form-control" v-model="editForm.organizacionCcOi">
+                  <option value="">Seleccione...</option>
+                  <option v-for="comp in companies" :key="comp.company" :value="comp.company">{{ comp.company }} - {{ comp.name }}</option>
+                </select>
               </div>
               <div class="col-md-6">
                 <label class="form-label">Tipo servicio</label>
@@ -266,8 +283,6 @@ watch([filtroTipo, filtroSubtipo], cargarSolicitudes);
 <style scoped>
 .tabla-container { max-width: 100%; margin: 0; padding: 1rem; }
 .table-left { margin-left: 0; }
-.table { width: 100%; border-collapse: collapse; }
-th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
 .error { color: red; }
 </style>
 <style>

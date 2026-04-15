@@ -5,11 +5,7 @@
       <fieldset class="border p-3 mb-4 rounded">
         <legend class="w-auto px-2 fs-5 text-primary">Detalles de la Solicitud</legend>
         <div class="row g-3">
-          <div class="col-md-6">
-            <label class="form-label">Requisición</label>
-            <input v-model="form.id" type="text" class="form-control form-control-sm" readonly>
-          </div>
-          <div class="col-md-6">
+            <div class="col-md-6">
             <label class="form-label">Descripción</label>
             <textarea v-model="form.descripcion" class="form-control form-control-sm" rows="2" required></textarea>
           </div>
@@ -64,10 +60,7 @@
             <input v-model="form.fechaFin" type="date" class="form-control form-control-sm" required>
           </div>
           <div class="col-md-6">
-            <label class="form-label">Organización de CC/OI</label>
-            <input v-model="form.organizacionCcOi" type="text" class="form-control form-control-sm" required>
-          </div>
-          <div class="col-md-6">
+
             <label class="form-label">Organización</label>
             <div class="input-group input-group-sm">
               <input v-model="form.organizacion" type="text" class="form-control" placeholder="Buscar empresa..." readonly required>
@@ -266,7 +259,6 @@
 import { postSuministroLacustre } from '@/services/postSuministroLacustre';
 import { getMateriales } from '@/services/getMateriales';
 import { useAuthStore } from '@/stores/auth';
-import { v4 as uuidv4 } from 'uuid';
 import { getLocations } from '@/services/getLocations';
 import { getServiceTypes } from '@/services/getServiceTypes';
 import { getCompanies } from '@/services/getCompanies';
@@ -276,7 +268,6 @@ export default {
   data() {
     return {
       form: {
-        id: '',
         descripcion: '',
         origen: '',
         descripcionOrigen: '',
@@ -324,7 +315,6 @@ export default {
     if (this.$route.query.subtipo) {
       this.form.subtipo = this.$route.query.subtipo;
     }
-    this.form.id = uuidv4();
     this.form.fecha = new Date().toISOString().split('T')[0];
     const authStore = useAuthStore();
     const user = authStore.user?.value;
@@ -405,6 +395,7 @@ export default {
     seleccionarEmpresa(company) {
       this.form.organizacion = company.name || '';
       this.form.codigoOrganizacion = company.company || '';
+      this.form.organizacionCcOi = company.company || company.name || '';
       this.mostrarCompanyModal = false;
     },
     async cargarServiceTypes() {
@@ -470,7 +461,6 @@ export default {
       this.loading = true;
       try {
         const dataToSend = { ...this.form };
-        delete dataToSend.id;
         // Map materiales to include renglon and descripcion
         dataToSend.materiales = dataToSend.materiales.map(m => ({
           renglon: m.renglon,
@@ -494,7 +484,6 @@ export default {
       const currentSubtipo = this.form.subtipo;
       const currentFecha = this.form.fecha;
       Object.assign(this.form, {
-        id: uuidv4(),
         descripcion: '',
         origen: '',
         descripcionOrigen: '',

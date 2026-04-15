@@ -3,8 +3,7 @@ const { DataTypes } = require('sequelize');
 module.exports = (sequelize) => {
   sequelize.define('serviciosPortuarios', {
     id: {
-      type: DataTypes.UUID,
-      defaultValue: DataTypes.UUIDV4,
+      type: DataTypes.STRING,
       primaryKey: true,
       allowNull: false
     },
@@ -29,4 +28,4 @@ module.exports = (sequelize) => {
     estado: { type: DataTypes.ENUM('pendiente', 'aprobada', 'rechazada'), defaultValue: 'pendiente', allowNull: false },
     motivoRechazo: { type: DataTypes.TEXT, allowNull: true }
   }, { timestamps: true });
-};
+}; 

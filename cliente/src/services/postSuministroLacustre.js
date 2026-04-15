@@ -1,6 +1,18 @@
 import { api } from '@/utils/axios';
 
 export const postSuministroLacustre = async (data) => {
-  const response = await api.post('/api/solicitudes/suministro-lacustre', data);
-  return response.data.result;
+  try {
+    const response = await api.post('/api/solicitudes/suministro-lacustre', data);
+    return response.data.result;
+  } catch (error) {
+    let err = {};
+    if (error.response) {
+      err.status = error.response.status;
+      err.statusText = error.response.data.statusText || error.response.statusText;
+    } else {
+      err.status = 503;
+      err.statusText = 'Servicio no disponible. Contacte a su administrador para más información';
+    }
+    throw err;
+  }
 };

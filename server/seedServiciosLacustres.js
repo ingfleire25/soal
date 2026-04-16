@@ -3,6 +3,7 @@ const { conn, SuministroLacustre, Materiales } = require('./src/db');
 
 const serviciosLacustresSeed = [
   {
+    id: 'SL-0001',
     descripcion: 'Suministro de materiales para construcción de muelle',
     origen: 'Almacén Central',
     descripcionOrigen: 'Depósito de materiales de construcción',
@@ -33,6 +34,7 @@ const serviciosLacustresSeed = [
     ]
   },
   {
+    id: 'SL-0002',
     descripcion: 'Entrega de suministros para mantenimiento portuario',
     origen: 'Centro de Distribución',
     descripcionOrigen: 'Instalaciones de logística',
@@ -66,6 +68,7 @@ const serviciosLacustresSeed = [
     ]
   },
   {
+    id: 'SL-0003',
     descripcion: 'Suministro de equipos para dragado lacustre',
     origen: 'Fábrica de Equipos',
     descripcionOrigen: 'Planta de manufactura especializada',

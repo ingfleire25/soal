@@ -458,6 +458,10 @@ export default {
         alert('Debe agregar al menos un material');
         return;
       }
+      if (!this.form.codigoOrganizacion.trim()) {
+        alert('Debe seleccionar una organización');
+        return;
+      }
       this.loading = true;
       try {
         const dataToSend = { ...this.form };

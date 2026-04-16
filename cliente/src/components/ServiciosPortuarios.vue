@@ -378,6 +378,10 @@ export default {
         alert('La suma de porcentajes debe ser 100%');
         return;
       }
+      if (!this.form.codigoOrganizacion.trim()) {
+        alert('Debe seleccionar una organización');
+        return;
+      }
       this.loading = true;
       try {
         const { id, ...payload } = this.form;

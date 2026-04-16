@@ -11,10 +11,10 @@
             <textarea v-model="form.descripcion" class="form-control form-control-sm" rows="2" required></textarea>
           </div>
           <div v-if="form.subtipo === 'Recurrente'" class="col-md-6">
-            <label class="form-label fw-bold">Servicio Recurrente</label>
+            <label class="form-label fw-bold">Modalidad</label>
             <select v-model="form.modserv" class="form-control form-control-sm" required>
-              <option value="">Seleccione un servicio</option>
-              <option v-for="serv in modserv" :key="serv.modnum" :value="serv.modnum">{{ serv.modnum }} - {{ serv.moddesc }}</option>
+              <option value="">Seleccione una modalidad</option>
+              <option v-for="serv in modserv" :key="serv.modnum" :value="serv.modnum">{{ serv.modnum }} - {{ serv.description }}</option>
             </select>
           </div>
 
@@ -490,7 +490,10 @@ export default {
         alert('La suma de porcentajes de CC/OI debe ser exactamente 100%');
         return;
       }
-
+      if (!this.form.codigoOrganizacion.trim()) {
+        alert('Debe seleccionar una organización');
+        return;
+      }
       this.loading = true;
       try {
         await postSolicitud(this.form);

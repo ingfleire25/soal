@@ -3,6 +3,7 @@ const { conn, Solicitud } = require('./src/db');
 
 const solicitudesSeed = [
   {
+    id: 'TP-0001',
     descripcion: 'Traslado de equipo de trabajo al punto A',
     origen: 'Sede Principal',
     descripcionOrigen: 'Recepción y áreas administrativas',
@@ -28,9 +29,11 @@ const solicitudesSeed = [
     tipoSolicitud: 'Transporte de Personal',
     subtipo: 'Ocasional',
     estado: 'pendiente',
-    motivoRechazo: null
+    motivoRechazo: null,
+    fecha: new Date().toISOString().split('T')[0]
   },
   {
+    id: 'TP-0002',
     descripcion: 'Transporte recurrente de cuadrilla de mantenimiento',
     origen: 'Base de Operaciones',
     descripcionOrigen: 'Almacén y área de equipos',
@@ -59,9 +62,12 @@ const solicitudesSeed = [
     tipoSolicitud: 'Transporte de Personal',
     subtipo: 'Recurrente',
     estado: 'pendiente',
-    motivoRechazo: null
+    motivoRechazo: null,
+    modserv: '0001',
+    fecha: new Date().toISOString().split('T')[0]
   },
   {
+    id: 'MUN-0001',
     descripcion: 'Movimiento de grúa pesada al sitio de construcción',
     origen: 'Depósito Central',
     descripcionOrigen: 'Área de almacenamiento de equipos pesados',
@@ -84,6 +90,7 @@ const solicitudesSeed = [
     fecha: new Date().toISOString().split('T')[0]
   },
   {
+    id: 'MUN-0002',
     descripcion: 'Traslado de excavadora al proyecto minero',
     origen: 'Taller de Mantenimiento',
     descripcionOrigen: 'Instalaciones de reparación y preparación de equipos',

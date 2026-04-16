@@ -6,6 +6,7 @@ router.use('/api/auth', require('./auth'));
 router.use('/api/solicitudes', require('./solicitudes'));
 router.use('/api/materiales', require('./materiales'));
 router.use('/api/usuarios', require('./usuarios'));
+router.use('/api/evaluaciones', require('./evaluaciones'));
 router.use('/api/consultasOracle', require('./consultasOracle'));
 
 module.exports = router;

@@ -6,12 +6,14 @@ const Login = () => import('@/views/Login.vue');
 const Crear = () => import('@/views/CrearSolicitud.vue');
 const Tabla = () => import('@/views/Solicitudes.vue');
 const Dashboard = () => import('@/views/Dashboard.vue');
+const PlanDashboard = () => import('@/views/PlanDashboard.vue');
 const Administracion = () => import('@/views/Administracion.vue');
 const NoAutorizado = () => import('@/views/NoAutorizado.vue');
 const TransportePersonal = () => import('@/components/TransportePersonal.vue');
 const MovimientoUnidadesMayores = () => import('@/components/MovimientoUnidadesMayores.vue');
 const SuministroLacustre = () => import('@/components/SuministroLacustre.vue');
 const ServiciosPortuarios = () => import('@/components/ServiciosPortuarios.vue');
+const EvaluacionServicio = () => import('@/components/EvaluacionServicio.vue');
 
 const routes = [
   { path: '/', redirect: '/iniciar-sesion' },
@@ -41,6 +43,12 @@ const routes = [
     meta: { roles: ['Gerente'] }
   },
   {
+    path: '/plan',
+    name: 'plan',
+    component: PlanDashboard,
+    meta: { roles: ['Gerente', 'Subgerente'] }
+  },
+  {
     path: '/crear/transporte-personal',
     name: 'transporte-personal',
     component: TransportePersonal,
@@ -62,6 +70,12 @@ const routes = [
     path: '/crear/servicios-portuarios',
     name: 'crear-servicios-portuarios',
     component: ServiciosPortuarios,
+    meta: { roles: ['Gerente', 'Subgerente', 'Supervisor', 'Analista'] }
+  },
+  {
+    path: '/evaluacion',
+    name: 'evaluacion',
+    component: EvaluacionServicio,
     meta: { roles: ['Gerente', 'Subgerente', 'Supervisor', 'Analista'] }
   },
   {

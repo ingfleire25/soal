@@ -144,23 +144,21 @@
       <!-- LI para PLAN -->
       <li v-if="isGerente || isSubgerente" class="sidebar-item">
         <a href="#" class="sidebar-link d-flex align-items-center justify-content-between px-3" 
-           @click.prevent="navigateTo('crearViejo')">
+           @click.prevent="navigateTo('plan')">
           <div class="d-flex align-items-center">
-            <i class="material-icons">add_circle</i>
+            <i class="material-icons">calendar_month</i>
             <span v-if="isExpanded" class="link-text ms-2">PLAN</span>
           </div>
-          <i v-if="isExpanded" class="material-icons arrow-icon" :class="{ 'rotate': submenus.plan }">expand_more</i>
         </a>
       </li>
       <!-- LI para Evaluacion -->
       <li v-if="isGerente || isSubgerente || isSupervisor || isAnalista" class="sidebar-item">
         <a href="#" class="sidebar-link d-flex align-items-center justify-content-between px-3" 
-           @click.prevent="toggleSubmenu('evaluacion')">
+           @click.prevent="navigateTo('evaluacion')">
           <div class="d-flex align-items-center">
-            <i class="material-icons">add_circle</i>
+            <i class="material-icons">rate_review</i>
             <span v-if="isExpanded" class="link-text ms-2">Evaluacion</span>
           </div>
-          <i v-if="isExpanded" class="material-icons arrow-icon" :class="{ 'rotate': submenus.evaluacion }">expand_more</i>
         </a>
       </li>
       <!-- LI para Administracion -->
@@ -275,6 +273,8 @@ function navigateTo(name, mode = 'crear') {
     router.push({ name: 'administracion' });
   } else if (name === 'crearViejo') {
     router.push({ name: 'crearViejo' });
+  } else if (name === 'plan') {
+    router.push({ name: 'plan' });
   } else {
     router.push({ name });
   }

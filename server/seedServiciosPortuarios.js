@@ -3,6 +3,7 @@ const { conn, ServiciosPortuarios } = require('./src/db');
 
 const serviciosPortuariosSeed = [
   {
+    id: 'SP-0001',
     descripcion: 'Maniobras especiales para carga pesada',
     origen: 'Puerto Principal',
     descripcionOrigen: 'Área de atraque A',
@@ -25,6 +26,7 @@ const serviciosPortuariosSeed = [
     motivoRechazo: null
   },
   {
+    id: 'SP-0002',
     descripcion: 'Servicio especial de maniobra de plataforma',
     origen: 'Refinería Sur',
     descripcionOrigen: 'Muelles de carga pesada',

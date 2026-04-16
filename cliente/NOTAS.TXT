@@ -36,3 +36,5 @@ enviar	@	TransportePersonal.vue:499
 (anonymous)	@	TransportePersonal.vue:4
 postSolicitud.js:5 
  POST http://localhost:3001/api/solicitudes 500 (Internal Server Error)
+
+

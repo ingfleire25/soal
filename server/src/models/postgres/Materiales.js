@@ -14,7 +14,7 @@ module.exports = (sequelize) => {
     fechaEntregaMuelle: { type: DataTypes.DATE, allowNull: false },
     observacion: { type: DataTypes.TEXT, allowNull: true },
     suministroLacustreId: {
-      type: DataTypes.UUID,
+      type: DataTypes.STRING,
       allowNull: true
     }
   }, { timestamps: true });

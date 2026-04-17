@@ -15,26 +15,17 @@
 
  la tabla de solicitudes que sea respectiva. solo debe traer los solicitudes que yo cree.
 
+ARREGAL ESTILOS DEL SIDEBAR PARA que oculte las letras si la tabla se agranda.
 
-:3001/api/solicitude…vicios-portuarios:1 
- Failed to load resource: the server responded with a status of 400 (Bad Request)
+estabilizar estilos del componente plandashboard que no rompan el sidebar.
 
-postSuministroLacustre.js:4 
- POST http://localhost:3001/api/solicitudes/suministro-lacustre 400 (Bad Request)
-postSuministroLacustre	@	postSuministroLacustre.js:4
-enviar	@	SuministroLacustre.vue:471
-(anonymous)	@	SuministroLacustre.vue:4
-postSolicitud.js:5 
- POST http://localhost:3001/api/solicitudes 400 (Bad Request)
-postSolicitud	@	postSolicitud.js:5
-enviar	@	MovimientoUnidadesMayores.vue:381
-(anonymous)	@	MovimientoUnidadesMayores.vue:4
-postSolicitud.js:5 
- POST http://localhost:3001/api/solicitudes 500 (Internal Server Error)
-postSolicitud	@	postSolicitud.js:5
-enviar	@	TransportePersonal.vue:499
-(anonymous)	@	TransportePersonal.vue:4
-postSolicitud.js:5 
- POST http://localhost:3001/api/solicitudes 500 (Internal Server Error)
+que ningun componenete rompa el sidebar al agrandar.
 
+que se minimice la imagen del logotipo de pdvsa tambien.
+
+quitar el menu ver solicitudes y dejar ODTS.
+
+crear el menu estadisticas que arroje graficamente indicadores de gestion sobre el trabajo realizado segun las respuesta de la evaluacion de servicios.
+
+crear historico 
 

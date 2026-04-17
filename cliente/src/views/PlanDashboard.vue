@@ -1,5 +1,6 @@
 <template>
-  <div class="plan-dashboard container py-4">
+  <!-- APERTURA DE ETIQUETA PRIINCIPAL -->
+  <!-- <div class="plan-dashboard container py-4"> -->
     <h1 class="mb-3">Planificación semanal</h1>
     <p class="text-muted mb-4">
       Solicitudes aprobadas y vigentes en la semana del
@@ -11,27 +12,44 @@
     <div v-if="error" class="alert alert-danger">{{ error }}</div>
 
     <div v-if="!loading && !error" class="row gy-3 mb-4">
-      <div class="col-md-4">
-        <div class="card shadow-sm h-100">
-          <div class="card-body">
-            <h5 class="card-title">Total aprobadas</h5>
-            <p class="display-6 mb-0">{{ totalSolicitudes }}</p>
+      <!-- Etiquetas por tipo de solicitud -->
+      <div class="col-md-4 col-lg-2-4">
+        <div class="card shadow-sm h-100 bg-light">
+          <div class="card-body text-center">
+            <h6 class="card-title small">Transporte Personal Ocasional</h6>
+            <p class="display-6 mb-0">{{ countTransporteOcasional }}</p>
           </div>
         </div>
       </div>
-      <div class="col-md-4">
-        <div class="card shadow-sm h-100">
-          <div class="card-body">
-            <h5 class="card-title">Transporte de Personal</h5>
-            <p class="display-6 mb-0">{{ countByType('Transporte de Personal') }}</p>
+      <div class="col-md-4 col-lg-2-4">
+        <div class="card shadow-sm h-100 bg-light">
+          <div class="card-body text-center">
+            <h6 class="card-title small">Transporte Personal Recurrente</h6>
+            <p class="display-6 mb-0">{{ countTransporteRecurrente }}</p>
           </div>
         </div>
       </div>
-      <div class="col-md-4">
-        <div class="card shadow-sm h-100">
-          <div class="card-body">
-            <h5 class="card-title">Solicitudes vigentes</h5>
-            <p class="display-6 mb-0">{{ totalSolicitudes }}</p>
+      <div class="col-md-4 col-lg-2-4">
+        <div class="card shadow-sm h-100 bg-light">
+          <div class="card-body text-center">
+            <h6 class="card-title small">Movimiento Unidades Mayores</h6>
+            <p class="display-6 mb-0">{{ countMovimientoUnidades }}</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4 col-lg-2-4">
+        <div class="card shadow-sm h-100 bg-light">
+          <div class="card-body text-center">
+            <h6 class="card-title small">Suministro Lacustre</h6>
+            <p class="display-6 mb-0">{{ countSuministroLacustre }}</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4 col-lg-2-4">
+        <div class="card shadow-sm h-100 bg-light">
+          <div class="card-body text-center">
+            <h6 class="card-title small">Servicios Portuarios</h6>
+            <p class="display-6 mb-0">{{ countServiciosPortuarios }}</p>
           </div>
         </div>
       </div>
@@ -44,7 +62,10 @@
             <th>ID</th>
             <th>Tipo</th>
             <th>Subtipo</th>
+            <th>Descripción</th>
             <th>Solicitante</th>
+            <th>Aprobador</th>
+            <th>Correo</th>
             <th>Fecha Inicio</th>
             <th>Fecha Fin</th>
             <th>Origen</th>
@@ -56,7 +77,10 @@
             <td>{{ sol.id }}</td>
             <td>{{ sol.tipoSolicitud }}</td>
             <td>{{ sol.subtipo || '-' }}</td>
+            <td>{{ sol.descripcion || '-' }}</td>
             <td>{{ sol.solicitante }}</td>
+            <td>{{ sol.aprobador || '-' }}</td>
+            <td>{{ sol.correo || '-' }}</td>
             <td>{{ formatoFecha(sol.fechaInicio) }}</td>
             <td>{{ sol.fechaFin ? formatoFecha(sol.fechaFin) : '-' }}</td>
             <td>{{ sol.origen }}</td>
@@ -69,7 +93,8 @@
     <div v-if="!loading && !filteredSolicitudes.length" class="alert alert-secondary">
       No hay solicitudes aprobadas vigentes para esta semana.
     </div>
-  </div>
+    <!-- CIERRE DE DIV PRINCIPAL LE FALTAN ESTILOS -->
+  <!-- </div> -->
 </template>
 
 <script setup>
@@ -111,6 +136,36 @@ const filteredSolicitudes = computed(() => {
 });
 
 const totalSolicitudes = computed(() => filteredSolicitudes.value.length);
+
+const countTransporteOcasional = computed(() => {
+  return filteredSolicitudes.value.filter((sol) =>
+    sol.tipoSolicitud === 'Transporte de Personal' && sol.subtipo === 'Ocasional'
+  ).length;
+});
+
+const countTransporteRecurrente = computed(() => {
+  return filteredSolicitudes.value.filter((sol) =>
+    sol.tipoSolicitud === 'Transporte de Personal' && sol.subtipo === 'Recurrente'
+  ).length;
+});
+
+const countMovimientoUnidades = computed(() => {
+  return filteredSolicitudes.value.filter((sol) =>
+    sol.tipoSolicitud === 'Movimiento Unidades Mayores'
+  ).length;
+});
+
+const countSuministroLacustre = computed(() => {
+  return filteredSolicitudes.value.filter((sol) =>
+    sol.tipoSolicitud === 'Suministro Lacustre'
+  ).length;
+});
+
+const countServiciosPortuarios = computed(() => {
+  return filteredSolicitudes.value.filter((sol) =>
+    sol.tipoSolicitud === 'Servicios Portuarios'
+  ).length;
+});
 
 const countByType = (tipo) => {
   return filteredSolicitudes.value.filter((sol) => sol.tipoSolicitud === tipo).length;

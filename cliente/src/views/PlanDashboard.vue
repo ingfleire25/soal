@@ -1,8 +1,7 @@
 <template>
-  <!-- APERTURA DE ETIQUETA PRIINCIPAL -->
-  <!-- <div class="plan-dashboard container py-4"> -->
+  <div class="plan-dashboard container-fluid py-4">
     <h1 class="mb-3">Planificación semanal</h1>
-    <p class="text-muted mb-4">
+    <p class="text-muted mb-4 fecha-actual">
       Solicitudes aprobadas y vigentes en la semana del
       <strong>{{ formatoFecha(startOfWeek) }}</strong> al
       <strong>{{ formatoFecha(endOfWeek) }}</strong>.
@@ -13,49 +12,49 @@
 
     <div v-if="!loading && !error" class="row gy-3 mb-4">
       <!-- Etiquetas por tipo de solicitud -->
-      <div class="col-md-4 col-lg-2-4">
+      <div class="col-6 col-sm-4 col-md-3 col-lg-2">
         <div class="card shadow-sm h-100 bg-light">
           <div class="card-body text-center">
             <h6 class="card-title small">Transporte Personal Ocasional</h6>
-            <p class="display-6 mb-0">{{ countTransporteOcasional }}</p>
+            <p class="display-6 mb-0 numero-total">{{ countTransporteOcasional }}</p>
           </div>
         </div>
       </div>
-      <div class="col-md-4 col-lg-2-4">
+      <div class="col-6 col-sm-4 col-md-3 col-lg-2">
         <div class="card shadow-sm h-100 bg-light">
           <div class="card-body text-center">
             <h6 class="card-title small">Transporte Personal Recurrente</h6>
-            <p class="display-6 mb-0">{{ countTransporteRecurrente }}</p>
+            <p class="display-6 mb-0 numero-total">{{ countTransporteRecurrente }}</p>
           </div>
         </div>
       </div>
-      <div class="col-md-4 col-lg-2-4">
+      <div class="col-6 col-sm-4 col-md-3 col-lg-2">
         <div class="card shadow-sm h-100 bg-light">
           <div class="card-body text-center">
             <h6 class="card-title small">Movimiento Unidades Mayores</h6>
-            <p class="display-6 mb-0">{{ countMovimientoUnidades }}</p>
+            <p class="display-6 mb-0 numero-total">{{ countMovimientoUnidades }}</p>
           </div>
         </div>
       </div>
-      <div class="col-md-4 col-lg-2-4">
+      <div class="col-6 col-sm-4 col-md-3 col-lg-2">
         <div class="card shadow-sm h-100 bg-light">
           <div class="card-body text-center">
             <h6 class="card-title small">Suministro Lacustre</h6>
-            <p class="display-6 mb-0">{{ countSuministroLacustre }}</p>
+            <p class="display-6 mb-0 numero-total">{{ countSuministroLacustre }}</p>
           </div>
         </div>
       </div>
-      <div class="col-md-4 col-lg-2-4">
+      <div class="col-6 col-sm-4 col-md-3 col-lg-2">
         <div class="card shadow-sm h-100 bg-light">
           <div class="card-body text-center">
             <h6 class="card-title small">Servicios Portuarios</h6>
-            <p class="display-6 mb-0">{{ countServiciosPortuarios }}</p>
+            <p class="display-6 mb-0 numero-total">{{ countServiciosPortuarios }}</p>
           </div>
         </div>
       </div>
     </div>
 
-    <div v-if="!loading && filteredSolicitudes.length" class="table-responsive">
+    <div v-if="!loading && filteredSolicitudes.length" class="table-responsive tabla-dashboard">
       <table class="table table-striped table-hover align-middle">
         <thead>
           <tr>
@@ -93,8 +92,8 @@
     <div v-if="!loading && !filteredSolicitudes.length" class="alert alert-secondary">
       No hay solicitudes aprobadas vigentes para esta semana.
     </div>
-    <!-- CIERRE DE DIV PRINCIPAL LE FALTAN ESTILOS -->
-  <!-- </div> -->
+  </div>
+
 </template>
 
 <script setup>
@@ -188,5 +187,22 @@ onMounted(cargarSolicitudes);
 </script>
 
 <style scoped>
-.plan-dashboard { max-width: 1100px; margin: auto; }
+.plan-dashboard {
+  max-width: 100%;
+}
+
+.fecha-actual {
+  font-size: 1.2rem;
+}
+
+.numero-total {
+  background-color: #f8f9fa;
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+}
+
+.tabla-dashboard {
+  max-width: 100%;
+  overflow-x: auto;
+}
 </style>

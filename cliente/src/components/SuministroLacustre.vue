@@ -11,19 +11,26 @@
           </div>
           <div class="col-md-6">
             <label class="form-label">Origen</label>
-            <div class="input-group input-group-sm">
-              <span class="input-group-text bg-light"><i class="bi bi-geo-alt"></i></span>
+            <div class="position-relative">
               <input 
-                v-model="form.origen" 
+                v-model="searchOrigen" 
                 type="text" 
-                class="form-control" 
-                placeholder="Click en buscar..." 
-                readonly 
+                class="form-control form-control-sm" 
+                placeholder="Buscar ubicación..." 
                 required
               >
-              <button class="btn btn-outline-primary" type="button" @click="abrirSelector('origen')">
-                <i class="bi bi-search"></i> Buscar
-              </button>
+              <div v-if="ubicacionesFiltradasOrigen.length > 0" class="dropdown-menu show w-100" style="max-height: 200px; overflow-y: auto;">
+                <button 
+                  v-for="(loc, index) in ubicacionesFiltradasOrigen" 
+                  :key="index"
+                  type="button"
+                  class="dropdown-item"
+                  @click="seleccionarOrigen(loc)"
+                >
+                  <strong>{{ loc.LOCATION }}</strong><br>
+                  <small>{{ loc.DESCRIPTION }}</small>
+                </button>
+              </div>
             </div>
           </div>
           <div class="col-md-6">
@@ -32,19 +39,26 @@
           </div>
           <div class="col-md-6">
             <label class="form-label">Destino</label>
-            <div class="input-group input-group-sm">
-              <span class="input-group-text bg-light"><i class="bi bi-geo-alt"></i></span>
+            <div class="position-relative">
               <input 
-                v-model="form.destino" 
+                v-model="searchDestino" 
                 type="text" 
-                class="form-control" 
-                placeholder="Click en buscar..." 
-                readonly 
+                class="form-control form-control-sm" 
+                placeholder="Buscar ubicación..." 
                 required
               >
-              <button class="btn btn-outline-primary" type="button" @click="abrirSelector('destino')">
-                <i class="bi bi-search"></i> Buscar
-              </button>
+              <div v-if="ubicacionesFiltradasDestino.length > 0" class="dropdown-menu show w-100" style="max-height: 200px; overflow-y: auto;">
+                <button 
+                  v-for="(loc, index) in ubicacionesFiltradasDestino" 
+                  :key="index"
+                  type="button"
+                  class="dropdown-item"
+                  @click="seleccionarDestino(loc)"
+                >
+                  <strong>{{ loc.LOCATION }}</strong><br>
+                  <small>{{ loc.DESCRIPTION }}</small>
+                </button>
+              </div>
             </div>
           </div>
           <div class="col-md-6">
@@ -53,20 +67,35 @@
           </div>
           <div class="col-md-6">
             <label class="form-label">Fecha Requerida de Inicio</label>
-            <input v-model="form.fechaInicio" type="date" class="form-control form-control-sm" required>
+            <input v-model="form.fechaInicio" type="datetime-local" class="form-control form-control-sm" required>
           </div>
           <div class="col-md-6">
             <label class="form-label">Fecha Requerida de Finalización</label>
-            <input v-model="form.fechaFin" type="date" class="form-control form-control-sm" required>
+            <input v-model="form.fechaFin" type="datetime-local" class="form-control form-control-sm" required>
           </div>
           <div class="col-md-6">
 
             <label class="form-label">Organización</label>
-            <div class="input-group input-group-sm">
-              <input v-model="form.organizacion" type="text" class="form-control" placeholder="Buscar empresa..." readonly required>
-              <button class="btn btn-outline-primary" type="button" @click="abrirSelectorEmpresa()">
-                <i class="bi bi-search"></i>
-              </button>
+            <div class="position-relative">
+              <input 
+                v-model="searchOrganizacion" 
+                type="text" 
+                class="form-control form-control-sm" 
+                placeholder="Buscar empresa..." 
+                required
+              >
+              <div v-if="companiesFiltradas.length > 0" class="dropdown-menu show w-100" style="max-height: 200px; overflow-y: auto;">
+                <button 
+                  v-for="(company, index) in companiesFiltradas" 
+                  :key="index"
+                  type="button"
+                  class="dropdown-item"
+                  @click="seleccionarEmpresa(company)"
+                >
+                  <strong>{{ company.name }}</strong><br>
+                  <small>{{ company.company }}</small>
+                </button>
+              </div>
             </div>
           </div>
           <div class="col-md-6">
@@ -132,7 +161,7 @@
           </div>
           <div class="col-md-6">
             <label class="form-label">Fecha</label>
-            <input v-model="form.fecha" type="date" class="form-control form-control-sm" readonly>
+            <input v-model="form.fecha" type="datetime-local" class="form-control form-control-sm" readonly>
           </div>
         </div>
       </fieldset>
@@ -154,7 +183,7 @@
             </div>
             <div class="col-md-3">
               <label class="form-label">Fecha Entrega en Muelle</label>
-              <input v-model="mat.fechaEntregaMuelle" type="date" class="form-control form-control-sm" required>
+              <input v-model="mat.fechaEntregaMuelle" type="datetime-local" class="form-control form-control-sm" required>
             </div>
             <div class="col-md-11">
               <label class="form-label">Observación</label>
@@ -177,82 +206,7 @@
     </form>
   </div>
 
-  <!-- Modal para seleccionar ubicaciones -->
-  <div v-if="mostrarModal" class="modal-overlay">
-    <div class="modal-content shadow-lg p-4">
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <h5 class="m-0">Seleccionar Ubicación ({{ campoActivo.toUpperCase() }})</h5>
-        <button type="button" class="btn-close" @click="mostrarModal = false"></button>
-      </div>
 
-      <div class="mb-3">
-        <input 
-          type="text" 
-          v-model="filtroBusqueda" 
-          class="form-control" 
-          placeholder="Escriba para buscar (Ej: VLA0539 o Pozo...)"
-          ref="searchField"
-        >
-        <small class="text-muted" v-if="loadingLocations">Cargando ubicaciones...</small>
-        <small class="text-muted" v-else>{{ ubicacionesFiltradas.length }} resultados encontrados</small>
-      </div>
-
-      <div class="list-group list-container">
-        <button 
-          v-for="(loc, index) in ubicacionesFiltradas" 
-          :key="index"
-          type="button"
-          class="list-group-item list-group-item-action"
-          @click="seleccionarUbicacion(loc)"
-        >
-          <strong>{{ loc.LOCATION }}</strong><br>
-          <small>{{ loc.DESCRIPTION }}</small>
-        </button>
-        <div v-if="ubicacionesFiltradas.length === 0 && !loadingLocations" class="text-center p-3">
-          No se encontraron resultados.
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div v-if="mostrarCompanyModal" class="modal-overlay">
-    <div class="modal-content shadow-lg p-4">
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <h5 class="m-0">Seleccionar Organización</h5>
-        <button type="button" class="btn-close" @click="mostrarCompanyModal = false"></button>
-      </div>
-      <div class="mb-3">
-        <input
-          type="text"
-          ref="companySearchField"
-          v-model="filtroCompany"
-          class="form-control"
-          placeholder="Buscar por nombre o código"
-        >
-        <small class="text-muted" v-if="loadingCompanies">Cargando compañías...</small>
-      </div>
-      <div class="list-group list-container">
-        <button
-          v-for="(company, index) in companiesFiltradas"
-          :key="index"
-          type="button"
-          class="list-group-item list-group-item-action py-2"
-          @click="seleccionarEmpresa(company)"
-        >
-          <div class="d-flex w-100 justify-content-between">
-            <h6 class="mb-1 text-primary fw-bold">{{ company.name }}</h6>
-            <small class="text-muted">{{ company.company }}</small>
-          </div>
-        </button>
-        <div v-if="companiesFiltradas.length === 0 && !loadingCompanies" class="text-center p-3 text-muted">
-          {{ filtroCompany.length < 2 ? 'Escriba al menos 2 caracteres para buscar...' : 'No se encontraron resultados.' }}
-        </div>
-      </div>
-      <div class="mt-2 d-flex justify-content-end">
-        <button class="btn btn-sm btn-secondary" type="button" @click="mostrarCompanyModal = false">Cerrar</button>
-      </div>
-    </div>
-  </div>
 </template>
 
 <script>
@@ -262,6 +216,7 @@ import { useAuthStore } from '@/stores/auth';
 import { getLocations } from '@/services/getLocations';
 import { getServiceTypes } from '@/services/getServiceTypes';
 import { getCompanies } from '@/services/getCompanies';
+import { toDatetimeLocal } from '@/utils/dateTime';
 
 export default {
   name: 'SuministroLacustre',
@@ -299,16 +254,14 @@ export default {
       // Lógica de ubicaciones
       locations: [],
       loadingLocations: false,
-      mostrarModal: false,
-      campoActivo: '', // 'origen' o 'destino'
-      filtroBusqueda: '',
+      searchOrigen: '',
+      searchDestino: '',
       
       // Tipos de servicio
       serviceTypes: [],
       companies: [],
       loadingCompanies: false,
-      mostrarCompanyModal: false,
-      filtroCompany: ''
+      searchOrganizacion: ''
     };
   },
   mounted() {
@@ -335,7 +288,7 @@ export default {
       return this.form.multiplesCcOi.reduce((sum, cc) => sum + (cc.porcentaje || 0), 0);
     },
     companiesFiltradas() {
-      const term = this.filtroCompany.trim().toLowerCase();
+      const term = this.searchOrganizacion.trim().toLowerCase();
       if (term.length < 2) return [];
       return this.companies
         .filter(company =>
@@ -344,16 +297,25 @@ export default {
         )
         .slice(0, 50);
     },
-    // FILTRO INTELIGENTE: Filtra registros de forma eficiente
-    ubicacionesFiltradas() {
-      if (!this.filtroBusqueda) return []; // No mostrar nada si no hay búsqueda para no saturar el DOM
-      const term = this.filtroBusqueda.toLowerCase();
+    ubicacionesFiltradasOrigen() {
+      const term = this.searchOrigen.trim().toLowerCase();
+      if (term.length < 2) return [];
       return this.locations
         .filter(loc => 
           loc.LOCATION.toLowerCase().includes(term) || 
           loc.DESCRIPTION.toLowerCase().includes(term)
         )
-        .slice(0, 50); // Limitamos a 50 resultados visibles por rendimiento
+        .slice(0, 50);
+    },
+    ubicacionesFiltradasDestino() {
+      const term = this.searchDestino.trim().toLowerCase();
+      if (term.length < 2) return [];
+      return this.locations
+        .filter(loc => 
+          loc.LOCATION.toLowerCase().includes(term) || 
+          loc.DESCRIPTION.toLowerCase().includes(term)
+        )
+        .slice(0, 50);
     }
   },
   methods: {
@@ -384,43 +346,21 @@ export default {
         this.loadingCompanies = false;
       }
     },
-    abrirSelectorEmpresa() {
-      this.filtroCompany = '';
-      this.mostrarCompanyModal = true;
-      if (this.companies.length === 0) {
-        this.cargarCompanies();
-      }
-      this.$nextTick(() => this.$refs.companySearchField?.focus());
-    },
     seleccionarEmpresa(company) {
       this.form.organizacion = company.name || '';
       this.form.codigoOrganizacion = company.company || '';
       this.form.organizacionCcOi = company.company || company.name || '';
-      this.mostrarCompanyModal = false;
+      this.searchOrganizacion = '';
     },
-    async cargarServiceTypes() {
-      try {
-        this.serviceTypes = await getServiceTypes('subtypesl');
-      } catch (error) {
-        console.error("Error cargando tipos de servicio", error);
-      }
+    seleccionarOrigen(loc) {
+      this.form.origen = loc.LOCATION;
+      this.form.descripcionOrigen = loc.DESCRIPTION;
+      this.searchOrigen = '';
     },
-    abrirSelector(tipo) {
-      this.campoActivo = tipo;
-      this.filtroBusqueda = '';
-      this.mostrarModal = true;
-      // Pequeño timeout para dar foco al input
-      setTimeout(() => this.$refs.searchField?.focus(), 100);
-    },
-    seleccionarUbicacion(loc) {
-      if (this.campoActivo === 'origen') {
-        this.form.origen = loc.LOCATION;
-        this.form.descripcionOrigen = loc.DESCRIPTION;
-      } else {
-        this.form.destino = loc.LOCATION;
-        this.form.descripcionDestino = loc.DESCRIPTION;
-      }
-      this.mostrarModal = false;
+    seleccionarDestino(loc) {
+      this.form.destino = loc.LOCATION;
+      this.form.descripcionDestino = loc.DESCRIPTION;
+      this.searchDestino = '';
     },
     addCcOi() {
       this.form.multiplesCcOi.push({ ccOi: '', porcentaje: 0 });
@@ -519,7 +459,6 @@ export default {
 </script>
 
 <style scoped>
-/* Estilos para el Modal */
 .modal-overlay {
   position: fixed;
   top: 0; left: 0; width: 100%; height: 100%;

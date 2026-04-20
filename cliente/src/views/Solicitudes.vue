@@ -6,6 +6,7 @@ import { getSolicitudes } from '@/services/getSolicitudes';
 import { updateSolicitud } from '@/services/updateSolicitud';
 import { cambiarEstado } from '@/services/cambiarEstado';
 import { getCompanies } from '@/services/getCompanies';
+import { toDatetimeLocalFromISOString } from '@/utils/dateTime';
 
 const route = useRoute();
 const auth = useAuthStore();
@@ -86,7 +87,11 @@ const rechazar = async (s) => {
 
 const iniciarEdicion = (s) => {
   editingId.value = s.id;
-  editForm.value = { ...s };
+  editForm.value = {
+    ...s,
+    fechaInicio: toDatetimeLocalFromISOString(s.fechaInicio),
+    fechaFin: toDatetimeLocalFromISOString(s.fechaFin)
+  };
   if (!modalInstance.value) {
     modalInstance.value = new bootstrap.Modal(modalRef.value);
     modalRef.value.addEventListener('hidden.bs.modal', () => {
@@ -239,11 +244,11 @@ watch([filtroTipo, filtroSubtipo], cargarSolicitudes);
               </div>
               <div class="col-md-6">
                 <label class="form-label">Fecha Inicio</label>
-                <input type="date" class="form-control" v-model="editForm.fechaInicio" />
+                <input type="datetime-local" class="form-control" v-model="editForm.fechaInicio" />
               </div>
               <div class="col-md-6">
                 <label class="form-label">Fecha Fin</label>
-                <input type="date" class="form-control" v-model="editForm.fechaFin" />
+                <input type="datetime-local" class="form-control" v-model="editForm.fechaFin" />
               </div>
               <div class="col-md-6">
                 <label class="form-label">Código de Organización</label>

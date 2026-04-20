@@ -7,6 +7,7 @@ const osel = require('../controllers/oracle/osel');
 const labor = require('../controllers/oracle/labor');
 const valuelist = require('../controllers/oracle/valuelist');
 const companies = require('../controllers/oracle/companies');
+const chartofaccounts = require('../controllers/oracle/chartofaccounts');
 
 
 // public endpoints
@@ -17,6 +18,7 @@ router.get('/companies', companies.getCompaniesSimple);
 router.post('/valuelist/listname', valuelist.getValueListBySubtype); // Aquí pasas SUBTYPETP, SUBTYPESL, etc.
 router.get('/labor/active', labor.getActiveLabor);
 router.get('/osel', osel.getOselData);
+router.get('/chartofaccounts', chartofaccounts.getChartOfAccounts);
 
 
 

@@ -84,11 +84,11 @@
                 </div>
                 <div class="col-md-3">
                     <label class="form-label">Fecha Inicio</label>
-                    <input v-model="form.fechaInicio" type="date" class="form-control form-control-sm">
+                    <input v-model="form.fechaInicio" type="datetime-local" class="form-control form-control-sm">
                 </div>
                 <div class="col-md-3">
                     <label class="form-label">Fecha Finalización</label>
-                    <input v-model="form.fechaFin" type="date" class="form-control form-control-sm">
+                    <input v-model="form.fechaFin" type="datetime-local" class="form-control form-control-sm">
                 </div>
                 <div class="col-md-6">
                     <label class="form-label">Días Req.</label>
@@ -116,6 +116,7 @@
 <script setup>
 import { reactive, ref, onMounted } from 'vue';
 import { postSolicitud } from '@/services/postSolicitud';
+import { toDatetimeLocal } from '@/utils/dateTime';
 import axios from 'axios'; // Asegúrate de tener axios instalado
 import router from '@/router';
 
@@ -136,7 +137,7 @@ const form = reactive({
   fechaFin: '',
   diasSeleccionados: [], // Array para los checkboxes
   modificadoPor: 'LEO_USER',
-  fechaModificado: new Date().toISOString().split('T')[0]
+  fechaModificado: toDatetimeLocal()
 });
 
 const modalidades = ref([]);

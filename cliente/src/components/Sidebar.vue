@@ -1,7 +1,7 @@
 <!-- modificado por leonardo fleire 27/03/2026 -->
 
 <template>
-  <aside id="sidebar" :class="{ 'collapsed': !isExpanded }">
+  <aside id="sidebar" :class="{ expand: isExpanded, collapsed: !isExpanded }">
     <div class="sidebar-top px-3 py-2">
       <button class="toggle-btn" @click="toggleSidebar">
         <i class="material-icons">menu</i>
@@ -79,7 +79,7 @@
            @click.prevent="navigateTo('ver-todas')">
           <div class="d-flex align-items-center">
             <i class="material-icons">add_circle</i>
-            <span v-if="isExpanded" class="link-text ms-2">Ver Solicitudes</span>
+            <span v-if="isExpanded" class="link-text ms-2">ODST</span>
           </div>
           <i v-if="isExpanded" class="material-icons arrow-icon" :class="{ 'rotate': submenus.tabla }">expand_more</i>
         </a>
@@ -131,7 +131,7 @@
         </ul>
       </li>
       <!-- LI para ODST -->
-      <li v-if="isSupervisor || isGerente || isSubgerente" class="sidebar-item">
+      <!-- <li v-if="isSupervisor || isGerente || isSubgerente" class="sidebar-item">
         <a href="#" class="sidebar-link d-flex align-items-center justify-content-between px-3" 
            @click.prevent="toggleSubmenu('ODTS')">
           <div class="d-flex align-items-center">
@@ -140,7 +140,7 @@
           </div>
           <i v-if="isExpanded" class="material-icons arrow-icon" :class="{ 'rotate': submenus.ODTS }">expand_more</i>
         </a>
-      </li>
+      </li> -->
       <!-- LI para PLAN -->
       <li v-if="isGerente || isSubgerente" class="sidebar-item">
         <a href="#" class="sidebar-link d-flex align-items-center justify-content-between px-3" 
@@ -172,7 +172,7 @@
         </a>
       </li>
       <!-- LI para ayuda -->
-      <li class="sidebar-item">
+      <!-- <li class="sidebar-item">
         <a href="#" class="sidebar-link d-flex align-items-center justify-content-between px-3" 
            @click.prevent="toggleSubmenu('ayuda')">
           <div class="d-flex align-items-center">
@@ -181,7 +181,7 @@
           </div>
           <i v-if="isExpanded" class="material-icons arrow-icon" :class="{ 'rotate': submenus.ayuda }">expand_more</i>
         </a>
-      </li>
+      </li> -->
 
       <!-- Logout -->
       <li class="sidebar-item">
@@ -302,6 +302,10 @@ onBeforeUnmount(() => {
   transition: width 0.3s ease;
 }
 
+#sidebar.expand {
+  width: 284px;
+}
+
 #sidebar.collapsed {
   width: 80px;
 }
@@ -325,11 +329,11 @@ onBeforeUnmount(() => {
   list-style: none;
 }
 
-.sidebar-link {
+#sidebar .sidebar-link {
   color: #333;
   text-decoration: none;
   min-height: 50px;
-  display: flex;
+  display: flex !important;
   align-items: center;
   transition: background 0.2s;
   cursor: pointer;

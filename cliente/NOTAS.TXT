@@ -10,7 +10,6 @@
 
  agregar modalidad de servicio en el formularios recurrente.
 
-
  agragar servicio de busqueda de unidades mayores a movilizar.
 
  la tabla de solicitudes que sea respectiva. solo debe traer los solicitudes que yo cree.

@@ -19,7 +19,8 @@ router.post('/valuelist/listname', valuelist.getValueListBySubtype); // Aquí pa
 router.get('/labor/active', labor.getActiveLabor);
 router.get('/osel', osel.getOselData);
 router.get('/chartofaccounts', chartofaccounts.getChartOfAccounts);
+router.get('/chartofaccounts/cuentas', chartofaccounts.getChartOfAccountsWithCompanies);
 
 
 
-module.exports = router;
+module.exports = router;   

@@ -5,7 +5,7 @@
     <div class="app-root">
       <Sidebar v-if="authStore.isAuthenticated.value" />
       <main class="main-content">
-        <router-view />
+        <router-view :key="$route.fullPath" />
       </main>
     </div>
   </div>

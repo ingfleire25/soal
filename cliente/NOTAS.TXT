@@ -24,7 +24,13 @@ que se minimice la imagen del logotipo de pdvsa tambien.
 
 quitar el menu ver solicitudes y dejar ODTS.
 
-crear el menu estadisticas que arroje graficamente indicadores de gestion sobre el trabajo realizado segun las respuesta de la evaluacion de servicios.
+crear el menu estadisticas que arroje graficamente indicadores de gestion sobre el trabajo realizado segun las 
+respuesta de la evaluacion de servicios.
 
-crear historico 
+crear historico. si la fecha de la solicitud ya caduco en la semana o fue rechada que se vea en la tabla de historico con filtro de busqueda.
 
+
+el modal de edicion debe ser customizado segun el tipo de formulario que lo creo no todos los formulario 
+piden lo mismo la edicion es diferente para cada uno.
+
+cuando entro a la ruta de suministro lacustre no puedo navegar mas a otra ruta...

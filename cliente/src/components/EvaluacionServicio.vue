@@ -1,7 +1,8 @@
 <template>
   <div class="evaluacion-servicio container py-4">
     <h1 class="mb-4">Evaluar servicio de transporte</h1>
-
+   </div>
+ <div>
     <div class="card shadow-sm mb-4">
       <div class="card-body">
         <p class="text-muted">Registre la evaluación asociada al código de solicitud. La información de quien evalúa se completa desde el usuario logueado.</p>

@@ -193,7 +193,8 @@ async function handleLogin() {
       recordar: loginData.recordar
     })
 
-    router.push('/dashboard')
+    // router.push('/dashboard')
+    router.push('/solicitudes')
   } catch (error) {
     console.error('Error en login:', error)
     errorMessage.value = 'Error al iniciar sesión. Intente nuevamente.'

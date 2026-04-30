@@ -18,8 +18,9 @@
                 class="form-control form-control-sm" 
                 placeholder="Buscar ubicación..." 
                 required
+                @input="mostrarDropdownOrigen = true" 
               >
-              <div v-if="ubicacionesFiltradasOrigen.length > 0" class="dropdown-menu show w-100" style="max-height: 200px; overflow-y: auto;">
+              <div v-if="mostrarDropdownOrigen && ubicacionesFiltradasOrigen.length > 0" class="dropdown-menu show w-100" style="max-height: 200px; overflow-y: auto;">
                 <button 
                   v-for="(loc, index) in ubicacionesFiltradasOrigen" 
                   :key="index"
@@ -27,7 +28,7 @@
                   class="dropdown-item"
                   @click="seleccionarOrigen(loc)"
                 >
-                  <strong>{{ loc.LOCATION }}</strong><br>
+                  <strong>{{ loc.LOCATION }}-</strong><br>
                   <small>{{ loc.DESCRIPTION }}</small>
                 </button>
               </div>
@@ -46,8 +47,9 @@
                 class="form-control form-control-sm" 
                 placeholder="Buscar ubicación..." 
                 required
+                @input="mostrarDropdownDestino = true"
               >
-              <div v-if="ubicacionesFiltradasDestino.length > 0" class="dropdown-menu show w-100" style="max-height: 200px; overflow-y: auto;">
+              <div v-if="mostrarDropdownDestino && ubicacionesFiltradasDestino.length > 0" class="dropdown-menu show w-100" style="max-height: 200px; overflow-y: auto;">
                 <button 
                   v-for="(loc, index) in ubicacionesFiltradasDestino" 
                   :key="index"
@@ -83,8 +85,9 @@
                 class="form-control form-control-sm" 
                 placeholder="Buscar empresa..." 
                 required
+                @input="mostrarDropdownEmpresa = true"
               >
-              <div v-if="companiesFiltradas.length > 0" class="dropdown-menu show w-100" style="max-height: 200px; overflow-y: auto;">
+              <div v-if="mostrarDropdownEmpresa && companiesFiltradas.length > 0" class="dropdown-menu show w-100" style="max-height: 200px; overflow-y: auto;">
                 <button 
                   v-for="(company, index) in companiesFiltradas" 
                   :key="index"
@@ -120,12 +123,13 @@
           </div>
           <div class="col-md-6">
             <label class="form-label">Tipo de Servicio</label>
-            <select v-model="form.tipoServicio" class="form-control form-control-sm" required>
+            <input v-model="form.tipoServicio" class="form-control form-control-sm" rows="2" required></input>
+            <!-- <select v-model="form.tipoServicio" class="form-control form-control-sm" required>
               <option value="">Seleccione un tipo de servicio</option>
               <option v-for="type in serviceTypes" :key="type.valdesc" :value="type.valdesc">
                 {{ type.valdesc }}
               </option>
-            </select>
+            </select> -->
           </div>
           <div class="col-md-6">
             <label class="form-label">Persona que Envía</label>
@@ -261,14 +265,19 @@ export default {
       serviceTypes: [],
       companies: [],
       loadingCompanies: false,
-      searchOrganizacion: ''
+      searchOrganizacion: '',
+
+      mostrarDropdownOrigen: false,
+      mostrarDropdownDestino: false,
+      mostrarDropdownEmpresa: false
     };
   },
   mounted() {
     if (this.$route.query.subtipo) {
       this.form.subtipo = this.$route.query.subtipo;
     }
-    this.form.fecha = new Date().toISOString().split('T')[0];
+    // this.form.fecha = new Date().toISOString().split('T')[0];
+    this.form.fecha = toDatetimeLocal()
     const authStore = useAuthStore();
     const user = authStore.user?.value;
     if (user) {
@@ -278,11 +287,11 @@ export default {
     this.loadMateriales();
     this.cargarUbicaciones();
     this.cargarCompanies();
-    this.cargarServiceTypes();
+    // this.cargarServiceTypes();
   },
   computed: {
     titulo() {
-      return `Crear Solicitud (${this.form.subtipo}) - Suministro Lacustre`;
+      return `Crear Solicitud - Suministro Lacustre`;
     },
     sumatoriaPorcentaje() {
       return this.form.multiplesCcOi.reduce((sum, cc) => sum + (cc.porcentaje || 0), 0);
@@ -350,17 +359,20 @@ export default {
       this.form.organizacion = company.name || '';
       this.form.codigoOrganizacion = company.company || '';
       this.form.organizacionCcOi = company.company || company.name || '';
-      this.searchOrganizacion = '';
+      this.searchOrganizacion = company.name || '';
+      this.mostrarDropdownEmpresa = false;
     },
     seleccionarOrigen(loc) {
       this.form.origen = loc.LOCATION;
       this.form.descripcionOrigen = loc.DESCRIPTION;
-      this.searchOrigen = '';
+      this.searchOrigen = loc.LOCATION;
+      this.mostrarDropdownOrigen = false;
     },
     seleccionarDestino(loc) {
       this.form.destino = loc.LOCATION;
       this.form.descripcionDestino = loc.DESCRIPTION;
-      this.searchDestino = '';
+      this.searchDestino = loc.LOCATION;
+      this.mostrarDropdownDestino = false;
     },
     addCcOi() {
       this.form.multiplesCcOi.push({ ccOi: '', porcentaje: 0 });
@@ -453,6 +465,13 @@ export default {
         subtipo: currentSubtipo,
         materiales: []
       });
+      this.searchOrigen = '';
+      this.searchDestino = '';
+      this.searchOrganizacion = '';
+
+      this.mostrarDropdownOrigen = false;
+      this.mostrarDropdownDestino = false;
+      this.mostrarDropdownEmpresa = false;
     }
   }
 };

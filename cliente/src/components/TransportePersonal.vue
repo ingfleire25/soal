@@ -17,6 +17,7 @@
               <option v-for="serv in modserv" :key="serv.modnum" :value="serv.modnum">{{ serv.modnum }} - {{ serv.description }}</option>
             </select>
           </div>
+          <div></div>
 
           <div class="col-md-6">
             <label class="form-label fw-bold">Origen</label>
@@ -27,8 +28,9 @@
                 class="form-control form-control-sm" 
                 placeholder="Buscar ubicación..." 
                 required
+                @input="mostrarDropdownOrigen = true" 
               >
-              <div v-if="ubicacionesFiltradasOrigen.length > 0" class="dropdown-menu show w-100" style="max-height: 200px; overflow-y: auto;">
+              <div v-if="mostrarDropdownOrigen && ubicacionesFiltradasOrigen.length > 0" class="dropdown-menu show w-100" style="max-height: 200px; overflow-y: auto;">
                 <button 
                   v-for="(loc, index) in ubicacionesFiltradasOrigen" 
                   :key="index"
@@ -56,8 +58,9 @@
                 class="form-control form-control-sm" 
                 placeholder="Buscar ubicación..." 
                 required
+                @input="mostrarDropdownDestino = true"
               >
-              <div v-if="ubicacionesFiltradasDestino.length > 0" class="dropdown-menu show w-100" style="max-height: 200px; overflow-y: auto;">
+              <div v-if="mostrarDropdownDestino && ubicacionesFiltradasDestino.length > 0" class="dropdown-menu show w-100" style="max-height: 200px; overflow-y: auto;">
                 <button 
                   v-for="(loc, index) in ubicacionesFiltradasDestino" 
                   :key="index"
@@ -94,8 +97,9 @@
                 class="form-control form-control-sm" 
                 placeholder="Buscar empresa..." 
                 required
+                @input="mostrarDropdownEmpresa = true"
               >
-              <div v-if="companiesFiltradas.length > 0" class="dropdown-menu show w-100" style="max-height: 200px; overflow-y: auto;">
+              <div v-if="mostrarDropdownEmpresa && companiesFiltradas.length > 0" class="dropdown-menu show w-100" style="max-height: 200px; overflow-y: auto;">
                 <button 
                   v-for="(company, index) in companiesFiltradas" 
                   :key="index"
@@ -264,7 +268,12 @@ export default {
         { label: 'V', model: 'viernes' },
         { label: 'S', model: 'sabado' },
         { label: 'D', model: 'domingo' }
-      ]
+      ],
+
+
+      mostrarDropdownOrigen: false,
+      mostrarDropdownDestino: false,
+      mostrarDropdownEmpresa: false
     };
   },
   computed: {
@@ -371,19 +380,22 @@ export default {
     seleccionarOrigen(loc) {
       this.form.origen = loc.LOCATION;
       this.form.descripcionOrigen = loc.DESCRIPTION;
-      this.searchOrigen = '';
+      this.searchOrigen = loc.LOCATION;
+      this.mostrarDropdownOrigen = false;
     },
     seleccionarDestino(loc) {
       this.form.destino = loc.LOCATION;
       this.form.descripcionDestino = loc.DESCRIPTION;
-      this.searchDestino = '';
+      this.searchDestino = loc.LOCATION;
+      this.mostrarDropdownDestino = false;
     },
 
     seleccionarEmpresa(company) {
       this.form.organizacion = company.name || '';
       this.form.codigoOrganizacion = company.company || '';
       this.form.organizacionCcOi = company.company || company.name || '';
-      this.searchOrganizacion = '';
+      this.searchOrganizacion = company.name || '';
+      this.mostrarDropdownEmpresa = false;
     },
 
     addCcOi() {
@@ -421,6 +433,14 @@ export default {
       this.form.solicitante = solicitante;
       this.form.cedulaSolicitante = cedulaSolicitante;
       this.form.subtipo = subtipo;
+
+      this.searchOrigen = '';
+      this.searchDestino = '';
+      this.searchOrganizacion = '';
+      // Reset de banderas
+      this.mostrarDropdownOrigen = false;
+      this.mostrarDropdownDestino = false;
+      this.mostrarDropdownEmpresa = false;
     }
   }
 };

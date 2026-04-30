@@ -200,33 +200,10 @@ watch([filtroTipo, filtroSubtipo], cargarSolicitudes);
               </span>
             </td>
             <td>{{ s.motivoRechazo || '-' }}</td>
-            <td class="acciones-cell">
-              <button 
-                v-if="puedeEditar(s)" 
-                @click="iniciarEdicion(s)" 
-                class="btn-icon btn-edit"
-                title="Editar"
-              >
-                <i class="material-icons">edit</i>
-              </button>
-              
-              <button 
-                v-if="puedeAprobar(s)" 
-                @click="aprobar(s)" 
-                class="btn-icon btn-approve" 
-                title="Aprobar"
-              >
-                <i class="material-icons">check_circle</i>
-              </button>
-              
-              <button 
-                v-if="puedeAprobar(s)" 
-                @click="rechazar(s)" 
-                class="btn-icon btn-reject" 
-                title="Rechazar"
-              >
-                <i class="material-icons">cancel</i>
-              </button>
+            <td>
+              <button v-if="puedeEditar(s)" @click="iniciarEdicion(s)" class="btn btn-sm btn-primary me-1">Editar</button>
+              <button v-if="puedeAprobar(s)" @click="aprobar(s)" class="btn btn-sm btn-success me-1">Aprobar</button>
+              <button v-if="puedeAprobar(s)" @click="rechazar(s)" class="btn btn-sm btn-danger">Rechazar</button>
             </td>
           </tr>
         </tbody>
@@ -235,6 +212,7 @@ watch([filtroTipo, filtroSubtipo], cargarSolicitudes);
 
     <p v-if="!loading && !lista.length" class="text-secondary">No hay solicitudes.</p>
 
+    <!-- Modal para editar -->
     <div ref="modalRef" class="modal fade" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
       <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -311,37 +289,7 @@ watch([filtroTipo, filtroSubtipo], cargarSolicitudes);
 .tabla-container { max-width: 100%; margin: 0; padding: 1rem; }
 .table-left { margin-left: 0; }
 .error { color: red; }
+</style>
+<style>
 
-/* Estilos para quitar el fondo de los botones */
-.acciones-cell {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  justify-content: flex-start;
-  border: none !important; /* Asegura que no haya bordes internos */
-  background: transparent !important;
-}
-
-.btn-icon {
-  background: transparent; /* Quita el fondo blanco */
-  border: none;            /* Quita el borde */
-  padding: 0;             /* Quita el relleno interno */
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  transition: opacity 0.2s;
-}
-
-.btn-icon:hover {
-  opacity: 0.7;
-}
-
-/* Colores específicos para cada icono */
-.btn-edit .material-icons { color: #0d6efd; }    /* Azul */
-.btn-approve .material-icons { color: #198754; } /* Verde */
-.btn-reject .material-icons { color: #dc3545; }  /* Rojo */
-
-.material-icons {
-  font-size: 22px;
-}
 </style>

@@ -34,3 +34,8 @@ el modal de edicion debe ser customizado segun el tipo de formulario que lo creo
 piden lo mismo la edicion es diferente para cada uno.
 
 cuando entro a la ruta de suministro lacustre no puedo navegar mas a otra ruta...
+
+HACE FALTA IMPLEMENTAR SWEETALERT PARA EL MENSAJE DE SATISFACTORIO O NO
+
+
+crear card con  class = box-shadow

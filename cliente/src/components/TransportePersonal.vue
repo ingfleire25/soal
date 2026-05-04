@@ -119,29 +119,8 @@
           </div>
 
           <div class="col-md-12">
-            <label class="form-label fw-bold">Múltiples CC/OI</label>
-            <div v-for="(cc, index) in form.multiplesCcOi" :key="index" class="row g-2 mb-2 align-items-center">
-              <div class="col-md-8">
-                <input v-model="cc.ccOi" type="text" class="form-control form-control-sm" placeholder="CC/OI">
-              </div>
-              <div class="col-md-3">
-                <div class="input-group input-group-sm">
-                  <input v-model.number="cc.porcentaje" type="number" class="form-control" placeholder="Porcentaje">
-                  <span class="input-group-text">%</span>
-                </div>
-              </div>
-              <div class="col-md-1 text-center">
-                <button type="button" class="btn btn-sm btn-outline-danger w-100" @click="removeCcOi(index)">
-                  <i class="bi bi-trash"></i> X
-                </button>
-              </div>
-            </div>
-            <button type="button" class="btn btn-sm btn-outline-primary mt-1" @click="addCcOi">
-              + Agregar CC/OI
-            </button>
-            <div :class="['mt-2 fw-bold', sumatoriaPorcentaje !== 100 && form.multiplesCcOi.length > 0 ? 'text-danger' : 'text-success']">
-              Sumatoria %: {{ sumatoriaPorcentaje }}%
-            </div>
+            <label class="form-label fw-bold">Centro de costo CC/OI</label>
+            <input v-model="form.organizacionCcOi" type="text" class="form-control form-control-sm" placeholder="CC/OI" required>
           </div>
 
           <div class="col-md-12">
@@ -224,7 +203,6 @@ export default {
         organizacionCcOi: '',
         organizacion: '',
         codigoOrganizacion: '',
-        multiplesCcOi: [],
         lunes: false,
         martes: false,
         miercoles: false,
@@ -279,12 +257,6 @@ export default {
   computed: {
     titulo() {
       return `Crear Solicitud (${this.form.subtipo}) - Transporte de Personal`;
-    },
-    sumatoriaPorcentaje() {
-      return this.form.multiplesCcOi.reduce((sum, cc) => sum + (Number(cc.porcentaje) || 0), 0);
-    },
-    sumatoriaInvalida() {
-      return this.form.multiplesCcOi.length > 0 && this.sumatoriaPorcentaje !== 100;
     },
     ubicacionesFiltradasOrigen() {
       const termino = this.searchOrigen.trim().toLowerCase();
@@ -398,19 +370,7 @@ export default {
       this.mostrarDropdownEmpresa = false;
     },
 
-    addCcOi() {
-      this.form.multiplesCcOi.push({ ccOi: '', porcentaje: 0 });
-    },
-
-    removeCcOi(index) {
-      this.form.multiplesCcOi.splice(index, 1);
-    },
-
     async enviar() {
-      if (this.sumatoriaInvalida) {
-        alert('La suma de porcentajes de CC/OI debe ser exactamente 100%');
-        return;
-      }
       if (!this.form.codigoOrganizacion.trim()) {
         alert('Debe seleccionar una organización');
         return;

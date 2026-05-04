@@ -106,20 +106,8 @@
             <input v-model="form.codigoOrganizacion" type="text" class="form-control form-control-sm" readonly>
           </div>
           <div class="col-md-12">
-            <label class="form-label">Múltiples CC/OI</label>
-            <div v-for="(cc, index) in form.multiplesCcOi" :key="index" class="row g-2 mb-2">
-              <div class="col-md-8">
-                <input v-model="cc.ccOi" type="text" class="form-control form-control-sm" placeholder="CC/OI">
-              </div>
-              <div class="col-md-3">
-                <input v-model.number="cc.porcentaje" type="number" class="form-control form-control-sm" placeholder="Porcentaje">
-              </div>
-              <div class="col-md-1">
-                <button type="button" class="btn btn-sm btn-outline-danger" @click="removeCcOi(index)">X</button>
-              </div>
-            </div>
-            <button type="button" class="btn btn-sm btn-outline-primary" @click="addCcOi">Agregar CC/OI</button>
-            <div class="mt-2">Sumatoria %: {{ sumatoriaPorcentaje }}%</div>
+            <label class="form-label">Centro de costo CC/OI</label>
+            <input v-model="form.organizacionCcOi" type="text" class="form-control form-control-sm" placeholder="CC/OI" required>
           </div>
           <div class="col-md-6">
             <label class="form-label">Tipo de Servicio</label>
@@ -237,7 +225,6 @@ export default {
         organizacionCcOi: '',
         organizacion: '',
         codigoOrganizacion: '',
-        multiplesCcOi: [],
         tipoServicio: '',
         personaEnvia: '',
         descripcionPersonaEnvia: '',
@@ -292,9 +279,6 @@ export default {
   computed: {
     titulo() {
       return `Crear Solicitud - Suministro Lacustre`;
-    },
-    sumatoriaPorcentaje() {
-      return this.form.multiplesCcOi.reduce((sum, cc) => sum + (cc.porcentaje || 0), 0);
     },
     companiesFiltradas() {
       const term = this.searchOrganizacion.trim().toLowerCase();
@@ -374,12 +358,6 @@ export default {
       this.searchDestino = loc.LOCATION;
       this.mostrarDropdownDestino = false;
     },
-    addCcOi() {
-      this.form.multiplesCcOi.push({ ccOi: '', porcentaje: 0 });
-    },
-    removeCcOi(index) {
-      this.form.multiplesCcOi.splice(index, 1);
-    },
     addMaterial() {
       this.form.materiales.push({
         materialId: '',
@@ -402,10 +380,6 @@ export default {
       }
     },
     async enviar() {
-      if (this.sumatoriaPorcentaje !== 100 && this.form.multiplesCcOi.length > 0) {
-        alert('La suma de porcentajes debe ser 100%');
-        return;
-      }
       if (this.form.materiales.length === 0) {
         alert('Debe agregar al menos un material');
         return;
@@ -450,7 +424,6 @@ export default {
         organizacionCcOi: '',
         organizacion: '',
         codigoOrganizacion: '',
-        multiplesCcOi: [],
         tipoServicio: '',
         personaEnvia: '',
         descripcionPersonaEnvia: '',

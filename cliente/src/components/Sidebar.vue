@@ -81,7 +81,7 @@
             <i class="material-icons">add_circle</i>
             <span v-if="isExpanded" class="link-text ms-2">ODST</span>
           </div>
-          <i v-if="isExpanded" class="material-icons arrow-icon" :class="{ 'rotate': submenus.tabla }">expand_more</i>
+          <!-- <i v-if="isExpanded" class="material-icons arrow-icon" :class="{ 'rotate': submenus.tabla }">expand_more</i> -->
         </a>
 
         <ul v-if="isExpanded && submenus.tabla" class="submenu p-0">
@@ -122,12 +122,12 @@
               <span class="link-text ms-2">Suministro lacustre</span>
             </a>
           </li>
-          <li>
+          <!-- <li>
             <a href="#" class="sidebar-link ps-4" @click.prevent="navigateTo('servicios-portuarios', 'ver')">
               <i class="material-icons">anchor</i>
               <span class="link-text ms-2">Servicios portuarios</span>
             </a>
-          </li>
+          </li> -->
         </ul>
       </li>
       <!-- LI para ODST -->

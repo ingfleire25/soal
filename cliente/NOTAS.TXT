@@ -1,4 +1,9 @@
- realizar los siguientes cambios. 
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
++++++++++++++++++++++++++++++++++++++++++++++++++++
+++++++++++++++++CAMBIOS REALIZADOS+++++++++++++++
++++++++++++++++++++++++++++++++++++++++++++++++++++
++++++++++++++++++++++++++++++++++++++++++++++++++++ 
 
  elimninar modales de busqueda. mientras se va escribiendo que aparezcan las opciones disponibles en una lista desplegable.
 
@@ -23,6 +28,14 @@ que ningun componenete rompa el sidebar al agrandar.
 que se minimice la imagen del logotipo de pdvsa tambien.
 
 quitar el menu ver solicitudes y dejar ODTS.
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
++++++++++++++++++++++++++++++++++++++++++++++++++++
+++++++++++++++++CAMBIOS POR REALIZAR+++++++++++++++
++++++++++++++++++++++++++++++++++++++++++++++++++++
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
 
 crear el menu estadisticas que arroje graficamente indicadores de gestion sobre el trabajo realizado segun las 
 respuesta de la evaluacion de servicios.

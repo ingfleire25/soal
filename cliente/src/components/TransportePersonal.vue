@@ -135,10 +135,7 @@
             <label class="form-label fw-bold">Cantidad de Pasajeros</label>
             <input v-model.number="form.cantidadPasajeros" type="number" class="form-control form-control-sm" min="1" required>
           </div>
-          <!-- <div class="col-md-6">
-            <label class="form-label fw-bold">Tipo de Servicio</label>
-            <input v-model="form.tipoServicio" type="text" class="form-control form-control-sm" required>
-          </div> -->
+         
           <div class="col-md-6">
             <label class="form-label">Tipo de Servicio</label>
             <select v-model="form.tipoServicio" class="form-control form-control-sm" required>

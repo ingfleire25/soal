@@ -111,13 +111,13 @@
           </div>
           <div class="col-md-6">
             <label class="form-label">Tipo de Servicio</label>
-            <input v-model="form.tipoServicio" class="form-control form-control-sm" rows="2" required></input>
-            <!-- <select v-model="form.tipoServicio" class="form-control form-control-sm" required>
+            <!-- <input v-model="form.tipoServicio" class="form-control form-control-sm" rows="2" required></input> -->
+            <select v-model="form.tipoServicio" class="form-control form-control-sm" required>
               <option value="">Seleccione un tipo de servicio</option>
               <option v-for="type in serviceTypes" :key="type.valdesc" :value="type.valdesc">
                 {{ type.valdesc }}
               </option>
-            </select> -->
+            </select>
           </div>
           <div class="col-md-6">
             <label class="form-label">Persona que Envía</label>
@@ -274,7 +274,7 @@ export default {
     this.loadMateriales();
     this.cargarUbicaciones();
     this.cargarCompanies();
-    // this.cargarServiceTypes();
+    this.cargarServiceTypes();
   },
   computed: {
     titulo() {
@@ -327,6 +327,13 @@ export default {
         console.error("Error cargando locaciones", error);
       } finally {
         this.loadingLocations = false;
+      }
+    },
+    async cargarServiceTypes() {
+      try {
+        this.serviceTypes = await getServiceTypes('SUBTYPESL');
+      } catch (error) {
+        console.error("Error cargando tipos de servicio", error);
       }
     },
     async cargarCompanies() {

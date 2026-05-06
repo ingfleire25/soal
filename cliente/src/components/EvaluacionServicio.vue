@@ -31,7 +31,7 @@
         <div class="col-md-4">
           <label class="form-label">Correo evaluador</label>
           <input v-model="form.evaluadorCorreo" type="email" class="form-control bg-light" readonly />
-        </div>
+        </div> 
 
         <div class="col-md-12">
           <h5 class="mb-3">Valoración del servicio</h5>

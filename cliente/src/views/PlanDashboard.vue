@@ -44,14 +44,14 @@
           </div>
         </div>
       </div>
-      <div class="col-6 col-sm-4 col-md-3 col-lg-2">
+      <!-- <div class="col-6 col-sm-4 col-md-3 col-lg-2">
         <div class="card shadow-sm h-100 bg-light">
           <div class="card-body text-center">
             <h6 class="card-title small">Servicios Portuarios</h6>
             <p class="display-6 mb-0 numero-total">{{ countServiciosPortuarios }}</p>
           </div>
         </div>
-      </div>
+      </div> -->
     </div>
 
     <div v-if="!loading && filteredSolicitudes.length" class="table-responsive tabla-dashboard">
@@ -123,7 +123,7 @@ const formatoFecha = (value) => {
 
 const esVigenteEnSemana = (solicitud) => {
   const inicio = solicitud.fechaInicio ? new Date(solicitud.fechaInicio) : null;
-  const fin = solicitud.fechaFin ? new Date(solicitud.fechaFin) : null;
+  const fin = solicitud.fechaFin ? new Date(solicitud.fechaFin) : inicio;
   if (!inicio || !fin) return false;
   return inicio <= endOfWeek && fin >= startOfWeek;
 };

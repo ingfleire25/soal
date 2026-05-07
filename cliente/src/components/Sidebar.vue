@@ -65,12 +65,12 @@
               <span class="link-text ms-2">Suministro Lacustre</span>
             </a>
           </li>
-          <li>
+          <!-- <li>
             <a href="#" class="sidebar-link ps-4" @click.prevent="navigateTo('servicios-portuarios')">
               <i class="material-icons">anchor</i>
               <span class="link-text ms-2">Servicios Portuarios</span>
             </a>
-          </li>
+          </li> -->
         </ul>
       </li><!-- LI cierra crear solicitudes -->
 

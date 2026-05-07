@@ -14,6 +14,7 @@ const MovimientoUnidadesMayores = () => import('@/components/MovimientoUnidadesM
 const SuministroLacustre = () => import('@/components/SuministroLacustre.vue');
 const ServiciosPortuarios = () => import('@/components/ServiciosPortuarios.vue');
 const EvaluacionServicio = () => import('@/components/EvaluacionServicio.vue');
+const Estadisticas = () => import('@/views/Estadisticas.vue');
 
 const routes = [
   { path: '/', redirect: '/iniciar-sesion' },
@@ -22,61 +23,67 @@ const routes = [
     path: '/dashboard',
     name: 'dashboard',
     component: Dashboard,
-    meta: { roles: ['Gerente', 'Subgerente', 'Supervisor', 'Analista'] }
+    meta: { roles: ['Solicitante', 'Aprobador', 'Administrador'] }
   },
   {
     path: '/crearViejo',
     name: 'crearViejo',
     component: Crear,
-    meta: { roles: ['Gerente', 'Subgerente', 'Supervisor', 'Analista'] }
+    meta: { roles: ['Solicitante', 'Administrador'] }
   },
   {
     path: '/solicitudes',
     name: 'tabla',
     component: Tabla,
-    meta: { roles: ['Gerente', 'Subgerente', 'Supervisor', 'Analista'] }
+    meta: { roles: ['Solicitante', 'Aprobador', 'Administrador'] }
   },
   {
     path: '/administracion',
     name: 'administracion',
     component: Administracion,
-    meta: { roles: ['Gerente'] }
+    meta: { roles: ['Administrador'] }
   },
   {
     path: '/plan',
     name: 'plan',
     component: PlanDashboard,
-    meta: { roles: ['Gerente', 'Subgerente'] }
+    meta: { roles: ['Solicitante', 'Aprobador', 'Administrador'] }
   },
   {
     path: '/crear/transporte-personal',
     name: 'transporte-personal',
     component: TransportePersonal,
-    meta: { roles: ['Gerente', 'Subgerente', 'Supervisor', 'Analista'] }
+    meta: { roles: ['Solicitante', 'Administrador'] }
   },
   {
     path: '/crear/movimiento-unidades-mayores',
     name: 'movimiento-unidades-mayores',
     component: MovimientoUnidadesMayores,
-    meta: { roles: ['Gerente', 'Subgerente', 'Supervisor', 'Analista'] }
+    meta: { roles: ['Solicitante', 'Administrador'] }
   },
   {
     path: '/crear/suministro-lacustre',
     name: 'suministro-lacustre',
     component: SuministroLacustre,
-    meta: { roles: ['Gerente', 'Subgerente', 'Supervisor', 'Analista'] }
+    meta: { roles: ['Solicitante', 'Administrador'] }
   },
   {
     path: '/crear/servicios-portuarios',
     name: 'crear-servicios-portuarios',
     component: ServiciosPortuarios,
-    meta: { roles: ['Gerente', 'Subgerente', 'Supervisor', 'Analista'] }
+    meta: { roles: ['Solicitante', 'Administrador'] }
   },
   {
     path: '/evaluacion',
     name: 'evaluacion',
     component: EvaluacionServicio,
-    meta: { roles: ['Gerente', 'Subgerente', 'Supervisor', 'Analista'] }
+    meta: { roles: ['Solicitante', 'Aprobador', 'Administrador'] }
+  },
+  {
+    path: '/estadisticas',
+    name: 'estadisticas',
+    component: Estadisticas,
+    meta: { roles: ['Aprobador', 'Administrador'] }
   },
   {
     path: '/no-autorizado',

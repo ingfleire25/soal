@@ -4,31 +4,32 @@
     <p>Usuario: <strong>{{ authUser.username || 'Anónimo' }}</strong></p>
     <p>Rol(es): <strong>{{ authRoles.join(', ') || 'Sin rol' }}</strong></p>
 
-    <div class="role-feature" v-if="hasAny(['Gerente', 'Subgerente'])">
-      <h3>Funcionalidades de Gestión</h3>
+    <div class="role-feature" v-if="hasAny(['Administrador'])">
+      <h3>Funcionalidades de Administrador</h3>
       <ul>
-        <li>Ver reportes y métricas generales</li>
-        <li>Administrar ciclos de aprobación</li>
+        <li>Acceso completo al sistema</li>
+        <li>Administrar usuarios y configurar permisos</li>
       </ul>
     </div>
 
-    <div class="role-feature" v-if="hasAny(['Supervisor'])">
-      <h3>Funcionalidades de Supervisor</h3>
+    <div class="role-feature" v-if="hasAny(['Aprobador'])">
+      <h3>Funcionalidades de Aprobador</h3>
       <ul>
-        <li>Revisar solicitudes en cola</li>
-        <li>Asignar tareas a analistas</li>
+        <li>Aprobar o rechazar solicitudes pendientes</li>
+        <li>Ver el plan general y los detalles de solicitud</li>
       </ul>
     </div>
 
-    <div class="role-feature" v-if="hasAny(['Analista'])">
-      <h3>Funcionalidades de Analista</h3>
+    <div class="role-feature" v-if="hasAny(['Solicitante'])">
+      <h3>Funcionalidades de Solicitante</h3>
       <ul>
-        <li>Completar y validar solicitudes asignadas</li>
-        <li>Historial de acciones</li>
+        <li>Crear solicitudes</li>
+        <li>Ver y editar sus propias solicitudes pendientes</li>
+        <li>Responder evaluaciones y ver el plan</li>
       </ul>
     </div>
 
-    <div class="role-feature" v-if="!hasAny(['Gerente', 'Subgerente', 'Supervisor', 'Analista'])">
+    <div class="role-feature" v-if="!hasAny(['Administrador', 'Aprobador', 'Solicitante'])">
       <h3>Usuario sin roles conocidos</h3>
       <p>Contacte al administrador para asignar roles.</p>
     </div>

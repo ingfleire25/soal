@@ -67,7 +67,7 @@ const solicitudesSeed = [
     fecha: new Date().toISOString().split('T')[0]
   },
   {
-    id: 'MUN-0001',
+    id: 'OUM-0001',
     descripcion: 'Movimiento de grúa pesada al sitio de construcción',
     origen: 'Depósito Central',
     descripcionOrigen: 'Área de almacenamiento de equipos pesados',
@@ -90,7 +90,7 @@ const solicitudesSeed = [
     fecha: new Date().toISOString().split('T')[0]
   },
   {
-    id: 'MUN-0002',
+    id: 'OUM-0002',
     descripcion: 'Traslado de excavadora al proyecto minero',
     origen: 'Taller de Mantenimiento',
     descripcionOrigen: 'Instalaciones de reparación y preparación de equipos',

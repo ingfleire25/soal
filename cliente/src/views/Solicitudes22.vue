@@ -23,7 +23,7 @@ const userFullName = computed(() => {
 
 const userRole = computed(() => auth.user?.value?.rol || '');
 
-const esAprobador = computed(() => ['Gerente', 'Subgerente', 'Supervisor'].includes(userRole.value));
+const esAprobador = computed(() => ['Aprobador', 'Administrador'].includes(userRole.value));
 
 const filtroTipo = computed(() => route.query.tipoSolicitud || null);
 const filtroSubtipo = computed(() => route.query.subtipo || null);
@@ -267,7 +267,7 @@ watch([filtroTipo, filtroSubtipo], cargarSolicitudes);
               </div>
               <div class="col-md-4">
                 <label class="form-label">Correo</label>
-                <input class="form-control" v-model="editForm.correo" />
+                <input class="form-control bg-light" v-model="editForm.correo" readonly />
               </div>
               <div class="col-md-4">
                 <label class="form-label">Cant. Pasajeros</label>

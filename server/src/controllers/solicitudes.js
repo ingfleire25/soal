@@ -76,7 +76,7 @@ exports.postSolicitud = async (req, res) => {
       }
     }
 
-    const id = await getNextSequentialId(Solicitud, tipoSolicitud === 'Movimiento Unidades Mayores' ? 'MUN' : 'TP');
+    const id = await getNextSequentialId(Solicitud, tipoSolicitud === 'Movimiento Unidades Mayores' ? 'OUM' : 'TP');
     const nueva = await Solicitud.create({
       id,
       descripcion,

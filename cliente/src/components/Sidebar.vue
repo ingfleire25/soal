@@ -17,7 +17,7 @@
     <hr />
 
    <ul class="sidebar-nav p-0 m-0">  <!-- Todo el cuerpo del sidebar -->
-      <li class="sidebar-item"><!-- LI para crear solicitudes -->
+      <li v-if="canCreate" class="sidebar-item"><!-- LI para crear solicitudes -->
         <a href="#" class="sidebar-link d-flex align-items-center justify-content-between px-3" 
            @click.prevent="toggleSubmenu('crear')">
           <div class="d-flex align-items-center">
@@ -142,7 +142,7 @@
         </a>
       </li> -->
       <!-- LI para PLAN -->
-      <li v-if="isGerente || isSubgerente" class="sidebar-item">
+      <li v-if="canUsePlan" class="sidebar-item">
         <a href="#" class="sidebar-link d-flex align-items-center justify-content-between px-3" 
            @click.prevent="navigateTo('plan')">
           <div class="d-flex align-items-center">
@@ -152,7 +152,7 @@
         </a>
       </li>
       <!-- LI para Evaluacion -->
-      <li v-if="isGerente || isSubgerente || isSupervisor || isAnalista" class="sidebar-item">
+      <li v-if="canUseEvaluacion" class="sidebar-item">
         <a href="#" class="sidebar-link d-flex align-items-center justify-content-between px-3" 
            @click.prevent="navigateTo('evaluacion')">
           <div class="d-flex align-items-center">
@@ -161,8 +161,18 @@
           </div>
         </a>
       </li>
+      <!-- LI para Estadisticas -->
+      <li v-if="canUseEstadisticas" class="sidebar-item">
+        <a href="#" class="sidebar-link d-flex align-items-center justify-content-between px-3" 
+           @click.prevent="navigateTo('estadisticas')">
+          <div class="d-flex align-items-center">
+            <i class="material-icons">bar_chart</i>
+            <span v-if="isExpanded" class="link-text ms-2">Estadisticas</span>
+          </div>
+        </a>
+      </li>
       <!-- LI para Administracion -->
-      <li v-if="isGerente" class="sidebar-item">
+      <li v-if="canManageAdmin" class="sidebar-item">
         <a href="#" class="sidebar-link d-flex align-items-center justify-content-between px-3" 
            @click.prevent="navigateTo('administracion')">
           <div class="d-flex align-items-center">
@@ -206,10 +216,14 @@ const router = useRouter()
 const auth = useAuthStore()
 const isExpanded = ref(true)
 
-const isGerente = computed(() => auth.hasRole('Gerente'))
-const isSubgerente = computed(() => auth.hasRole('Subgerente'))
-const isSupervisor = computed(() => auth.hasRole('Supervisor'))
-const isAnalista = computed(() => auth.hasRole('Analista'))
+const isSolicitante = computed(() => auth.hasRole('Solicitante'))
+const isAprobador = computed(() => auth.hasRole('Aprobador'))
+const isAdministrador = computed(() => auth.hasRole('Administrador'))
+const canCreate = computed(() => isSolicitante.value || isAdministrador.value)
+const canManageAdmin = computed(() => isAdministrador.value)
+const canUsePlan = computed(() => auth.hasAnyRole(['Solicitante', 'Aprobador', 'Administrador']))
+const canUseEvaluacion = computed(() => auth.hasAnyRole(['Solicitante', 'Aprobador', 'Administrador']))
+const canUseEstadisticas = computed(() => auth.hasAnyRole(['Aprobador', 'Administrador']))
 
 const username = computed(() => (auth.user?.value?.username) || 'Invitado')
 
@@ -275,6 +289,8 @@ function navigateTo(name, mode = 'crear') {
     router.push({ name: 'crearViejo' });
   } else if (name === 'plan') {
     router.push({ name: 'plan' });
+  } else if (name === 'estadisticas') {
+    router.push({ name: 'estadisticas' });
   } else {
     router.push({ name });
   }

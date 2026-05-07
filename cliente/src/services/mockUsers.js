@@ -2,32 +2,25 @@ export async function getMockUsers() {
   // Simula consulta al backend de usuarios con 4 roles núcleo
   return [
     {
-      username: 'gerente',
+      username: 'administrador',
       password: '1234',
-      role: 'Gerente',
-      roles: ['Gerente'],
-      token: 'fake-token-gerente'
+      role: 'Administrador',
+      roles: ['Administrador'],
+      token: 'fake-token-administrador'
     },
     {
-      username: 'subgerente',
+      username: 'aprobador',
       password: '1234',
-      role: 'Subgerente',
-      roles: ['Subgerente'],
-      token: 'fake-token-subgerente'
+      role: 'Aprobador',
+      roles: ['Aprobador'],
+      token: 'fake-token-aprobador'
     },
     {
-      username: 'supervisor',
+      username: 'solicitante',
       password: '1234',
-      role: 'Supervisor',
-      roles: ['Supervisor'],
-      token: 'fake-token-supervisor'
-    },
-    {
-      username: 'analista',
-      password: '1234',
-      role: 'Analista',
-      roles: ['Analista'],
-      token: 'fake-token-analista'
+      role: 'Solicitante',
+      roles: ['Solicitante'],
+      token: 'fake-token-solicitante'
     }
   ]
 }

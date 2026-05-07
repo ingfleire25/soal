@@ -17,12 +17,15 @@
   "author": "Leonardo Fleire",
   "license": "ISC",
   "dependencies": {
+    "chart.js": "^4.5.1",
     "cors": "^2.8.5",
     "dotenv": "^16.0.3",
     "express": "^4.18.1",
+    "jspdf": "^4.2.1",
     "oracledb": "^6.10.0",
     "pg": "^8.13.2",
-    "sequelize": "^6.24.0"
+    "sequelize": "^6.24.0",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "nodemon": "^2.0.20"

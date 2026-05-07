@@ -137,7 +137,7 @@
 
           <div class="col-md-6">
             <label class="form-label">Correo</label>
-            <input v-model="form.correo" type="email" class="form-control form-control-sm" required>
+            <input v-model="form.correo" type="email" class="form-control form-control-sm bg-light" readonly required>
           </div>
 
           <div class="col-md-6">
@@ -221,6 +221,7 @@ export default {
     if (user) {
       this.form.solicitante = `${user.nombres} ${user.apellidos}`;
       this.form.cedulaSolicitante = user.cedula;
+      this.form.correo = user.correo || user.email || user.username || '';
     }
     this.cargarUbicaciones();
     this.cargarCompanies();

@@ -1,6 +1,6 @@
 <template>
   <div class="administracion-container">
-    <h1>Administración de Usuarios (Gerente)</h1>
+    <h1>Administración de Usuarios (Administrador)</h1>
 
     <div class="row mb-3">
       <div class="col-9">
@@ -63,11 +63,9 @@
         <div class="col-md-4">
           <label>Rol</label>
           <select class="form-control" v-model="editing.rol" required>
-            <option value="Gerente">Gerente</option>
-            <option value="Subgerente">Subgerente</option>
-            <option value="Supervisor">Supervisor</option>
-            <option value="Analista">Analista</option>
-            <option value="Invitado">Invitado</option>
+            <option value="Solicitante">Solicitante</option>
+            <option value="Aprobador">Aprobador</option>
+            <option value="Administrador">Administrador</option>
           </select>
         </div>
       </div>

@@ -14,6 +14,23 @@ const lista = ref([]);
 const error = ref('');
 const loading = ref(false);
 const companies = ref([]);
+const searchQuery = ref('');
+const selectedTipo = ref('');
+const selectedEstado = ref('');
+
+const tipoOptions = [
+  { value: '', label: 'Todos los tipos' },
+  { value: 'Transporte de Personal', label: 'TP - Transporte personal' },
+  { value: 'Movimiento Unidades Mayores', label: 'OUM - Operaciones de unidades mayores' },
+  { value: 'Suministro Lacustre', label: 'SL - Suministro lacustre' }
+];
+
+const estadoOptions = [
+  { value: '', label: 'Todos los estados' },
+  { value: 'pendiente', label: 'Pendiente' },
+  { value: 'aprobada', label: 'Aprobada' },
+  { value: 'rechazada', label: 'Rechazada' }
+];
 
 const userFullName = computed(() => {
   const usuario = auth.user?.value;
@@ -23,19 +40,49 @@ const userFullName = computed(() => {
 
 const userRole = computed(() => auth.user?.value?.rol || '');
 
-const esAprobador = computed(() => ['Gerente', 'Subgerente', 'Supervisor'].includes(userRole.value));
+const esAprobador = computed(() => ['Aprobador', 'Administrador'].includes(userRole.value));
 
-const filtroTipo = computed(() => route.query.tipoSolicitud || null);
-const filtroSubtipo = computed(() => route.query.subtipo || null);
+const usuarioGerencia = computed(() => auth.user?.value?.gerencia || '');
+const tieneGerencia = computed(() => lista.value.some(s => s.gerencia));
+
+const listaFiltrada = computed(() => {
+  return lista.value.filter(s => {
+    const texto = [
+      s.id,
+      s.tipoSolicitud,
+      s.subtipo,
+      s.descripcion,
+      s.origen,
+      s.destino,
+      s.descripcionOrigen,
+      s.descripcionDestino,
+      s.solicitante,
+      s.cedulaSolicitante,
+      s.aprobador,
+      s.correo,
+      s.estado,
+      s.motivoRechazo,
+      s.tipoServicio
+    ]
+      .filter(Boolean)
+      .join(' ')
+      .toLowerCase();
+
+    const buscado = searchQuery.value.trim().toLowerCase();
+    if (buscado && !texto.includes(buscado)) return false;
+    if (selectedTipo.value && s.tipoSolicitud !== selectedTipo.value) return false;
+    if (selectedEstado.value && s.estado !== selectedEstado.value) return false;
+    if (usuarioGerencia.value && tieneGerencia.value && s.gerencia !== usuarioGerencia.value) return false;
+    return true;
+  });
+});
 
 const cargarSolicitudes = async () => {
   error.value = '';
   loading.value = true;
   try {
     const datos = await getSolicitudes();
-    lista.value = datos
-      .filter(s => (filtroTipo.value ? s.tipoSolicitud === filtroTipo.value : true))
-      .filter(s => (filtroSubtipo.value ? s.subtipo === filtroSubtipo.value : true));
+    lista.value = datos;
   } catch (e) {
     error.value = e.statusText || 'No se pudieron cargar las solicitudes';
   } finally {
@@ -110,6 +157,11 @@ const cancelarEdicion = () => {
   editForm.value = {};
 };
 
+const actualizarDia = (campo, valor) => {
+  const letra = String(valor || '').trim().toUpperCase().replace(/[^CF]/g, '').slice(0, 1);
+  editForm.value[campo] = letra;
+};
+
 const guardarEdicion = async () => {
   try {
     await updateSolicitud(editingId.value, {
@@ -146,21 +198,59 @@ onMounted(() => {
   cargarSolicitudes();
   cargarCompanies();
 });
-watch([filtroTipo, filtroSubtipo], cargarSolicitudes);
+
+const limpiarFiltros = () => {
+  searchQuery.value = '';
+  selectedTipo.value = '';
+  selectedEstado.value = '';
+};
 </script>
 
 <template>
   <div class="tabla-container">
     <h1>Solicitudes registradas</h1>
-    <p v-if="route.query.tipoSolicitud || route.query.subtipo" class="text-muted">
-      Filtrado: <span v-if="route.query.tipoSolicitud">{{ route.query.tipoSolicitud }}</span>
-      <span v-if="route.query.subtipo">/ {{ route.query.subtipo }}</span>
-    </p>
     <p v-if="error" class="error">{{ error }}</p>
     <p v-if="loading" class="text-info">Cargando solicitudes...</p>
 
+    <div class="d-flex flex-wrap gap-2 mb-3 align-items-center">
+      <div class="flex-grow-1">
+        <input
+          type="search"
+          class="form-control"
+          v-model="searchQuery"
+          placeholder="Buscar solicitudes por ID, tipo, origen, destino, solicitante, aprobador, estado..."
+        />
+      </div>
+
+      <div class="dropdown">
+        <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+          {{ selectedTipo ? tipoOptions.find(option => option.value === selectedTipo)?.label : 'Tipo de solicitud' }}
+        </button>
+        <ul class="dropdown-menu">
+          <li v-for="option in tipoOptions" :key="option.value">
+            <a class="dropdown-item" href="#" @click.prevent="selectedTipo = option.value">{{ option.label }}</a>
+          </li>
+        </ul>
+      </div>
+
+      <div class="dropdown">
+        <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+          {{ selectedEstado ? estadoOptions.find(option => option.value === selectedEstado)?.label : 'Estado' }}
+        </button>
+        <ul class="dropdown-menu">
+          <li v-for="option in estadoOptions" :key="option.value">
+            <a class="dropdown-item" href="#" @click.prevent="selectedEstado = option.value">{{ option.label }}</a>
+          </li>
+        </ul>
+      </div>
+
+      <button v-if="searchQuery || selectedTipo || selectedEstado" class="btn btn-outline-primary" @click="limpiarFiltros">
+        Limpiar filtros
+      </button>
+    </div>
+
     <div class="table-responsive">
-      <table v-if="!loading && lista.length" class="table table-striped table-left">
+      <table v-if="!loading && listaFiltrada.length" class="table table-striped table-left">
         <thead>
           <tr>
             <th>ID</th>
@@ -178,7 +268,7 @@ watch([filtroTipo, filtroSubtipo], cargarSolicitudes);
           </tr>
         </thead>
         <tbody>
-          <tr v-for="s in lista" :key="s.id">
+          <tr v-for="s in listaFiltrada" :key="s.id">
             <td>{{ s.id }}</td>
             <td>{{ s.tipoSolicitud }}</td>
             <td>{{ s.subtipo }}</td>
@@ -233,7 +323,7 @@ watch([filtroTipo, filtroSubtipo], cargarSolicitudes);
       </table>
     </div>
 
-    <p v-if="!loading && !lista.length" class="text-secondary">No hay solicitudes.</p>
+    <p v-if="!loading && !listaFiltrada.length" class="text-secondary">No hay solicitudes.</p>
 
     <div ref="modalRef" class="modal fade" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
       <div class="modal-dialog modal-lg">
@@ -272,6 +362,71 @@ watch([filtroTipo, filtroSubtipo], cargarSolicitudes);
                 <label class="form-label">Fecha Fin</label>
                 <input type="datetime-local" class="form-control" v-model="editForm.fechaFin" />
               </div>
+
+              <template v-if="editForm.tipoSolicitud === 'Transporte de Personal'">
+                <div class="col-12">
+                  <div class="row g-2">
+                    <div class="col-12 mb-2"><strong>Transporte de Personal: identifica cada día con C o F</strong></div>
+                    <div class="col-md-2">
+                      <label class="form-label">Lunes</label>
+                      <select class="form-select" v-model="editForm.lunes">
+                        <option value="">---</option>
+                        <option value="C">C</option>
+                        <option value="F">F</option>
+                      </select>
+                    </div>
+                    <div class="col-md-2">
+                      <label class="form-label">Martes</label>
+                      <select class="form-select" v-model="editForm.martes">
+                        <option value="">---</option>
+                        <option value="C">C</option>
+                        <option value="F">F</option>
+                      </select>
+                    </div>
+                    <div class="col-md-2">
+                      <label class="form-label">Miércoles</label>
+                      <select class="form-select" v-model="editForm.miercoles">
+                        <option value="">---</option>
+                        <option value="C">C</option>
+                        <option value="F">F</option>
+                      </select>
+                    </div>
+                    <div class="col-md-2">
+                      <label class="form-label">Jueves</label>
+                      <select class="form-select" v-model="editForm.jueves">
+                        <option value="">---</option>
+                        <option value="C">C</option>
+                        <option value="F">F</option>
+                      </select>
+                    </div>
+                    <div class="col-md-2">
+                      <label class="form-label">Viernes</label>
+                      <select class="form-select" v-model="editForm.viernes">
+                        <option value="">---</option>
+                        <option value="C">C</option>
+                        <option value="F">F</option>
+                      </select>
+                    </div>
+                    <div class="col-md-2">
+                      <label class="form-label">Sábado</label>
+                      <select class="form-select" v-model="editForm.sabado">
+                        <option value="">---</option>
+                        <option value="C">C</option>
+                        <option value="F">F</option>
+                      </select>
+                    </div>
+                    <div class="col-md-2">
+                      <label class="form-label">Domingo</label>
+                      <select class="form-select" v-model="editForm.domingo">
+                        <option value="">---</option>
+                        <option value="C">C</option>
+                        <option value="F">F</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              </template>
+
               <div class="col-md-6">
                 <label class="form-label">Código de Organización</label>
                 <select class="form-control" v-model="editForm.organizacionCcOi">
@@ -289,7 +444,7 @@ watch([filtroTipo, filtroSubtipo], cargarSolicitudes);
               </div>
               <div class="col-md-4">
                 <label class="form-label">Correo</label>
-                <input class="form-control" v-model="editForm.correo" />
+                <input class="form-control bg-light" v-model="editForm.correo" readonly />
               </div>
               <div class="col-md-4">
                 <label class="form-label">Cant. Pasajeros</label>

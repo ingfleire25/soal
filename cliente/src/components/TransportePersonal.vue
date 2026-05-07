@@ -124,10 +124,19 @@
           </div>
 
           <div class="col-md-12">
-            <label class="form-label fw-bold d-block">Días de la Semana</label>
-            <div v-for="dia in diasConfig" :key="dia.model" class="form-check form-check-inline">
-              <input v-model="form[dia.model]" class="form-check-input" type="checkbox" :id="dia.model">
-              <label class="form-check-label" :for="dia.model">{{ dia.label }}</label>
+            <label class="form-label fw-bold d-block">Días de la Semana (C = Contratado, F = Fijo)</label>
+            <div class="row gy-2">
+              <div v-for="dia in diasConfig" :key="dia.model" class="col-6 col-sm-4 col-md-2">
+                <label class="form-label small mb-1">{{ dia.label }}</label>
+                <select
+                  class="form-select form-select-sm"
+                  v-model="form[dia.model]"
+                >
+                  <option value="">---</option>
+                  <option value="C">C</option>
+                  <option value="F">F</option>
+                </select>
+              </div>
             </div>
           </div>
 
@@ -152,7 +161,7 @@
           </div>
           <div class="col-md-6">
             <label class="form-label fw-bold">Correo</label>
-            <input v-model="form.correo" type="email" class="form-control form-control-sm" required>
+            <input v-model="form.correo" type="email" class="form-control form-control-sm bg-light" readonly required>
           </div>
           <div class="col-md-6">
             <label class="form-label fw-bold text-muted">Solicitante</label>
@@ -200,13 +209,13 @@ export default {
         organizacionCcOi: '',
         organizacion: '',
         codigoOrganizacion: '',
-        lunes: false,
-        martes: false,
-        miercoles: false,
-        jueves: false,
-        viernes: false,
-        sabado: false,
-        domingo: false,
+        lunes: '',
+        martes: '',
+        miercoles: '',
+        jueves: '',
+        viernes: '',
+        sabado: '',
+        domingo: '',
         cantidadPasajeros: 1,
         tipoServicio: '',
         aprobador: '',
@@ -300,6 +309,7 @@ export default {
     if (user) {
       this.form.solicitante = `${user.nombres} ${user.apellidos}`;
       this.form.cedulaSolicitante = user.cedula;
+      this.form.correo = user.correo || user.email || user.username || '';
     }
 
     // 3. Precargar locaciones y compañías
@@ -365,6 +375,11 @@ export default {
       this.form.organizacionCcOi = company.company || company.name || '';
       this.searchOrganizacion = company.name || '';
       this.mostrarDropdownEmpresa = false;
+    },
+
+    actualizarDia(model, valor) {
+      const letra = (valor || '').toString().trim().toUpperCase().replace(/[^CF]/g, '').charAt(0);
+      this.form[model] = letra;
     },
 
     async enviar() {

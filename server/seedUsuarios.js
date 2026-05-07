@@ -3,48 +3,37 @@ const { conn, Usuario } = require('./src/db');
 
 const seedData = [
   {
-    username: 'gerente',
+    username: 'solicitante',
     password: '1234',
     nombres: 'Juan',
     apellidos: 'Pérez',
     cedula: 'V-12345678',
     telefono: '04141234567',
     gerencia: 'Gerencia General',
-    departamento: 'Dirección',
-    rol: 'Gerente'
+    departamento: 'Solicitudes',
+    rol: 'Solicitante'
   },
   {
-    username: 'subgerente',
+    username: 'aprobador',
     password: '1234',
     nombres: 'María',
     apellidos: 'Gómez',
     cedula: 'V-23456789',
     telefono: '04149876543',
     gerencia: 'Gerencia Operaciones',
-    departamento: 'Planeación',
-    rol: 'Subgerente'
+    departamento: 'Aprobaciones',
+    rol: 'Aprobador'
   },
   {
-    username: 'supervisor',
+    username: 'administrador',
     password: '1234',
     nombres: 'Carlos',
     apellidos: 'Rojas',
     cedula: 'V-34567890',
     telefono: '04147654321',
-    gerencia: 'Gerencia Producción',
-    departamento: 'Supervisión',
-    rol: 'Supervisor'
-  },
-  {
-    username: 'analista',
-    password: '1234',
-    nombres: 'Laura',
-    apellidos: 'López',
-    cedula: 'V-45678901',
-    telefono: '04142345678',
-    gerencia: 'Gerencia Técnica',
-    departamento: 'Análisis',
-    rol: 'Analista'
+    gerencia: 'Gerencia de TI',
+    departamento: 'Administración',
+    rol: 'Administrador'
   }
 ];
 

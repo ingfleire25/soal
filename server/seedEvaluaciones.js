@@ -1,181 +1,59 @@
 require('dotenv').config();
 const { conn, EvaluacionTransporte } = require('./src/db');
+const { solicitudesSeed } = require('./seedSolicitudesData');
 
-const evaluacionesData = [
-  {
-    id: 'EVAL-001',
-    codigoSolicitud: 'TP-0001',
-    tipoSolicitud: 'Transporte de Personal',
-    subtipo: 'Ocasional',
-    evaluadorNombre: 'Juan Pérez',
-    evaluadorCedula: 'V-12345678',
-    evaluadorCorreo: 'juan.perez@ejemplo.com',
-    fecha: new Date('2024-01-15'),
-    puntualidad: 5,
-    calidad: 4,
-    comunicacion: 5,
-    seguridad: 5,
-    satisfaccion: 4,
-    comentarios: 'Excelente servicio, muy puntual.',
-    estado: 'registrada'
-  },
-  {
-    id: 'EVAL-002',
-    codigoSolicitud: 'TP-0002',
-    tipoSolicitud: 'Transporte de Personal',
-    subtipo: 'Recurrente',
-    evaluadorNombre: 'María García',
-    evaluadorCedula: 'V-87654321',
-    evaluadorCorreo: 'maria.garcia@ejemplo.com',
-    fecha: new Date('2024-01-20'),
-    puntualidad: 4,
-    calidad: 5,
-    comunicacion: 4,
-    seguridad: 4,
-    satisfaccion: 5,
-    comentarios: 'Buena calidad del transporte.',
-    estado: 'registrada'
-  },
-  {
-    id: 'EVAL-003',
-    codigoSolicitud: 'OUM-0001',
-    tipoSolicitud: 'Movimiento Unidades Mayores',
-    subtipo: 'Ocasional',
-    evaluadorNombre: 'Carlos López',
-    evaluadorCedula: 'V-11223344',
-    evaluadorCorreo: 'carlos.lopez@ejemplo.com',
-    fecha: new Date('2024-02-10'),
-    puntualidad: 3,
-    calidad: 4,
-    comunicacion: 3,
-    seguridad: 5,
-    satisfaccion: 4,
-    comentarios: 'Servicio aceptable, pero podría mejorar en comunicación.',
-    estado: 'registrada'
-  },
-  {
-    id: 'EVAL-004',
-    codigoSolicitud: 'SL-0001',
-    tipoSolicitud: 'Suministro Lacustre',
-    subtipo: 'Ocasional',
-    evaluadorNombre: 'Ana Rodríguez',
-    evaluadorCedula: 'V-55667788',
-    evaluadorCorreo: 'ana.rodriguez@ejemplo.com',
-    fecha: new Date('2024-02-15'),
-    puntualidad: 5,
-    calidad: 5,
-    comunicacion: 5,
-    seguridad: 5,
-    satisfaccion: 5,
-    comentarios: 'Servicio perfecto en todos los aspectos.',
-    estado: 'registrada'
-  },
-  {
-    id: 'EVAL-005',
-    codigoSolicitud: 'TP-0003',
-    tipoSolicitud: 'Transporte de Personal',
-    subtipo: 'Ocasional',
-    evaluadorNombre: 'Pedro Martínez',
-    evaluadorCedula: 'V-99887766',
-    evaluadorCorreo: 'pedro.martinez@ejemplo.com',
-    fecha: new Date('2024-03-05'),
-    puntualidad: 4,
-    calidad: 3,
-    comunicacion: 4,
-    seguridad: 4,
-    satisfaccion: 3,
-    comentarios: 'Regular, necesita mejoras en calidad.',
-    estado: 'registrada'
-  },
-  {
-    id: 'EVAL-006',
-    codigoSolicitud: 'OUM-0002',
-    tipoSolicitud: 'Movimiento Unidades Mayores',
-    subtipo: 'Ocasional',
-    evaluadorNombre: 'Laura Sánchez',
-    evaluadorCedula: 'V-33445566',
-    evaluadorCorreo: 'laura.sanchez@ejemplo.com',
-    fecha: new Date('2024-03-12'),
-    puntualidad: 5,
-    calidad: 4,
-    comunicacion: 4,
-    seguridad: 5,
-    satisfaccion: 4,
-    comentarios: 'Buen trabajo en seguridad.',
-    estado: 'registrada'
-  },
-  {
-    id: 'EVAL-007',
-    codigoSolicitud: 'SL-0002',
-    tipoSolicitud: 'Suministro Lacustre',
-    subtipo: 'Ocasional',
-    evaluadorNombre: 'Roberto Díaz',
-    evaluadorCedula: 'V-77889900',
-    evaluadorCorreo: 'roberto.diaz@ejemplo.com',
-    fecha: new Date('2024-04-08'),
-    puntualidad: 4,
-    calidad: 4,
-    comunicacion: 3,
-    seguridad: 4,
-    satisfaccion: 4,
-    comentarios: 'Servicio estándar.',
-    estado: 'registrada'
-  },
-  {
-    id: 'EVAL-008',
-    codigoSolicitud: 'TP-0004',
-    tipoSolicitud: 'Transporte de Personal',
-    subtipo: 'Recurrente',
-    evaluadorNombre: 'Sofía Ramírez',
-    evaluadorCedula: 'V-11224455',
-    evaluadorCorreo: 'sofia.ramirez@ejemplo.com',
-    fecha: new Date('2024-04-20'),
-    puntualidad: 5,
-    calidad: 5,
-    comunicacion: 5,
-    seguridad: 5,
-    satisfaccion: 5,
-    comentarios: 'Excelente en todos los aspectos.',
-    estado: 'registrada'
-  },
-  {
-    id: 'EVAL-009',
-    codigoSolicitud: 'OUM-0003',
-    tipoSolicitud: 'Movimiento Unidades Mayores',
-    subtipo: 'Ocasional',
-    evaluadorNombre: 'Miguel Torres',
-    evaluadorCedula: 'V-66778899',
-    evaluadorCorreo: 'miguel.torres@ejemplo.com',
-    fecha: new Date('2024-05-03'),
-    puntualidad: 3,
-    calidad: 3,
-    comunicacion: 2,
-    seguridad: 4,
-    satisfaccion: 3,
-    comentarios: 'Necesita mejoras significativas.',
-    estado: 'registrada'
-  },
-  {
-    id: 'EVAL-010',
-    codigoSolicitud: 'SL-0003',
-    tipoSolicitud: 'Suministro Lacustre',
-    subtipo: 'Ocasional',
-    evaluadorNombre: 'Elena Vargas',
-    evaluadorCedula: 'V-22334455',
-    evaluadorCorreo: 'elena.vargas@ejemplo.com',
-    fecha: new Date('2024-05-15'),
-    puntualidad: 4,
-    calidad: 4,
-    comunicacion: 4,
-    seguridad: 4,
-    satisfaccion: 4,
-    comentarios: 'Buen servicio general.',
-    estado: 'registrada'
-  }
+const evaluadores = [
+  { nombre: 'Juan Pérez', cedula: 'V-12345678', correo: 'juan.perez@ejemplo.com' },
+  { nombre: 'María García', cedula: 'V-87654321', correo: 'maria.garcia@ejemplo.com' },
+  { nombre: 'Carlos López', cedula: 'V-11223344', correo: 'carlos.lopez@ejemplo.com' },
+  { nombre: 'Ana Rodríguez', cedula: 'V-55667788', correo: 'ana.rodriguez@ejemplo.com' },
+  { nombre: 'Pedro Martínez', cedula: 'V-99887766', correo: 'pedro.martinez@ejemplo.com' },
+  { nombre: 'Laura Sánchez', cedula: 'V-33445566', correo: 'laura.sanchez@ejemplo.com' },
+  { nombre: 'Roberto Díaz', cedula: 'V-77889900', correo: 'roberto.diaz@ejemplo.com' },
+  { nombre: 'Sofía Ramírez', cedula: 'V-11224455', correo: 'sofia.ramirez@ejemplo.com' },
+  { nombre: 'Miguel Torres', cedula: 'V-66778899', correo: 'miguel.torres@ejemplo.com' },
+  { nombre: 'Elena Vargas', cedula: 'V-22334455', correo: 'elena.vargas@ejemplo.com' }
 ];
+
+const camposEvaluacion = [
+  { puntualidad: 5, calidad: 4, comunicacion: 5, seguridad: 5, satisfaccion: 4 },
+  { puntualidad: 4, calidad: 5, comunicacion: 4, seguridad: 4, satisfaccion: 5 },
+  { puntualidad: 3, calidad: 4, comunicacion: 3, seguridad: 5, satisfaccion: 4 },
+  { puntualidad: 5, calidad: 5, comunicacion: 5, seguridad: 5, satisfaccion: 5 },
+  { puntualidad: 4, calidad: 3, comunicacion: 4, seguridad: 4, satisfaccion: 3 },
+  { puntualidad: 5, calidad: 4, comunicacion: 4, seguridad: 5, satisfaccion: 4 },
+  { puntualidad: 4, calidad: 4, comunicacion: 3, seguridad: 4, satisfaccion: 4 },
+  { puntualidad: 5, calidad: 5, comunicacion: 5, seguridad: 5, satisfaccion: 5 },
+  { puntualidad: 3, calidad: 3, comunicacion: 2, seguridad: 4, satisfaccion: 3 },
+  { puntualidad: 4, calidad: 4, comunicacion: 4, seguridad: 4, satisfaccion: 4 }
+];
+
+const evaluacionesData = solicitudesSeed.map((solicitud, index) => {
+  const evaluador = evaluadores[index % evaluadores.length];
+  const valores = camposEvaluacion[index % camposEvaluacion.length];
+
+  return {
+    id: `EVAL-${String(index + 1).padStart(3, '0')}`,
+    codigoSolicitud: solicitud.id,
+    tipoSolicitud: solicitud.tipoSolicitud,
+    subtipo: solicitud.subtipo || '',
+    evaluadorNombre: evaluador.nombre,
+    evaluadorCedula: evaluador.cedula,
+    evaluadorCorreo: evaluador.correo,
+    fecha: new Date(Date.now() - index * 86400000),
+    puntualidad: valores.puntualidad,
+    calidad: valores.calidad,
+    comunicacion: valores.comunicacion,
+    seguridad: valores.seguridad,
+    satisfaccion: valores.satisfaccion,
+    comentarios: 'Evaluación generada a partir de la solicitud existente.',
+    estado: 'registrada'
+  };
+});
 
 (async function () {
   try {
+    await conn.sync({ alter: true });
     await EvaluacionTransporte.bulkCreate(evaluacionesData);
     console.log('Evaluaciones seeded successfully');
   } catch (error) {

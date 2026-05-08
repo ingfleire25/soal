@@ -19,10 +19,12 @@
         <tr>
           <th>ID</th>
           <th>Usuario</th>
+          <th>Correo</th>
           <th>Nombres</th>
           <th>Apellidos</th>
           <th>Cedula</th>
           <th>Rol</th>
+          <th>Nivel Aprobación</th>
           <th>Estado</th>
           <th>Acciones</th>
         </tr>
@@ -31,10 +33,12 @@
         <tr v-for="u in usuarios" :key="u.id">
           <td>{{ u.id }}</td>
           <td>{{ u.username }}</td>
+          <td>{{ u.correo || '-' }}</td>
           <td>{{ u.nombres }}</td>
           <td>{{ u.apellidos }}</td>
           <td>{{ u.cedula }}</td>
           <td>{{ u.rol }}</td>
+          <td>{{ u.nivelAprobacion || '-' }}</td>
           <td>{{ u.activo ? 'Activo' : 'Inactivo' }}</td>
           <td>
             <button class="btn btn-sm btn-outline-primary me-1" @click="editUser(u)">Editar</button>
@@ -71,8 +75,11 @@
       </div>
 
       <div class="row mt-2">
+        <div class="col-md-4"><label>Correo</label><input class="form-control" v-model="editing.correo" type="email" /></div>
         <div class="col-md-4"><label>Nombres</label><input class="form-control" v-model="editing.nombres" required /></div>
         <div class="col-md-4"><label>Apellidos</label><input class="form-control" v-model="editing.apellidos" required /></div>
+      </div>
+      <div class="row mt-2">
         <div class="col-md-4"><label>Cédula</label><input class="form-control" v-model="editing.cedula" required /></div>
       </div>
 
@@ -80,6 +87,18 @@
         <div class="col-md-4"><label>Teléfono</label><input class="form-control" v-model="editing.telefono" /></div>
         <div class="col-md-4"><label>Gerencia</label><input class="form-control" v-model="editing.gerencia" /></div>
         <div class="col-md-4"><label>Departamento</label><input class="form-control" v-model="editing.departamento" /></div>
+      </div>
+
+      <div class="row mt-2" v-if="editing.rol === 'Aprobador'">
+        <div class="col-md-4">
+          <label>Nivel de aprobación</label>
+          <select class="form-control" v-model="editing.nivelAprobacion" required>
+            <option value="">Seleccione nivel</option>
+            <option value="1">1 - Emergente</option>
+            <option value="2">2 - Urgente</option>
+            <option value="3">3 - Normal</option>
+          </select>
+        </div>
       </div>
 
       <div class="mt-3">
@@ -109,7 +128,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { searchUsuarios, createUsuario, updateUsuario } from '@/services/usuarios'
 
 const search = ref('')
@@ -118,6 +137,12 @@ const error = ref('')
 const editing = ref({})
 const successMessage = ref('')
 const showModal = ref(false)
+
+watch(editing, (newValue) => {
+  if (newValue.rol !== 'Aprobador') {
+    editing.value.nivelAprobacion = null
+  }
+}, { deep: true })
 
 async function doSearch() {
   try {
@@ -186,6 +211,10 @@ async function saveUser() {
     if (!payload.username || !payload.nombres || !payload.apellidos || !payload.cedula || !payload.rol) {
       error.value = 'Complete campos obligatorios'
       return
+    }
+
+    if (payload.rol !== 'Aprobador') {
+      delete payload.nivelAprobacion
     }
 
     if (payload.id) {

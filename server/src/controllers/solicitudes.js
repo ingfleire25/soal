@@ -23,6 +23,18 @@ const normalizeOrganizacionCcOi = (body) => {
   return body.organizacionCcOi || body.codigoOrganizacion || body.organizacion || '';
 };
 
+const getApprovalLevel = (fechaInicio, fechaSolicitud = null) => {
+  const fechaInicioDate = new Date(fechaInicio);
+  const fechaSolicitudDate = fechaSolicitud ? new Date(fechaSolicitud) : new Date();
+  if (Number.isNaN(fechaInicioDate.getTime())) return null;
+  const baseDate = Number.isNaN(fechaSolicitudDate.getTime()) ? new Date() : fechaSolicitudDate;
+  const diffMs = fechaInicioDate.getTime() - baseDate.getTime();
+  const diffHours = diffMs / (1000 * 60 * 60);
+  if (diffHours <= 24) return '1';
+  if (diffHours <= 360) return '2';
+  return '3';
+};
+
 // Controller for storing and retrieving transport requests
 
 exports.getAll = async (req, res) => {
@@ -47,7 +59,7 @@ exports.postSolicitud = async (req, res) => {
     descripcion, origen, descripcionOrigen, destino, descripcionDestino,
     fechaInicio, fechaFin, organizacionCcOi, multiplesCcOi,
     lunes, martes, miercoles, jueves, viernes, sabado, domingo,
-    cantidadPasajeros, tipoServicio, aprobador, correo, solicitante,
+    cantidadPasajeros, tipoServicio, aprobador, correo, gerencia, solicitante,
     cedulaSolicitante, tipoSolicitud, subtipo, unidadMovilizar, descripcionUnidad, fecha, modserv
   } = req.body;
 
@@ -55,7 +67,7 @@ exports.postSolicitud = async (req, res) => {
   const payload = { ...req.body, organizacionCcOi };
 
   // Required fields validation based on tipoSolicitud
-  const requiredFields = ['descripcion', 'origen', 'destino', 'fechaInicio', 'organizacionCcOi', 'tipoServicio', 'aprobador', 'correo', 'solicitante', 'cedulaSolicitante', 'tipoSolicitud'];
+  const requiredFields = ['descripcion', 'origen', 'destino', 'fechaInicio', 'organizacionCcOi', 'tipoServicio', 'aprobador', 'correo', 'gerencia', 'solicitante', 'cedulaSolicitante', 'tipoSolicitud'];
   if (tipoSolicitud === 'Transporte de Personal') {
     requiredFields.push('fechaFin', 'cantidadPasajeros');
   }
@@ -76,6 +88,7 @@ exports.postSolicitud = async (req, res) => {
       }
     }
 
+    const nivelAprobacion = getApprovalLevel(fechaInicio, fecha);
     const id = await getNextSequentialId(Solicitud, tipoSolicitud === 'Movimiento Unidades Mayores' ? 'OUM' : 'TP');
     const nueva = await Solicitud.create({
       id,
@@ -100,10 +113,12 @@ exports.postSolicitud = async (req, res) => {
       tipoServicio,
       aprobador,
       correo,
+      gerencia,
       solicitante,
       cedulaSolicitante,
       tipoSolicitud,
       subtipo,
+      nivelAprobacion,
       estado: 'pendiente',
       motivoRechazo: null,
       unidadMovilizar,
@@ -124,7 +139,7 @@ exports.updateSolicitud = async (req, res) => {
     descripcion, origen, descripcionOrigen, destino, descripcionDestino,
     fechaInicio, fechaFin, organizacionCcOi, multiplesCcOi,
     lunes, martes, miercoles, jueves, viernes, sabado, domingo,
-    cantidadPasajeros, tipoServicio, aprobador, correo, tipoSolicitud,
+    cantidadPasajeros, tipoServicio, aprobador, correo, gerencia, tipoSolicitud,
     subtipo, modserv
   } = req.body;
 
@@ -146,11 +161,13 @@ exports.updateSolicitud = async (req, res) => {
       return res.status(404).json({ statusCode: 404, statusText: 'Solicitud no encontrada' });
     }
 
+    const nivelAprobacion = getApprovalLevel(fechaInicio, solicitud.fecha || new Date());
     await solicitud.update({
       descripcion, origen, descripcionOrigen, destino, descripcionDestino,
       fechaInicio, fechaFin, organizacionCcOi, multiplesCcOi,
       lunes, martes, miercoles, jueves, viernes, sabado, domingo,
-      cantidadPasajeros, tipoServicio, aprobador, correo, tipoSolicitud, subtipo, modserv
+      cantidadPasajeros, tipoServicio, aprobador, correo, gerencia, tipoSolicitud, subtipo, modserv,
+      nivelAprobacion
     });
 
     res.status(200).json({ statusCode: 200, statusText: 'Solicitud actualizada', result: { ...solicitud.dataValues, tipoTabla: modelo === 'Solicitud' ? 'solicitudes' : modelo === 'SuministroLacustre' ? 'suministroLacustre' : 'serviciosPortuarios' } });
@@ -201,14 +218,14 @@ exports.postSuministroLacustre = async (req, res) => {
     descripcion, origen, descripcionOrigen, destino, descripcionDestino,
     fechaInicio, fechaFin, organizacionCcOi, multiplesCcOi,
     tipoServicio, personaEnvia, descripcionPersonaEnvia, personaRecibe, descripcionPersonaRecibe,
-    aprobador, correo, solicitante, cedulaSolicitante, fecha, subtipo, materiales
+    aprobador, correo, gerencia, solicitante, cedulaSolicitante, fecha, subtipo, materiales
   } = req.body;
 
   organizacionCcOi = normalizeOrganizacionCcOi(req.body);
   const payload = { ...req.body, organizacionCcOi };
 
   // Required fields
-  const requiredFields = ['descripcion', 'origen', 'destino', 'fechaInicio', 'fechaFin', 'organizacionCcOi', 'tipoServicio', 'personaEnvia', 'descripcionPersonaEnvia', 'personaRecibe', 'descripcionPersonaRecibe', 'aprobador', 'correo', 'solicitante', 'cedulaSolicitante', 'materiales'];
+  const requiredFields = ['descripcion', 'origen', 'destino', 'fechaInicio', 'fechaFin', 'organizacionCcOi', 'tipoServicio', 'personaEnvia', 'descripcionPersonaEnvia', 'personaRecibe', 'descripcionPersonaRecibe', 'aprobador', 'correo', 'gerencia', 'solicitante', 'cedulaSolicitante', 'materiales'];
 
   for (const field of requiredFields) {
     if (!payload[field]) {
@@ -230,6 +247,7 @@ exports.postSuministroLacustre = async (req, res) => {
       }
     }
 
+    const nivelAprobacion = getApprovalLevel(fechaInicio, fecha);
     const id = await getNextSequentialId(SuministroLacustre, 'SL');
     const nueva = await SuministroLacustre.create({
       id,
@@ -250,11 +268,13 @@ exports.postSuministroLacustre = async (req, res) => {
       descripcionPersonaRecibe,
       aprobador,
       correo,
+      gerencia,
       solicitante,
       cedulaSolicitante,
       fecha,
       tipoSolicitud: 'Suministro Lacustre',
       subtipo,
+      nivelAprobacion,
       estado: 'pendiente',
       motivoRechazo: null
     });
@@ -282,14 +302,14 @@ exports.postServiciosPortuarios = async (req, res) => {
   let {
     descripcion, origen, descripcionOrigen, destino, descripcionDestino,
     fechaInicio, organizacionCcOi, multiplesCcOi, sumatoriaPorcentaje,
-    tipoServicio, unidadMovilizar, aprobador, correo, solicitante, cedulaSolicitante,
+    tipoServicio, unidadMovilizar, aprobador, correo, gerencia, solicitante, cedulaSolicitante,
     fecha, subtipo
   } = req.body;
 
   organizacionCcOi = normalizeOrganizacionCcOi(req.body);
   const payload = { ...req.body, organizacionCcOi };
 
-  const requiredFields = ['descripcion', 'origen', 'destino', 'fechaInicio', 'organizacionCcOi', 'tipoServicio', 'unidadMovilizar', 'aprobador', 'correo', 'solicitante', 'cedulaSolicitante', 'fecha'];
+  const requiredFields = ['descripcion', 'origen', 'destino', 'fechaInicio', 'organizacionCcOi', 'tipoServicio', 'unidadMovilizar', 'aprobador', 'correo', 'gerencia', 'solicitante', 'cedulaSolicitante', 'fecha'];
   for (const field of requiredFields) {
     if (!payload[field]) {
       return res.status(400).json({ statusCode: 400, statusText: `Falta el campo obligatorio: ${field}` });
@@ -297,6 +317,7 @@ exports.postServiciosPortuarios = async (req, res) => {
   }
 
   try {
+    const nivelAprobacion = getApprovalLevel(fechaInicio, fecha);
     const id = await getNextSequentialId(ServiciosPortuarios, 'SP');
     const nuevo = await ServiciosPortuarios.create({
       id,
@@ -313,11 +334,13 @@ exports.postServiciosPortuarios = async (req, res) => {
       unidadMovilizar,
       aprobador,
       correo,
+      gerencia,
       solicitante,
       cedulaSolicitante,
       fecha,
       tipoSolicitud: 'Servicios Portuarios',
       subtipo,
+      nivelAprobacion,
       estado: 'pendiente',
       motivoRechazo: null
     });

@@ -130,6 +130,10 @@
             <input v-model="form.correo" type="email" class="form-control form-control-sm bg-light" readonly required>
           </div>
           <div class="col-md-6">
+            <label class="form-label">Gerencia</label>
+            <input v-model="form.gerencia" type="text" class="form-control form-control-sm bg-light" readonly>
+          </div>
+          <div class="col-md-6">
             <label class="form-label">Solicitante</label>
             <input v-model="form.solicitante" type="text" class="form-control form-control-sm" readonly>
           </div>
@@ -140,6 +144,10 @@
           <div class="col-md-6">
             <label class="form-label">Fecha</label>
             <input v-model="form.fecha" type="datetime-local" class="form-control form-control-sm" readonly>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Nivel de Aprobación</label>
+            <input :value="nivelAprobacionTexto" type="text" class="form-control form-control-sm bg-light" readonly>
           </div>
         </div>
       </fieldset>
@@ -159,7 +167,7 @@ import { postServiciosPortuarios } from '@/services/postServiciosPortuarios';
 import { useAuthStore } from '@/stores/auth';
 import { getLocations } from '@/services/getLocations';
 import { getCompanies } from '@/services/getCompanies';
-import { toDatetimeLocal } from '@/utils/dateTime';
+import { toDatetimeLocal, getNivelAprobacion } from '@/utils/dateTime';
 
 export default {
   name: 'ServiciosPortuarios',
@@ -177,6 +185,7 @@ export default {
         unidadMovilizar: 'Tanquero - Buque Petrolero',
         aprobador: '',
         correo: '',
+        gerencia: '',
         solicitante: '',
         cedulaSolicitante: '',
         fecha: '',
@@ -208,6 +217,7 @@ export default {
       this.form.solicitante = `${user.nombres} ${user.apellidos}`;
       this.form.cedulaSolicitante = user.cedula;
       this.form.correo = user.correo || user.email || user.username || '';
+      this.form.gerencia = user.gerencia || '';
     }
     this.cargarUbicaciones();
     this.cargarCompanies();
@@ -245,6 +255,12 @@ export default {
           loc.DESCRIPTION.toLowerCase().includes(term)
         )
         .slice(0, 50);
+    },
+    nivelAprobacionInfo() {
+      return getNivelAprobacion(this.form.fechaInicio, this.form.fecha);
+    },
+    nivelAprobacionTexto() {
+      return this.nivelAprobacionInfo.texto;
     }
   },
   methods: {
@@ -302,6 +318,7 @@ export default {
       this.loading = true;
       try {
         const { id, ...payload } = this.form;
+        payload.nivelAprobacion = this.nivelAprobacionInfo.codigo;
         await postServiciosPortuarios(payload);
         alert('Solicitud enviada exitosamente');
         this.resetForm();
@@ -315,6 +332,8 @@ export default {
       const fechaActual = toDatetimeLocal();
       const solicitante = this.form.solicitante;
       const cedula = this.form.cedulaSolicitante;
+      const correo = this.form.correo;
+      const gerencia = this.form.gerencia;
       const subtipo = this.form.subtipo;
 
       Object.assign(this.form, {
@@ -330,7 +349,8 @@ export default {
         tipoServicio: 'Maniobras Especiales',
         unidadMovilizar: 'Tanquero - Buque Petrolero',
         aprobador: '',
-        correo: '',
+        correo: correo,
+        gerencia: gerencia,
         solicitante,
         cedulaSolicitante: cedula,
         fecha: fechaActual,

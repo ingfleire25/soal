@@ -14,7 +14,7 @@
     </div>
 
     <div class="mt-4">
-      <h3>Reportes de Solicitudes</h3>
+      <h3>Reportes de Evaluaciones</h3>
       <div class="d-flex gap-2 align-items-center">
         <label>Seleccionar Mes:</label>
         <select v-model="selectedMonth" class="form-select" style="width: auto;">
@@ -39,7 +39,6 @@
 import { ref, onMounted, computed } from 'vue';
 import { useAuthStore } from '@/stores/auth';
 import { getEvaluaciones } from '@/services/getEvaluaciones';
-import { getSolicitudes } from '@/services/getSolicitudes';
 import Chart from 'chart.js/auto';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
@@ -49,27 +48,44 @@ export default {
   setup() {
     const auth = useAuthStore();
     const evaluaciones = ref([]);
-    const solicitudes = ref([]);
     const loading = ref(false);
     const error = ref('');
     const chartCanvas = ref(null);
     const pieCanvas = ref(null);
-    const selectedMonth = ref(new Date().toISOString().slice(0, 7)); // YYYY-MM
+    const selectedMonth = ref('');
 
     const userRole = computed(() => auth.user?.value?.rol || '');
     const isAuthorized = computed(() => ['Aprobador', 'Administrador'].includes(userRole.value));
 
     const months = computed(() => {
-      const months = [];
-      const now = new Date();
-      for (let i = 0; i < 12; i++) {
-        const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
-        months.push({
-          value: date.toISOString().slice(0, 7),
-          label: date.toLocaleDateString('es-ES', { year: 'numeric', month: 'long' })
-        });
+      if (!evaluaciones.value.length) {
+        const months = [];
+        const now = new Date();
+        for (let i = 0; i < 12; i++) {
+          const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+          months.push({
+            value: date.toISOString().slice(0, 7),
+            label: date.toLocaleDateString('es-ES', { year: 'numeric', month: 'long' })
+          });
+        }
+        return months;
       }
-      return months;
+
+      const unique = new Map();
+      evaluaciones.value.forEach(item => {
+        const fecha = new Date(item.fecha || item.createdAt);
+        if (!isNaN(fecha.getTime())) {
+          const value = fecha.toISOString().slice(0, 7);
+          if (!unique.has(value)) {
+            unique.set(value, {
+              value,
+              label: fecha.toLocaleDateString('es-ES', { year: 'numeric', month: 'long' })
+            });
+          }
+        }
+      });
+
+      return Array.from(unique.values()).sort((a, b) => b.value.localeCompare(a.value));
     });
 
     const cargarDatos = async () => {
@@ -79,7 +95,9 @@ export default {
       error.value = '';
       try {
         evaluaciones.value = await getEvaluaciones();
-        solicitudes.value = await getSolicitudes();
+        if (!selectedMonth.value && months.value.length) {
+          selectedMonth.value = months.value[0].value;
+        }
         renderCharts();
       } catch (e) {
         error.value = e.statusText || 'Error al cargar datos';
@@ -156,43 +174,125 @@ export default {
       });
     };
 
-    const filtrarSolicitudesPorMes = () => {
+    const monthYearLabel = computed(() => {
       const [year, month] = selectedMonth.value.split('-');
-      return solicitudes.value.filter(s => {
-        const fecha = new Date(s.fechaInicio || s.fecha);
-        return fecha.getFullYear() === parseInt(year) && fecha.getMonth() === parseInt(month) - 1;
+      const date = new Date(parseInt(year, 10), parseInt(month, 10) - 1);
+      return date.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
+    });
+
+    const filtrarEvaluacionesPorMes = () => {
+      const [year, month] = selectedMonth.value.split('-');
+      return evaluaciones.value.filter(evaluation => {
+        const fecha = new Date(evaluation.fecha || evaluation.createdAt);
+        return fecha.getFullYear() === parseInt(year, 10) && fecha.getMonth() === parseInt(month, 10) - 1;
       });
     };
 
     const exportExcel = () => {
-      const data = filtrarSolicitudesPorMes();
+      const filtered = filtrarEvaluacionesPorMes();
+      const data = filtered.map(item => ({
+        'Código de la Solicitud': item.codigoSolicitud,
+        'Tipo de Solicitud': item.tipoSolicitud || '',
+        'Subtipo': item.subtipo || '',
+        'Evaluador': item.evaluadorNombre,
+        'Cédula Evaluador': item.evaluadorCedula || '',
+        'Correo Evaluador': item.evaluadorCorreo || '',
+        'Puntualidad': item.puntualidad,
+        'Calidad': item.calidad,
+        'Comunicación': item.comunicacion,
+        'Seguridad': item.seguridad,
+        'Satisfacción': item.satisfaccion,
+        'Comentarios': item.comentarios || '',
+        'Fecha evaluación': item.fecha ? new Date(item.fecha).toLocaleString('es-ES') : ''
+      }));
+
       const ws = XLSX.utils.json_to_sheet(data);
       const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, 'Solicitudes');
-      XLSX.writeFile(wb, `solicitudes_${selectedMonth.value}.xlsx`);
+      XLSX.utils.book_append_sheet(wb, ws, 'Evaluaciones');
+      XLSX.writeFile(wb, `reporte_evaluaciones_${selectedMonth.value}.xlsx`);
     };
 
     const exportPDF = () => {
-      const data = filtrarSolicitudesPorMes();
-      const doc = new jsPDF();
-      doc.text(`Solicitudes del mes ${selectedMonth.value}`, 10, 10);
-      let y = 20;
-      data.forEach((s, index) => {
-        doc.text(`${index + 1}. ${s.id} - ${s.tipoSolicitud} - ${s.estado}`, 10, y);
-        y += 10;
-        if (y > 280) {
-          doc.addPage();
-          y = 10;
-        }
+      const filtered = filtrarEvaluacionesPorMes();
+      const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+      doc.setFontSize(16);
+      doc.setTextColor(0, 0, 0);
+      doc.text('REPORTE DE EVALUACIONES', 14, 14);
+      doc.setFontSize(10);
+      doc.text(`Mes y Año: ${monthYearLabel.value}`, 14, 22);
+      doc.setFontSize(9);
+
+      const headers = ['Solicitud', 'Evaluador', 'Cédula', 'Correo', 'Puntualidad', 'Calidad', 'Comunicación', 'Seguridad', 'Satisfacción', 'Comentarios'];
+      const startX = 14;
+      const startY = 32;
+      const rowHeight = 8;
+      const colWidths = [28, 36, 24, 46, 16, 16, 18, 18, 18, 60];
+
+      let y = startY;
+      let x = startX;
+
+      doc.setFillColor(240, 240, 240);
+      doc.setDrawColor(180, 180, 180);
+      doc.setLineWidth(0.2);
+      headers.forEach((header, index) => {
+        doc.rect(x, y - rowHeight + 2, colWidths[index], rowHeight, 'FD');
+        doc.text(header, x + 1, y);
+        x += colWidths[index];
       });
-      doc.save(`solicitudes_${selectedMonth.value}.pdf`);
+      y += rowHeight;
+
+      filtered.forEach((item) => {
+        x = startX;
+        const row = [
+          item.codigoSolicitud || '',
+          item.evaluadorNombre || '',
+          item.evaluadorCedula || '',
+          item.evaluadorCorreo || '',
+          item.puntualidad != null ? String(item.puntualidad) : '',
+          item.calidad != null ? String(item.calidad) : '',
+          item.comunicacion != null ? String(item.comunicacion) : '',
+          item.seguridad != null ? String(item.seguridad) : '',
+          item.satisfaccion != null ? String(item.satisfaccion) : '',
+          item.comentarios ? item.comentarios.toString() : ''
+        ];
+
+        const maxLines = row.reduce((max, cell, index) => {
+          const lines = doc.splitTextToSize(cell, colWidths[index] - 2).length;
+          return Math.max(max, lines);
+        }, 1);
+
+        const pageBottom = 200;
+        if (y + rowHeight * maxLines > pageBottom) {
+          doc.addPage('landscape');
+          y = startY;
+          x = startX;
+          doc.setFillColor(240, 240, 240);
+          headers.forEach((header, index) => {
+            doc.rect(x, y - rowHeight + 2, colWidths[index], rowHeight, 'F');
+            doc.text(header, x + 1, y);
+            x += colWidths[index];
+          });
+          y += rowHeight;
+        }
+
+        row.forEach((cell, index) => {
+          const cellText = cell ? cell.toString() : '';
+          const splitText = doc.splitTextToSize(cellText, colWidths[index] - 2);
+          doc.text(splitText, x + 1, y);
+          doc.rect(x, y - rowHeight + 2, colWidths[index], rowHeight * maxLines, 'S');
+          x += colWidths[index];
+        });
+
+        y += rowHeight * maxLines;
+      });
+
+      doc.save(`reporte_evaluaciones_${selectedMonth.value}.pdf`);
     };
 
     onMounted(cargarDatos);
 
     return {
       evaluaciones,
-      solicitudes,
       loading,
       error,
       chartCanvas,

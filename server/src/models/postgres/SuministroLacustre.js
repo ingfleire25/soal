@@ -24,11 +24,13 @@ module.exports = (sequelize) => {
     descripcionPersonaRecibe: { type: DataTypes.STRING, allowNull: false },
     aprobador: { type: DataTypes.STRING, allowNull: false },
     correo: { type: DataTypes.STRING, allowNull: false },
+    gerencia: { type: DataTypes.STRING, allowNull: true },
     solicitante: { type: DataTypes.STRING, allowNull: false },
     cedulaSolicitante: { type: DataTypes.STRING, allowNull: false },
     fecha: { type: DataTypes.DATE, allowNull: true },
     tipoSolicitud: { type: DataTypes.STRING, defaultValue: 'Suministro Lacustre', allowNull: false },
     subtipo: { type: DataTypes.STRING, allowNull: true },
+    nivelAprobacion: { type: DataTypes.ENUM('1', '2', '3'), allowNull: true },
     estado: { type: DataTypes.ENUM('pendiente', 'aprobada', 'rechazada'), defaultValue: 'pendiente', allowNull: false },
     motivoRechazo: { type: DataTypes.TEXT, allowNull: true }
   }, { timestamps: true });

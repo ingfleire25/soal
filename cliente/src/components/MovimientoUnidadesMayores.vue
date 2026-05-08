@@ -139,6 +139,10 @@
             <label class="form-label">Correo</label>
             <input v-model="form.correo" type="email" class="form-control form-control-sm bg-light" readonly required>
           </div>
+          <div class="col-md-6">
+            <label class="form-label">Gerencia</label>
+            <input v-model="form.gerencia" type="text" class="form-control form-control-sm bg-light" readonly>
+          </div>
 
           <div class="col-md-6">
             <label class="form-label">Solicitante</label>
@@ -153,6 +157,10 @@
           <div class="col-md-6">
             <label class="form-label">Fecha</label>
             <input v-model="form.fecha" type="datetime-local" class="form-control form-control-sm" readonly>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Nivel de Aprobación</label>
+            <input :value="nivelAprobacionTexto" type="text" class="form-control form-control-sm bg-light" readonly>
           </div>
         </div>
       </fieldset>
@@ -173,7 +181,7 @@ import { useAuthStore } from '@/stores/auth';
 import { getLocations } from '@/services/getLocations';
 import { getServiceTypes } from '@/services/getServiceTypes';
 import { getCompanies } from '@/services/getCompanies';
-import { toDatetimeLocal } from '@/utils/dateTime';
+import { toDatetimeLocal, getNivelAprobacion } from '@/utils/dateTime';
 
 export default {
   name: 'MovimientoUnidadesMayores',
@@ -194,6 +202,7 @@ export default {
         descripcionUnidad: '',
         aprobador: '',
         correo: '',
+        gerencia: '',
         solicitante: '',
         cedulaSolicitante: '',
         fecha: '',
@@ -222,6 +231,7 @@ export default {
       this.form.solicitante = `${user.nombres} ${user.apellidos}`;
       this.form.cedulaSolicitante = user.cedula;
       this.form.correo = user.correo || user.email || user.username || '';
+      this.form.gerencia = user.gerencia || '';
     }
     this.cargarUbicaciones();
     this.cargarCompanies();
@@ -261,6 +271,12 @@ export default {
           (company.company || '').toLowerCase().includes(term)
         )
         .slice(0, 50);
+    },
+    nivelAprobacionInfo() {
+      return getNivelAprobacion(this.form.fechaInicio, this.form.fecha);
+    },
+    nivelAprobacionTexto() {
+      return this.nivelAprobacionInfo.texto;
     }
   },
   methods: {
@@ -321,7 +337,7 @@ export default {
       }
       this.loading = true;
       try {
-        const dataToSend = { ...this.form };
+        const dataToSend = { ...this.form, nivelAprobacion: this.nivelAprobacionInfo.codigo };
         delete dataToSend.id;
         await postSolicitud(dataToSend);
         alert('Solicitud enviada exitosamente');
@@ -335,6 +351,8 @@ export default {
     resetForm() {
       const currentSolicitante = this.form.solicitante;
       const currentCedula = this.form.cedulaSolicitante;
+      const currentCorreo = this.form.correo;
+      const currentGerencia = this.form.gerencia;
       const currentSubtipo = this.form.subtipo;
       const currentFecha = this.form.fecha;
 
@@ -352,7 +370,8 @@ export default {
         unidadMovilizar: '',
         descripcionUnidad: '',
         aprobador: '',
-        correo: '',
+        correo: currentCorreo,
+        gerencia: currentGerencia,
         solicitante: currentSolicitante,
         cedulaSolicitante: currentCedula,
         fecha: currentFecha,

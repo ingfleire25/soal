@@ -164,12 +164,20 @@
             <input v-model="form.correo" type="email" class="form-control form-control-sm bg-light" readonly required>
           </div>
           <div class="col-md-6">
+            <label class="form-label fw-bold">Gerencia</label>
+            <input v-model="form.gerencia" type="text" class="form-control form-control-sm bg-light" readonly>
+          </div>
+          <div class="col-md-6">
             <label class="form-label fw-bold text-muted">Solicitante</label>
             <input v-model="form.solicitante" type="text" class="form-control form-control-sm bg-light" readonly>
           </div>
           <div class="col-md-6">
             <label class="form-label fw-bold text-muted">Cédula Solicitante</label>
             <input v-model="form.cedulaSolicitante" type="text" class="form-control form-control-sm bg-light" readonly>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-bold">Nivel de Aprobación</label>
+            <input :value="nivelAprobacionTexto" type="text" class="form-control form-control-sm bg-light" readonly>
           </div>
         </div>
       </fieldset>
@@ -193,6 +201,7 @@ import { getLocations } from '@/services/getLocations';
 import { getServiceTypes } from '@/services/getServiceTypes';
 import { getCompanies } from '@/services/getCompanies';
 import { getModserv } from '@/services/getModserv';
+import { getNivelAprobacion } from '@/utils/dateTime';
 
 export default {
   name: 'TransportePersonal',
@@ -220,6 +229,7 @@ export default {
         tipoServicio: '',
         aprobador: '',
         correo: '',
+        gerencia: '',
         solicitante: '',
         cedulaSolicitante: '',
         tipoSolicitud: 'Transporte de Personal',
@@ -295,6 +305,12 @@ export default {
           (company.company || '').toLowerCase().includes(termino)
         )
         .slice(0, 50);
+    },
+    nivelAprobacionInfo() {
+      return getNivelAprobacion(this.form.fechaInicio);
+    },
+    nivelAprobacionTexto() {
+      return this.nivelAprobacionInfo.texto;
     }
   },
   async mounted() {
@@ -310,6 +326,7 @@ export default {
       this.form.solicitante = `${user.nombres} ${user.apellidos}`;
       this.form.cedulaSolicitante = user.cedula;
       this.form.correo = user.correo || user.email || user.username || '';
+      this.form.gerencia = user.gerencia || '';
     }
 
     // 3. Precargar locaciones y compañías
@@ -389,7 +406,8 @@ export default {
       }
       this.loading = true;
       try {
-        await postSolicitud(this.form);
+        const payload = { ...this.form, nivelAprobacion: this.nivelAprobacionInfo.codigo };
+        await postSolicitud(payload);
         alert('Solicitud enviada exitosamente');
         this.resetForm();
       } catch (error) {
@@ -400,11 +418,13 @@ export default {
     },
 
     resetForm() {
-      const { solicitante, cedulaSolicitante, subtipo } = this.form;
+      const { solicitante, cedulaSolicitante, subtipo, gerencia, correo } = this.form;
       Object.assign(this.$data.form, this.$options.data().form);
       this.form.solicitante = solicitante;
       this.form.cedulaSolicitante = cedulaSolicitante;
       this.form.subtipo = subtipo;
+      this.form.gerencia = gerencia;
+      this.form.correo = correo;
 
       this.searchOrigen = '';
       this.searchDestino = '';

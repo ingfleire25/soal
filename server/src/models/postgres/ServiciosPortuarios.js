@@ -20,11 +20,13 @@ module.exports = (sequelize) => {
     unidadMovilizar: { type: DataTypes.STRING, allowNull: false, defaultValue: 'Tanquero Buque Petrolero' },
     aprobador: { type: DataTypes.STRING, allowNull: false },
     correo: { type: DataTypes.STRING, allowNull: false },
+    gerencia: { type: DataTypes.STRING, allowNull: true },
     solicitante: { type: DataTypes.STRING, allowNull: false },
     cedulaSolicitante: { type: DataTypes.STRING, allowNull: false },
     fecha: { type: DataTypes.DATE, allowNull: false },
     tipoSolicitud: { type: DataTypes.STRING, allowNull: false, defaultValue: 'Servicios Portuarios' },
     subtipo: { type: DataTypes.STRING, allowNull: true },
+    nivelAprobacion: { type: DataTypes.ENUM('1', '2', '3'), allowNull: true },
     estado: { type: DataTypes.ENUM('pendiente', 'aprobada', 'rechazada'), defaultValue: 'pendiente', allowNull: false },
     motivoRechazo: { type: DataTypes.TEXT, allowNull: true }
   }, { timestamps: true });

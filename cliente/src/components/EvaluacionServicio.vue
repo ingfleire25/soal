@@ -1,8 +1,7 @@
 <template>
   <div class="evaluacion-servicio container py-4">
     <h1 class="mb-4">Evaluar servicio de transporte</h1>
-   </div>
- <div>
+
     <div class="card shadow-sm mb-4">
       <div class="card-body">
         <p class="text-muted">Registre la evaluación asociada al código de solicitud. La información de quien evalúa se completa desde el usuario logueado.</p>
@@ -13,11 +12,20 @@
       <div class="row gy-3">
         <div class="col-md-6">
           <label class="form-label">Código de solicitud</label>
-          <input v-model="form.codigoSolicitud" type="text" class="form-control" placeholder="Ej: TP-0001" required />
+          <select v-model="form.codigoSolicitud" @change="onSolicitudSeleccionada" class="form-select" required>
+            <option value="">Seleccione su solicitud</option>
+            <option v-for="solicitud in solicitudesUsuario" :key="solicitud.id" :value="solicitud.id">
+              {{ solicitud.id }} - {{ solicitud.descripcion }}
+            </option>
+          </select>
         </div>
         <div class="col-md-6">
           <label class="form-label">Tipo de solicitud</label>
-          <input v-model="form.tipoSolicitud" type="text" class="form-control" placeholder="Opcional: Transporte de Personal" />
+          <input v-model="form.tipoSolicitud" type="text" class="form-control bg-light" readonly placeholder="Se completa al elegir la solicitud" />
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Subtipo</label>
+          <input v-model="form.subtipo" type="text" class="form-control bg-light" readonly />
         </div>
 
         <div class="col-md-4">
@@ -64,12 +72,15 @@
 <script>
 import { useAuthStore } from '@/stores/auth';
 import { postEvaluacion } from '@/services/postEvaluacion';
+import { getSolicitudes } from '@/services/getSolicitudes';
 
 export default {
   name: 'EvaluacionServicio',
   data() {
     return {
       loading: false,
+      loadingSolicitudes: false,
+      solicitudesUsuario: [],
       preguntas: [
         { key: 'puntualidad', label: 'Puntualidad del servicio' },
         { key: 'calidad', label: 'Calidad del transporte' },
@@ -100,16 +111,45 @@ export default {
       this.form.evaluadorNombre = `${user.nombres || user.username || ''} ${user.apellidos || ''}`.trim();
       this.form.evaluadorCedula = user.cedula || '';
       this.form.evaluadorCorreo = user.email || user.correo || user.username || '';
+      this.cargarSolicitudes(user);
     }
   },
   methods: {
+    async cargarSolicitudes(user) {
+      this.loadingSolicitudes = true;
+      try {
+        const solicitudes = await getSolicitudes();
+        const userCedula = user?.cedula || user?.cedulaSolicitante || '';
+        const userName = `${user?.nombres || user?.nombre || user?.username || ''}`.trim().toLowerCase();
+
+        this.solicitudesUsuario = solicitudes.filter((solicitud) => {
+          const cedulaMatch = userCedula && solicitud.cedulaSolicitante?.toString() === userCedula.toString();
+          const nombreMatch = userName && solicitud.solicitante?.toString().toLowerCase() === userName;
+          return cedulaMatch || nombreMatch;
+        });
+      } catch (error) {
+        console.error('Error cargando solicitudes:', error);
+      } finally {
+        this.loadingSolicitudes = false;
+      }
+    },
+    onSolicitudSeleccionada() {
+      const solicitud = this.solicitudesUsuario.find((item) => item.id === this.form.codigoSolicitud);
+      if (solicitud) {
+        this.form.tipoSolicitud = solicitud.tipoSolicitud || '';
+        this.form.subtipo = solicitud.subtipo || '';
+      } else {
+        this.form.tipoSolicitud = '';
+        this.form.subtipo = '';
+      }
+    },
     valoracionTexto(value) {
       const labels = ['Muy malo', 'Malo', 'Regular', 'Bueno', 'Excelente'];
       return labels[value - 1] || '';
     },
     async enviarEvaluacion() {
       if (!this.form.codigoSolicitud.trim()) {
-        alert('Debe ingresar el código de solicitud a evaluar.');
+        alert('Debe seleccionar el código de solicitud a evaluar.');
         return;
       }
       this.loading = true;

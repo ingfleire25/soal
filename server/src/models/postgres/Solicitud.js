@@ -26,12 +26,14 @@ module.exports = ( sequelize ) => {
         domingo: { type: DataTypes.BOOLEAN, defaultValue: false },
         cantidadPasajeros: { type: DataTypes.INTEGER, allowNull: true },
         tipoServicio: { type: DataTypes.STRING, allowNull: false }, // Subtipo
+        gerencia: { type: DataTypes.STRING, allowNull: true },
         aprobador: { type: DataTypes.STRING, allowNull: false },
         correo: { type: DataTypes.STRING, allowNull: false },
         solicitante: { type: DataTypes.STRING, allowNull: false },
         cedulaSolicitante: { type: DataTypes.STRING, allowNull: false },
         tipoSolicitud: { type: DataTypes.STRING, allowNull: false }, // e.g., 'Transporte de Personal'
         subtipo: { type: DataTypes.STRING, allowNull: true }, // e.g., 'Ocasional', 'Recurrente'
+        nivelAprobacion: { type: DataTypes.ENUM('1', '2', '3'), allowNull: true },
         estado: { type: DataTypes.ENUM('pendiente', 'aprobada', 'rechazada'), defaultValue: 'pendiente', allowNull: false },
         motivoRechazo: { type: DataTypes.TEXT, allowNull: true },
         unidadMovilizar: { type: DataTypes.STRING, allowNull: true },

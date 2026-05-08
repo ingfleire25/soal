@@ -10,6 +10,7 @@ exports.search = async (req, res) => {
             { nombres: { [require('sequelize').Op.iLike]: `%${search}%` } },
             { apellidos: { [require('sequelize').Op.iLike]: `%${search}%` } },
             { cedula: { [require('sequelize').Op.iLike]: `%${search}%` } },
+            { correo: { [require('sequelize').Op.iLike]: `%${search}%` } },
             { gerencia: { [require('sequelize').Op.iLike]: `%${search}%` } },
             { departamento: { [require('sequelize').Op.iLike]: `%${search}%` } }
           ]
@@ -39,10 +40,14 @@ exports.getById = async (req, res) => {
 
 exports.create = async (req, res) => {
   try {
-    const { username, password, nombres, apellidos, cedula, telefono, gerencia, departamento, rol } = req.body;
+    const { username, password, nombres, apellidos, cedula, telefono, correo, gerencia, departamento, rol, nivelAprobacion } = req.body;
 
     if (!username || !password || !nombres || !apellidos || !cedula || !rol) {
       return res.status(400).json({ statusCode: 400, statusText: 'Faltan datos obligatorios' });
+    }
+
+    if (rol === 'Aprobador' && !nivelAprobacion) {
+      return res.status(400).json({ statusCode: 400, statusText: 'Los aprobadores deben tener un nivel de aprobación asignado' });
     }
 
     const existing = await Usuario.findOne({ where: { username } });
@@ -50,7 +55,19 @@ exports.create = async (req, res) => {
       return res.status(409).json({ statusCode: 409, statusText: 'Usuario ya existe' });
     }
 
-    const newUser = await Usuario.create({ username, password, nombres, apellidos, cedula, telefono, gerencia, departamento, rol });
+    const newUser = await Usuario.create({
+      username,
+      password,
+      nombres,
+      apellidos,
+      cedula,
+      telefono,
+      correo,
+      gerencia,
+      departamento,
+      rol,
+      nivelAprobacion: rol === 'Aprobador' ? nivelAprobacion : null
+    });
     res.status(201).json({ statusCode: 201, statusText: 'Usuario creado', result: newUser });
   } catch (error) {
     console.error('Error crear usuario', error);
@@ -61,7 +78,7 @@ exports.create = async (req, res) => {
 exports.update = async (req, res) => {
   try {
     const { id } = req.params;
-    const { username, password, nombres, apellidos, cedula, telefono, gerencia, departamento, rol, activo } = req.body;
+    const { username, password, nombres, apellidos, cedula, telefono, correo, gerencia, departamento, rol, activo, nivelAprobacion } = req.body;
 
     const user = await Usuario.findByPk(id);
     if (!user) return res.status(404).json({ statusCode: 404, statusText: 'Usuario no encontrado' });
@@ -71,7 +88,24 @@ exports.update = async (req, res) => {
       if (clash) return res.status(409).json({ statusCode: 409, statusText: 'Username en uso' });
     }
 
-    await user.update({ username, password, nombres, apellidos, cedula, telefono, gerencia, departamento, rol, activo });
+    if (rol === 'Aprobador' && !nivelAprobacion) {
+      return res.status(400).json({ statusCode: 400, statusText: 'Los aprobadores deben tener un nivel de aprobación asignado' });
+    }
+
+    await user.update({
+      username,
+      password,
+      nombres,
+      apellidos,
+      cedula,
+      telefono,
+      correo,
+      gerencia,
+      departamento,
+      rol,
+      activo,
+      nivelAprobacion: rol === 'Aprobador' ? nivelAprobacion : null
+    });
     res.status(200).json({ statusCode: 200, statusText: 'Usuario actualizado', result: user });
   } catch (error) {
     console.error('Error actualizar usuario', error);

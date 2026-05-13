@@ -1,12 +1,12 @@
 <template>
   <h4 class="text-primary mb-4">{{ titulo }}</h4>
-  <div class="container bg-white p-4 shadow-sm rounded">
+  <div class="bg-white p-4 shadow-sm rounded">
     <form @submit.prevent="enviar">
       <fieldset class="border p-3 mb-4 rounded">
         <legend class="w-auto px-2 fs-5 text-primary">Detalles de la Solicitud</legend>
         <div class="row g-3">
           
-          <div class="col-md-6">
+          <div class="col-md-12">
             <label class="form-label fw-bold">Descripción</label>
             <textarea v-model="form.descripcion" class="form-control form-control-sm" rows="2" required></textarea>
           </div>
@@ -17,7 +17,7 @@
               <option v-for="serv in modserv" :key="serv.modnum" :value="serv.modnum">{{ serv.modnum }} - {{ serv.description }}</option>
             </select>
           </div>
-          <div></div>
+          <div v-if="form.subtipo == 'Recurrente'" class="col-md-6"></div>
 
           <div class="col-md-6">
             <label class="form-label fw-bold">Origen</label>
@@ -25,7 +25,7 @@
               <input 
                 v-model="searchOrigen" 
                 type="text" 
-                class="form-control form-control-sm" 
+                class="form-control form-control-sm"
                 placeholder="Buscar ubicación..." 
                 required
                 @input="mostrarDropdownOrigen = true" 
@@ -118,23 +118,24 @@
             <input v-model="form.codigoOrganizacion" type="text" class="form-control form-control-sm" readonly>
           </div>
 
-          <div class="col-md-12">
+          <div class="col-md-6">
             <label class="form-label fw-bold">Centro de costo CC/OI</label>
-            <input v-model="form.organizacionCcOi" type="text" class="form-control form-control-sm" placeholder="CC/OI" required>
+            <input type="text" class="form-control form-control-sm" placeholder="CC/OI" required>
           </div>
 
-          <div class="col-md-12">
-            <label class="form-label fw-bold d-block">Días de la Semana (C = Contratado, F = Fijo)</label>
+          <div class="col-md-12 py-2">
+            <label class="form-label fw-bold d-block">Días de la Semana (C = Contratad F = Fijo)</label>
             <div class="row gy-2">
-              <div v-for="dia in diasConfig" :key="dia.model" class="col-6 col-sm-4 col-md-2">
-                <label class="form-label small mb-1">{{ dia.label }}</label>
+              <!-- <div v-for="dia in diasConfig" :key="dia.model" class="col-6 col-sm-4 col-md-2"> -->
+              <div v-for="dia in diasConfig" :key="dia.model" class="col-md-1">
+                <label class="form-label">{{ dia.label }}</label>
                 <select
-                  class="form-select form-select-sm"
+                  class="form-select-sm"
                   v-model="form[dia.model]"
                 >
                   <option value="">---</option>
-                  <option value="C">C</option>
-                  <option value="F">F</option>
+                  <option value="C">Contratado</option>
+                  <option value="F">Fijo</option>
                 </select>
               </div>
             </div>
@@ -486,4 +487,5 @@ input[readonly] {
   cursor: pointer;
   background-color: #fdfdfd !important;
 }
+
 </style>

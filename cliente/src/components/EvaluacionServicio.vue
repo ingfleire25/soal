@@ -1,5 +1,5 @@
 <template>
-  <div class="evaluacion-servicio container py-4">
+
     <h1 class="mb-4">Evaluar servicio de transporte</h1>
 
     <div class="card shadow-sm mb-4">
@@ -28,15 +28,15 @@
           <input v-model="form.subtipo" type="text" class="form-control bg-light" readonly />
         </div>
 
-        <div class="col-md-4">
+        <div class="col-md-6">
           <label class="form-label">Evaluador</label>
           <input v-model="form.evaluadorNombre" type="text" class="form-control bg-light" readonly />
         </div>
-        <div class="col-md-4">
+        <div class="col-md-6">
           <label class="form-label">Cédula evaluador</label>
           <input v-model="form.evaluadorCedula" type="text" class="form-control bg-light" readonly />
         </div>
-        <div class="col-md-4">
+        <div class="col-md-6">
           <label class="form-label">Correo evaluador</label>
           <input v-model="form.evaluadorCorreo" type="email" class="form-control bg-light" readonly />
         </div> 
@@ -45,9 +45,9 @@
           <h5 class="mb-3">Valoración del servicio</h5>
         </div>
 
-        <div class="col-md-4" v-for="item in preguntas" :key="item.key">
-          <label class="form-label">{{ item.label }}</label>
-          <select v-model.number="form[item.key]" class="form-select" required>
+        <div class="col-md-2" v-for="item in preguntas" :key="item.key">
+          <label class="form-label ">{{ item.label }}</label>
+          <select v-model.number="form[item.key]" class="form-select ponderaciones" required>
             <option value="">Seleccione</option>
             <option v-for="n in 5" :key="n" :value="n">{{ n }} - {{ valoracionTexto(n) }}</option>
           </select>
@@ -66,7 +66,7 @@
         </div>
       </div>
     </form>
-  </div>
+  
 </template>
 
 <script>
@@ -86,7 +86,7 @@ export default {
         { key: 'calidad', label: 'Calidad del transporte' },
         { key: 'comunicacion', label: 'Comunicación del personal' },
         { key: 'seguridad', label: 'Condiciones de seguridad' },
-        { key: 'satisfaccion', label: 'Satisfacción general' }
+        { key: 'satisfaccion', label: 'Satisfacción del Servicio' }
       ],
       form: {
         codigoSolicitud: '',
@@ -179,5 +179,9 @@ export default {
 </script>
 
 <style scoped>
+.ponderaciones {
+  font-size: 14px;
+}
+
 .evaluacion-servicio { max-width: 900px; margin: auto; }
 </style>

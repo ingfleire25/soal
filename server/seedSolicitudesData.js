@@ -141,7 +141,7 @@ const solicitudesSeed = [
     tipoSolicitud: 'Suministro Lacustre',
     subtipo: null,
     nivelAprobacion: '3',
-    estado: 'pendiente',
+    estado: 'pendiente', 
     motivoRechazo: null,
     fecha: new Date().toISOString().split('T')[0]
   },

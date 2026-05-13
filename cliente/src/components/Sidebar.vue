@@ -65,12 +65,7 @@
               <span class="link-text ms-2">Suministro Lacustre</span>
             </a>
           </li>
-          <!-- <li>
-            <a href="#" class="sidebar-link ps-4" @click.prevent="navigateTo('servicios-portuarios')">
-              <i class="material-icons">anchor</i>
-              <span class="link-text ms-2">Servicios Portuarios</span>
-            </a>
-          </li> -->
+        
         </ul>
       </li><!-- LI cierra crear solicitudes -->
 
@@ -81,7 +76,7 @@
             <i class="material-icons">add_circle</i>
             <span v-if="isExpanded" class="link-text ms-2">ODST</span>
           </div>
-          <!-- <i v-if="isExpanded" class="material-icons arrow-icon" :class="{ 'rotate': submenus.tabla }">expand_more</i> -->
+          
         </a>
 
         <ul v-if="isExpanded && submenus.tabla" class="submenu p-0">
@@ -122,25 +117,8 @@
               <span class="link-text ms-2">Suministro lacustre</span>
             </a>
           </li>
-          <!-- <li>
-            <a href="#" class="sidebar-link ps-4" @click.prevent="navigateTo('servicios-portuarios', 'ver')">
-              <i class="material-icons">anchor</i>
-              <span class="link-text ms-2">Servicios portuarios</span>
-            </a>
-          </li> -->
         </ul>
       </li>
-      <!-- LI para ODST -->
-      <!-- <li v-if="isSupervisor || isGerente || isSubgerente" class="sidebar-item">
-        <a href="#" class="sidebar-link d-flex align-items-center justify-content-between px-3" 
-           @click.prevent="toggleSubmenu('ODTS')">
-          <div class="d-flex align-items-center">
-            <i class="material-icons">add_circle</i>
-            <span v-if="isExpanded" class="link-text ms-2">ODST</span>
-          </div>
-          <i v-if="isExpanded" class="material-icons arrow-icon" :class="{ 'rotate': submenus.ODTS }">expand_more</i>
-        </a>
-      </li> -->
       <!-- LI para PLAN -->
       <li v-if="canUsePlan" class="sidebar-item">
         <a href="#" class="sidebar-link d-flex align-items-center justify-content-between px-3" 

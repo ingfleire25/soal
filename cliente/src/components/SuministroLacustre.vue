@@ -5,10 +5,11 @@
       <fieldset class="border p-3 mb-4 rounded">
         <legend class="w-auto px-2 fs-5 text-primary">Detalles de la Solicitud</legend>
         <div class="row g-3">
-            <div class="col-md-6">
+            <div class="col-md-12">
             <label class="form-label">Descripción</label>
             <textarea v-model="form.descripcion" class="form-control form-control-sm" rows="2" required></textarea>
           </div>
+          <div></div>
           <div class="col-md-6">
             <label class="form-label">Origen</label>
             <div class="position-relative">
@@ -105,9 +106,9 @@
             <label class="form-label">Código Organización</label>
             <input v-model="form.codigoOrganizacion" type="text" class="form-control form-control-sm" readonly>
           </div>
-          <div class="col-md-12">
+          <div class="col-md-6">
             <label class="form-label">Centro de costo CC/OI</label>
-            <input v-model="form.organizacionCcOi" type="text" class="form-control form-control-sm" placeholder="CC/OI" required>
+            <input  type="text" class="form-control form-control-sm" placeholder="CC/OI" required>
           </div>
           <div class="col-md-6">
             <label class="form-label">Tipo de Servicio</label>

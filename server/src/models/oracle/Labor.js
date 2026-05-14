@@ -281,3 +281,10 @@ module.exports = (sequelize) => {
     freezeTableName: true
   });
 };
+
+// [
+//   {
+//     "name": "ACOSTA, ALBERTO (TP)",
+//     "pagepin": "ACOSTAAJQ",
+//     "la13": "3"
+//   },

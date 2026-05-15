@@ -1,15 +1,10 @@
 const { Chartofaccounts, Companies } = require('../../db');
-const { QueryTypes } = require('sequelize');
-
-
 const { Op } = require('sequelize');
 
 const getChartWithCompanies = async (req, res) => {
   try {
     const results = await Chartofaccounts.findAll({
-      // Seleccionamos solo GLACCOUNT de Chartofaccounts
-      attributes: ['glaccount'], 
-      
+      attributes: ['glaccount'],
       where: {
         ch1: {
           [Op.ne]: null // CH1 IS NOT NULL
@@ -18,31 +13,30 @@ const getChartWithCompanies = async (req, res) => {
           [Op.gt]: new Date() // CH2 > SYSDATE
         }
       },
-      
       include: [{
         model: Companies,
         as: 'companyData',
-        attributes: ['name'], // Seleccionamos solo NAME de Companies
-        required: true // Esto fuerza un INNER JOIN (CH3 = COMPANY)
+        attributes: ['name'],
+        required: true
       }],
-      
       order: [
-        ['ch3', 'ASC'] // ORDER BY CH.CH3
+        ['ch3', 'ASC']
       ]
     });
 
-    // Formatear la respuesta para que sea plana como tu SQL si lo deseas
     const cleanData = results.map(item => ({
       GLACCOUNT: item.glaccount,
       NAME: item.companyData ? item.companyData.name : null
     }));
 
-    return cleanData;
+    return res.status(200).json(cleanData);
   } catch (error) {
     console.error('Error en la búsqueda:', error);
-    throw error;
+    return res.status(500).json({
+      error: 'No se pudo obtener Chartofaccounts con Companies',
+      details: error.message
+    });
   }
 };
 
-
-module.exports =  {getChartWithCompanies} 
+module.exports = { getChartWithCompanies }; 

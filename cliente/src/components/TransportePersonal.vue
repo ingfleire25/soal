@@ -120,7 +120,7 @@
 
           <div class="col-md-6">
             <label class="form-label fw-bold">Centro de costo CC/OI</label>
-            <input type="text" class="form-control form-control-sm" placeholder="CC/OI" required>
+            <CentroCostoAutocomplete v-model="form.organizacionCcOi" :required="true" />
           </div>
 
           <div class="col-md-12 py-2">
@@ -202,10 +202,14 @@ import { getLocations } from '@/services/getLocations';
 import { getServiceTypes } from '@/services/getServiceTypes';
 import { getCompanies } from '@/services/getCompanies';
 import { getModserv } from '@/services/getModserv';
+import CentroCostoAutocomplete from '@/components/CentroCostoAutocomplete.vue';
 import { getNivelAprobacion } from '@/utils/dateTime';
 
 export default {
   name: 'TransportePersonal',
+  components: {
+    CentroCostoAutocomplete
+  },
   data() {
     return {
       form: {

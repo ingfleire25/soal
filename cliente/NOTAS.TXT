@@ -49,19 +49,17 @@ piden lo mismo la edicion es diferente para cada uno.
 
 HACE FALTA IMPLEMENTAR SWEETALERT PARA EL MENSAJE DE SATISFACTORIO O NO
 
-preguntar si el reporte de las evaluaciones debe ser sobre las solicitudes evaluadas o solo sobre las ecaluaciones en si.
-
 Revizar los filtros sobre administrador no trae todas las coincidencias.
-
-boton de pdf con la informacion incompleta.
-
-Evaluacion debe traer las solicitudes hechas por mi gerencia.
 
 correo debe traer el cuerpo completo del correo.
 
 crear correo en el modelo de usuario ya que no esta.
 
-no puedeo guardar una edicion.
+no puedeo guardar una edicion. creo que debo completar los campos vacios. para guardar.
 
 los modales de edicion deben ser segun cada formulario de creacion.
+
+crear los servicios de item y labor para aprobadores.
+vincular aprobadores segun su nivel de aprobacion.
+
 

@@ -6,7 +6,6 @@ const solicitudes = require('../controllers/solicitudes');
 router.get('/', solicitudes.getAll);
 router.post('/', solicitudes.postSolicitud);
 router.post('/suministro-lacustre', solicitudes.postSuministroLacustre);
-router.post('/servicios-portuarios', solicitudes.postServiciosPortuarios);
 router.put('/:id', solicitudes.updateSolicitud);
 router.patch('/:id/estado', solicitudes.cambiarEstado);
 

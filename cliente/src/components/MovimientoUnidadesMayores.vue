@@ -73,7 +73,22 @@
 
           <div class="col-md-6">
             <label class="form-label">Fecha Requerida de Inicio</label>
-            <input v-model="form.fechaInicio" type="datetime-local" class="form-control form-control-sm" required>
+            <div class="date-time-field-wrapper">
+              <input
+                v-model="form.fechaInicio"
+                type="datetime-local"
+                class="form-control form-control-sm"
+                required
+                @dblclick="handleDateFieldDblClick"
+              />
+              <button
+                type="button"
+                class="btn btn-sm date-time-select-button"
+                @click="confirmDateSelection($event)"
+              >
+                Seleccionar
+              </button>
+            </div>
           </div>
 
           <div class="col-md-6">
@@ -108,7 +123,12 @@
 
           <div class="col-md-6">
             <label class="form-label">Centro de costo CC/OI</label>
-            <CentroCostoAutocomplete v-model="form.organizacionCcOi" :required="true" />
+            <CentroCostoAutocomplete
+              v-model="form.organizacionCcOi"
+              :required="true"
+              :company-code="form.codigoOrganizacion"
+              :company-name="form.organizacion"
+            />
           </div>
 
           <div class="col-md-6">
@@ -133,7 +153,16 @@
 
           <div class="col-md-6">
             <label class="form-label">Aprobador</label>
-            <input v-model="form.aprobador" type="text" class="form-control form-control-sm" required>
+            <select v-model="form.aprobador" class="form-select form-select-sm" :disabled="!nivelAprobacionInfo.codigo || loadingAprobadores" required>
+              <option value="" disabled hidden>Seleccione un aprobador</option>
+              <option v-for="approver in aprobadoresDisponibles" :key="approver.pagepin" :value="approver.name">
+                {{ approver.name }} (Nivel {{ approver.la13 }})
+              </option>
+            </select>
+            <div class="form-text text-muted" v-if="loadingAprobadores">Cargando aprobadores...</div>
+            <div class="form-text text-danger" v-else-if="nivelAprobacionInfo.codigo && aprobadoresDisponibles.length === 0">
+              No hay aprobadores disponibles para el nivel {{ nivelAprobacionInfo.codigo }}.
+            </div>
           </div>
 
           <div class="col-md-6">
@@ -182,6 +211,7 @@ import { useAuthStore } from '@/stores/auth';
 import { getLocations } from '@/services/getLocations';
 import { getServiceTypes } from '@/services/getServiceTypes';
 import { getCompanies } from '@/services/getCompanies';
+import { getAprobadoresLabor } from '@/services/getAprobadoresLabor';
 import CentroCostoAutocomplete from '@/components/CentroCostoAutocomplete.vue';
 import { toDatetimeLocal, getNivelAprobacion } from '@/utils/dateTime';
 
@@ -222,7 +252,9 @@ export default {
       serviceTypes: [],
       companies: [],
       loadingCompanies: false,
-      searchOrganizacion: ''
+      searchOrganizacion: '',
+      aprobadoresDisponibles: [],
+      loadingAprobadores: false
     };
   },
   mounted() {
@@ -284,7 +316,37 @@ export default {
       return this.nivelAprobacionInfo.texto;
     }
   },
+  watch: {
+    'form.fechaInicio': {
+      immediate: true,
+      handler() {
+        this.cargarAprobadores();
+      }
+    }
+  },
   methods: {
+    async cargarAprobadores() {
+      const nivel = this.nivelAprobacionInfo.codigo;
+      if (!nivel) {
+        this.aprobadoresDisponibles = [];
+        this.form.aprobador = '';
+        return;
+      }
+      this.loadingAprobadores = true;
+      try {
+        const results = await getAprobadoresLabor(nivel);
+        this.aprobadoresDisponibles = Array.isArray(results) ? results : [];
+        if (!this.aprobadoresDisponibles.some(a => a.name === this.form.aprobador)) {
+          this.form.aprobador = '';
+        }
+      } catch (error) {
+        console.error('Error cargando aprobadores:', error);
+        this.aprobadoresDisponibles = [];
+        this.form.aprobador = '';
+      } finally {
+        this.loadingAprobadores = false;
+      }
+    },
     async cargarUbicaciones() {
       this.loadingLocations = true;
       try {
@@ -324,6 +386,31 @@ export default {
       this.form.descripcionOrigen = loc.DESCRIPTION;
       // Asignamos el código de ubicación al campo de búsqueda
       this.searchOrigen = loc.LOCATION;
+    },
+    handleDateFieldDblClick(event) {
+      const input = event.target;
+      if (input && typeof input.select === 'function') {
+        input.select();
+      }
+      setTimeout(() => {
+        if (input && typeof input.blur === 'function') {
+          input.blur();
+        }
+      }, 0);
+    },
+    confirmDateSelection(event) {
+      const wrapper = event.currentTarget.closest('.date-time-field-wrapper');
+      const input = wrapper ? wrapper.querySelector('input[type="datetime-local"]') : null;
+      if (input) {
+        if (typeof input.select === 'function') {
+          input.select();
+        }
+        setTimeout(() => {
+          if (typeof input.blur === 'function') {
+            input.blur();
+          }
+        }, 0);
+      }
     },
     seleccionarDestino(loc) {
       this.form.destino = loc.LOCATION;

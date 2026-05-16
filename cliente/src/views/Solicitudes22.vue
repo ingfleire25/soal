@@ -6,7 +6,13 @@ import { getSolicitudes } from '@/services/getSolicitudes';
 import { updateSolicitud } from '@/services/updateSolicitud';
 import { cambiarEstado } from '@/services/cambiarEstado';
 import { getCompanies } from '@/services/getCompanies';
-import { toDatetimeLocalFromISOString } from '@/utils/dateTime';
+import { getLocations } from '@/services/getLocations';
+import { getServiceTypes } from '@/services/getServiceTypes';
+import { getModserv } from '@/services/getModserv';
+import { getBasicItems } from '@/services/getBasicItems';
+import { getAprobadoresLabor } from '@/services/getAprobadoresLabor';
+import CentroCostoAutocomplete from '@/components/CentroCostoAutocomplete.vue';
+import { toDatetimeLocalFromISOString, getNivelAprobacion } from '@/utils/dateTime';
 
 const route = useRoute();
 const auth = useAuthStore();
@@ -14,6 +20,20 @@ const lista = ref([]);
 const error = ref('');
 const loading = ref(false);
 const companies = ref([]);
+const locations = ref([]);
+const loadingLocations = ref(false);
+const searchOrigen = ref('');
+const searchDestino = ref('');
+const searchOrganizacion = ref('');
+const mostrarDropdownOrigen = ref(false);
+const mostrarDropdownDestino = ref(false);
+const mostrarDropdownEmpresa = ref(false);
+const serviceTypesTP = ref([]);
+const serviceTypesMUM = ref([]);
+const serviceTypesSL = ref([]);
+const modserv = ref([]);
+const aprobadoresDisponibles = ref([]);
+const loadingAprobadores = ref(false);
 
 const userFullName = computed(() => {
   const usuario = auth.user?.value;
@@ -24,6 +44,61 @@ const userFullName = computed(() => {
 const userRole = computed(() => auth.user?.value?.rol || '');
 
 const esAprobador = computed(() => ['Aprobador', 'Administrador'].includes(userRole.value));
+
+const serviceTypes = computed(() => {
+  if (editForm.value.tipoSolicitud === 'Transporte de Personal') return serviceTypesTP.value;
+  if (editForm.value.tipoSolicitud === 'Movimiento Unidades Mayores') return serviceTypesMUM.value;
+  if (editForm.value.tipoSolicitud === 'Suministro Lacustre') return serviceTypesSL.value;
+  return [];
+});
+
+const ubicacionesFiltradasOrigen = computed(() => {
+  const termino = searchOrigen.value.trim().toLowerCase();
+  if (termino.length < 2) return [];
+  return locations.value
+    .filter(loc =>
+      (loc.LOCATION || '').toLowerCase().includes(termino) ||
+      (loc.DESCRIPTION || '').toLowerCase().includes(termino)
+    )
+    .slice(0, 40);
+});
+
+const ubicacionesFiltradasDestino = computed(() => {
+  const termino = searchDestino.value.trim().toLowerCase();
+  if (termino.length < 2) return [];
+  return locations.value
+    .filter(loc =>
+      (loc.LOCATION || '').toLowerCase().includes(termino) ||
+      (loc.DESCRIPTION || '').toLowerCase().includes(termino)
+    )
+    .slice(0, 40);
+});
+
+const companiesFiltradas = computed(() => {
+  const termino = searchOrganizacion.value.trim().toLowerCase();
+  if (termino.length < 2) return [];
+  return companies.value
+    .filter(company =>
+      ((company.name || '').toLowerCase().includes(termino)) ||
+      ((company.company || '').toLowerCase().includes(termino))
+    )
+    .slice(0, 50);
+});
+
+const nivelAprobacionInfo = computed(() => getNivelAprobacion(editForm.value.fechaInicio));
+const nivelAprobacionTexto = computed(() => nivelAprobacionInfo.value?.texto || '');
+
+const watchFechaInicio = watch(
+  () => editForm.value.fechaInicio,
+  async () => {
+    if (!editForm.value.fechaInicio) {
+      aprobadoresDisponibles.value = [];
+      editForm.value.aprobador = '';
+      return;
+    }
+    await cargarAprobadores();
+  }
+);
 
 const filtroTipo = computed(() => route.query.tipoSolicitud || null);
 const filtroSubtipo = computed(() => route.query.subtipo || null);
@@ -48,6 +123,139 @@ const cargarCompanies = async () => {
     companies.value = await getCompanies();
   } catch (e) {
     console.error('Error cargando compañías:', e);
+  }
+};
+
+const cargarUbicaciones = async () => {
+  if (locations.value.length > 0) return;
+  loadingLocations.value = true;
+  try {
+    locations.value = await getLocations();
+  } catch (e) {
+    console.error('Error cargando ubicaciones:', e);
+  } finally {
+    loadingLocations.value = false;
+  }
+};
+
+const cargarServiceTypes = async () => {
+  try {
+    serviceTypesTP.value = await getServiceTypes('SUBTYPETP');
+    serviceTypesMUM.value = await getServiceTypes('SUBTYPEMUM');
+    serviceTypesSL.value = await getServiceTypes('SUBTYPESL');
+  } catch (e) {
+    console.error('Error cargando tipos de servicio:', e);
+  }
+};
+
+const cargarModserv = async () => {
+  try {
+    modserv.value = await getModserv();
+  } catch (e) {
+    console.error('Error cargando modserv:', e);
+  }
+};
+
+const seleccionarOrigen = (loc) => {
+  editForm.value.origen = loc.LOCATION;
+  editForm.value.descripcionOrigen = loc.DESCRIPTION;
+  searchOrigen.value = loc.LOCATION || '';
+  mostrarDropdownOrigen.value = false;
+};
+
+const seleccionarDestino = (loc) => {
+  editForm.value.destino = loc.LOCATION;
+  editForm.value.descripcionDestino = loc.DESCRIPTION;
+  searchDestino.value = loc.LOCATION || '';
+  mostrarDropdownDestino.value = false;
+};
+
+const seleccionarEmpresa = (company) => {
+  editForm.value.organizacion = company.name || '';
+  editForm.value.codigoOrganizacion = company.company || '';
+  editForm.value.organizacionCcOi = '';
+  searchOrganizacion.value = company.name || '';
+  mostrarDropdownEmpresa.value = false;
+};
+
+const cargarAprobadores = async () => {
+  const nivel = nivelAprobacionInfo.value?.codigo;
+  if (!nivel) {
+    aprobadoresDisponibles.value = [];
+    editForm.value.aprobador = '';
+    return;
+  }
+
+  loadingAprobadores.value = true;
+  try {
+    const results = await getAprobadoresLabor(nivel);
+    aprobadoresDisponibles.value = Array.isArray(results) ? results : [];
+    if (!aprobadoresDisponibles.value.some((a) => a.name === editForm.value.aprobador)) {
+      editForm.value.aprobador = '';
+    }
+  } catch (error) {
+    console.error('Error cargando aprobadores:', error);
+    aprobadoresDisponibles.value = [];
+    editForm.value.aprobador = '';
+  } finally {
+    loadingAprobadores.value = false;
+  }
+};
+
+const buscarMaterial = async (index) => {
+  const material = editForm.value.materiales?.[index];
+  if (!material) return;
+  const query = (material.searchQuery || '').trim();
+
+  material.materialId = '';
+  material.renglon = '';
+  material.descripcion = '';
+  material.searchResults = [];
+
+  if (query.length < 2) return;
+
+  material.searching = true;
+  try {
+    const results = await getBasicItems(query);
+    material.searchResults = Array.isArray(results) ? results.slice(0, 50) : [];
+  } catch (error) {
+    console.error('Error buscando materiales:', error);
+    material.searchResults = [];
+  } finally {
+    material.searching = false;
+  }
+};
+
+const seleccionarMaterial = (index, item) => {
+  const material = editForm.value.materiales?.[index];
+  if (!material) return;
+  material.materialId = item.itemnum;
+  material.renglon = item.itemnum;
+  material.descripcion = item.description;
+  material.searchQuery = `${item.itemnum} - ${item.description}`;
+  material.searchResults = [];
+};
+
+const addMaterial = () => {
+  if (!Array.isArray(editForm.value.materiales)) {
+    editForm.value.materiales = [];
+  }
+  editForm.value.materiales.push({
+    materialId: '',
+    renglon: '',
+    descripcion: '',
+    cantidad: 1,
+    fechaEntregaMuelle: '',
+    observacion: '',
+    searchQuery: '',
+    searchResults: [],
+    searching: false
+  });
+};
+
+const removeMaterial = (index) => {
+  if (Array.isArray(editForm.value.materiales)) {
+    editForm.value.materiales.splice(index, 1);
   }
 };
 
@@ -85,13 +293,27 @@ const rechazar = async (s) => {
   }
 };
 
-const iniciarEdicion = (s) => {
+const iniciarEdicion = async (s) => {
   editingId.value = s.id;
   editForm.value = {
     ...s,
     fechaInicio: toDatetimeLocalFromISOString(s.fechaInicio),
-    fechaFin: toDatetimeLocalFromISOString(s.fechaFin)
+    fechaFin: toDatetimeLocalFromISOString(s.fechaFin),
+    materiales: Array.isArray(s.materiales)
+      ? s.materiales.map((item) => ({
+          ...item,
+          searchQuery: item.descripcion ? `${item.renglon || item.materialId || ''} - ${item.descripcion}`.trim() : '',
+          searchResults: [],
+          searching: false
+        }))
+      : []
   };
+  searchOrganizacion.value = s.organizacion || '';
+  searchOrigen.value = s.origen || '';
+  searchDestino.value = s.destino || '';
+
+  await cargarAprobadores();
+
   if (!modalInstance.value) {
     modalInstance.value = new bootstrap.Modal(modalRef.value);
     modalRef.value.addEventListener('hidden.bs.modal', () => {
@@ -112,7 +334,7 @@ const cancelarEdicion = () => {
 
 const guardarEdicion = async () => {
   try {
-    await updateSolicitud(editingId.value, {
+    const payload = {
       descripcion: editForm.value.descripcion,
       origen: editForm.value.origen,
       descripcionOrigen: editForm.value.descripcionOrigen,
@@ -120,7 +342,24 @@ const guardarEdicion = async () => {
       descripcionDestino: editForm.value.descripcionDestino,
       fechaInicio: editForm.value.fechaInicio,
       fechaFin: editForm.value.fechaFin,
+      organizacion: editForm.value.organizacion,
+      codigoOrganizacion: editForm.value.codigoOrganizacion,
       organizacionCcOi: editForm.value.organizacionCcOi,
+      tipoServicio: editForm.value.tipoServicio,
+      aprobador: editForm.value.aprobador,
+      correo: editForm.value.correo,
+      gerencia: editForm.value.gerencia,
+      solicitante: editForm.value.solicitante,
+      cedulaSolicitante: editForm.value.cedulaSolicitante,
+      tipoSolicitud: editForm.value.tipoSolicitud,
+      subtipo: editForm.value.subtipo,
+      modserv: editForm.value.modserv,
+      personaEnvia: editForm.value.personaEnvia,
+      descripcionPersonaEnvia: editForm.value.descripcionPersonaEnvia,
+      personaRecibe: editForm.value.personaRecibe,
+      descripcionPersonaRecibe: editForm.value.descripcionPersonaRecibe,
+      unidadMovilizar: editForm.value.unidadMovilizar,
+      descripcionUnidad: editForm.value.descripcionUnidad,
       lunes: editForm.value.lunes,
       martes: editForm.value.martes,
       miercoles: editForm.value.miercoles,
@@ -129,12 +368,24 @@ const guardarEdicion = async () => {
       sabado: editForm.value.sabado,
       domingo: editForm.value.domingo,
       cantidadPasajeros: editForm.value.cantidadPasajeros,
-      tipoServicio: editForm.value.tipoServicio,
-      aprobador: editForm.value.aprobador,
-      correo: editForm.value.correo,
-      tipoSolicitud: editForm.value.tipoSolicitud,
-      subtipo: editForm.value.subtipo
-    });
+      nivelAprobacion: nivelAprobacionInfo.value.codigo
+    };
+
+    if (editForm.value.fecha) {
+      payload.fecha = editForm.value.fecha;
+    }
+
+    if (editForm.value.tipoSolicitud === 'Suministro Lacustre') {
+      payload.materiales = (editForm.value.materiales || []).map((m) => ({
+        renglon: m.renglon,
+        descripcion: m.descripcion,
+        cantidad: m.cantidad,
+        fechaEntregaMuelle: m.fechaEntregaMuelle,
+        observacion: m.observacion
+      }));
+    }
+
+    await updateSolicitud(editingId.value, payload);
     await cargarSolicitudes();
     cancelarEdicion();
   } catch (e) {
@@ -145,8 +396,38 @@ const guardarEdicion = async () => {
 onMounted(() => {
   cargarSolicitudes();
   cargarCompanies();
+  cargarUbicaciones();
+  cargarServiceTypes();
+  cargarModserv();
 });
 watch([filtroTipo, filtroSubtipo], cargarSolicitudes);
+
+const handleDateFieldDblClick = (event) => {
+  const input = event.target;
+  if (input && typeof input.select === 'function') {
+    input.select();
+  }
+  setTimeout(() => {
+    if (input && typeof input.blur === 'function') {
+      input.blur();
+    }
+  }, 0);
+};
+
+const confirmDateSelection = (event) => {
+  const wrapper = event.currentTarget.closest('.date-time-field-wrapper');
+  const input = wrapper ? wrapper.querySelector('input[type="datetime-local"]') : null;
+  if (input) {
+    if (typeof input.select === 'function') {
+      input.select();
+    }
+    setTimeout(() => {
+      if (typeof input.blur === 'function') {
+        input.blur();
+      }
+    }, 0);
+  }
+};
 </script>
 
 <template>
@@ -226,52 +507,308 @@ watch([filtroTipo, filtroSubtipo], cargarSolicitudes);
                 <label class="form-label">Descripción</label>
                 <textarea class="form-control" v-model="editForm.descripcion" rows="2"></textarea>
               </div>
+
               <div class="col-md-6">
                 <label class="form-label">Origen</label>
-                <input class="form-control" v-model="editForm.origen" />
+                <div class="position-relative">
+                  <input
+                    type="text"
+                    class="form-control"
+                    v-model="searchOrigen"
+                    placeholder="Buscar ubicación..."
+                    @input="mostrarDropdownOrigen = true"
+                  />
+                  <div v-if="mostrarDropdownOrigen && ubicacionesFiltradasOrigen.length > 0" class="dropdown-menu show w-100" style="max-height: 220px; overflow-y: auto; z-index: 1050;">
+                    <button
+                      v-for="(loc, index) in ubicacionesFiltradasOrigen"
+                      :key="index"
+                      type="button"
+                      class="dropdown-item"
+                      @click="seleccionarOrigen(loc)"
+                    >
+                      <strong>{{ loc.LOCATION }}</strong><br />
+                      <small>{{ loc.DESCRIPTION }}</small>
+                    </button>
+                  </div>
+                </div>
               </div>
+
               <div class="col-md-6">
                 <label class="form-label">Descripción Origen</label>
-                <input class="form-control" v-model="editForm.descripcionOrigen" />
+                <input class="form-control" v-model="editForm.descripcionOrigen" readonly />
               </div>
+
               <div class="col-md-6">
                 <label class="form-label">Destino</label>
-                <input class="form-control" v-model="editForm.destino" />
+                <div class="position-relative">
+                  <input
+                    type="text"
+                    class="form-control"
+                    v-model="searchDestino"
+                    placeholder="Buscar ubicación..."
+                    @input="mostrarDropdownDestino = true"
+                  />
+                  <div v-if="mostrarDropdownDestino && ubicacionesFiltradasDestino.length > 0" class="dropdown-menu show w-100" style="max-height: 220px; overflow-y: auto; z-index: 1050;">
+                    <button
+                      v-for="(loc, index) in ubicacionesFiltradasDestino"
+                      :key="index"
+                      type="button"
+                      class="dropdown-item"
+                      @click="seleccionarDestino(loc)"
+                    >
+                      <strong>{{ loc.LOCATION }}</strong><br />
+                      <small>{{ loc.DESCRIPTION }}</small>
+                    </button>
+                  </div>
+                </div>
               </div>
+
               <div class="col-md-6">
                 <label class="form-label">Descripción Destino</label>
-                <input class="form-control" v-model="editForm.descripcionDestino" />
+                <input class="form-control" v-model="editForm.descripcionDestino" readonly />
               </div>
+
               <div class="col-md-6">
                 <label class="form-label">Fecha Inicio</label>
-                <input type="datetime-local" class="form-control" v-model="editForm.fechaInicio" />
+                <div class="date-time-field-wrapper">
+                  <input
+                    type="datetime-local"
+                    class="form-control"
+                    v-model="editForm.fechaInicio"
+                    @dblclick="handleDateFieldDblClick"
+                  />
+                  <button type="button" class="btn btn-sm date-time-select-button" @click="confirmDateSelection($event)">Seleccionar</button>
+                </div>
               </div>
+
               <div class="col-md-6">
                 <label class="form-label">Fecha Fin</label>
-                <input type="datetime-local" class="form-control" v-model="editForm.fechaFin" />
+                <div class="date-time-field-wrapper">
+                  <input
+                    type="datetime-local"
+                    class="form-control"
+                    v-model="editForm.fechaFin"
+                    @dblclick="handleDateFieldDblClick"
+                  />
+                  <button type="button" class="btn btn-sm date-time-select-button" @click="confirmDateSelection($event)">Seleccionar</button>
+                </div>
               </div>
+
               <div class="col-md-6">
-                <label class="form-label">Código de Organización</label>
-                <select class="form-control" v-model="editForm.organizacionCcOi">
-                  <option value="">Seleccione...</option>
-                  <option v-for="comp in companies" :key="comp.company" :value="comp.company">{{ comp.company }} - {{ comp.name }}</option>
+                <label class="form-label">Organización</label>
+                <div class="position-relative">
+                  <input
+                    type="text"
+                    class="form-control"
+                    v-model="searchOrganizacion"
+                    placeholder="Buscar empresa..."
+                    @input="mostrarDropdownEmpresa = true"
+                  />
+                  <div v-if="mostrarDropdownEmpresa && companiesFiltradas.length > 0" class="dropdown-menu show w-100" style="max-height: 220px; overflow-y: auto; z-index: 1050;">
+                    <button
+                      v-for="(company, index) in companiesFiltradas"
+                      :key="index"
+                      type="button"
+                      class="dropdown-item"
+                      @click="seleccionarEmpresa(company)"
+                    >
+                      <strong>{{ company.name }}</strong><br />
+                      <small>{{ company.company }}</small>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label">Código Organización</label>
+                <input class="form-control" v-model="editForm.codigoOrganizacion" readonly />
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label">Centro de costo CC/OI</label>
+                <CentroCostoAutocomplete
+                  v-model="editForm.organizacionCcOi"
+                  :required="true"
+                  :company-code="editForm.codigoOrganizacion"
+                  :company-name="editForm.organizacion"
+                />
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label">Tipo de Servicio</label>
+                <select class="form-select" v-model="editForm.tipoServicio">
+                  <option value="">Seleccione un tipo de servicio</option>
+                  <option v-for="type in serviceTypes" :key="type.valdesc" :value="type.valdesc">
+                    {{ type.valdesc }}
+                  </option>
                 </select>
               </div>
+
               <div class="col-md-6">
-                <label class="form-label">Tipo servicio</label>
-                <input class="form-control" v-model="editForm.tipoServicio" />
+                <label class="form-label">Subtipo</label>
+                <input class="form-control" v-model="editForm.subtipo" readonly />
               </div>
+
+              <template v-if="editForm.tipoSolicitud === 'Transporte de Personal'">
+                <div class="col-md-6" v-if="editForm.subtipo === 'Recurrente'">
+                  <label class="form-label">Modalidad</label>
+                  <select class="form-select" v-model="editForm.modserv">
+                    <option value="">Seleccione una modalidad</option>
+                    <option v-for="item in modserv" :key="item.modnum" :value="item.modnum">
+                      {{ item.modnum }} - {{ item.description }}
+                    </option>
+                  </select>
+                </div>
+                <div class="col-12">
+                  <div class="row g-2">
+                    <div class="col-md-2" v-for="dia in ['lunes','martes','miercoles','jueves','viernes','sabado','domingo']" :key="dia">
+                      <label class="form-label text-capitalize">{{ dia }}</label>
+                      <select class="form-select" v-model="editForm[dia]">
+                        <option value="">---</option>
+                        <option value="C">C</option>
+                        <option value="F">F</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Cantidad de Pasajeros</label>
+                  <input type="number" class="form-control" min="1" v-model.number="editForm.cantidadPasajeros" />
+                </div>
+              </template>
+
+              <template v-if="editForm.tipoSolicitud === 'Movimiento Unidades Mayores'">
+                <div class="col-md-6">
+                  <label class="form-label">Unidad a Movilizar</label>
+                  <input class="form-control" v-model="editForm.unidadMovilizar" />
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Descripción de la Unidad</label>
+                  <input class="form-control" v-model="editForm.descripcionUnidad" />
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Persona que Envía</label>
+                  <input class="form-control" v-model="editForm.personaEnvia" />
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Descripción Persona que Envía</label>
+                  <input class="form-control" v-model="editForm.descripcionPersonaEnvia" />
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Persona que Recibe</label>
+                  <input class="form-control" v-model="editForm.personaRecibe" />
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Descripción Persona que Recibe</label>
+                  <input class="form-control" v-model="editForm.descripcionPersonaRecibe" />
+                </div>
+              </template>
+
+              <template v-if="editForm.tipoSolicitud === 'Suministro Lacustre'">
+                <div class="col-md-6">
+                  <label class="form-label">Persona que Envía</label>
+                  <input class="form-control" v-model="editForm.personaEnvia" />
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Descripción Persona que Envía</label>
+                  <input class="form-control" v-model="editForm.descripcionPersonaEnvia" />
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Persona que Recibe</label>
+                  <input class="form-control" v-model="editForm.personaRecibe" />
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Descripción Persona que Recibe</label>
+                  <input class="form-control" v-model="editForm.descripcionPersonaRecibe" />
+                </div>
+                <div class="col-12">
+                  <fieldset class="border p-3 rounded">
+                    <legend class="w-auto px-2 fs-6">Materiales a Transportar</legend>
+                    <div v-for="(mat, index) in editForm.materiales" :key="index" class="border p-3 mb-3 rounded">
+                      <div class="row g-3">
+                        <div class="col-md-6">
+                          <label class="form-label">Material</label>
+                          <div class="position-relative">
+                            <input
+                              type="text"
+                              class="form-control"
+                              v-model="mat.searchQuery"
+                              placeholder="Buscar material..."
+                              @input="buscarMaterial(index)"
+                              autocomplete="off"
+                            />
+                            <div v-if="mat.searchResults?.length" class="dropdown-menu show w-100" style="max-height: 220px; overflow-y: auto; z-index: 1050;">
+                              <button
+                                v-for="item in mat.searchResults"
+                                :key="item.itemnum"
+                                type="button"
+                                class="dropdown-item"
+                                @click="seleccionarMaterial(index, item)"
+                              >
+                                <strong>{{ item.itemnum }}</strong> - {{ item.description }}<br />
+                                <small class="text-muted">{{ item.stocktype }}</small>
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="col-md-3">
+                          <label class="form-label">Cantidad</label>
+                          <input type="number" class="form-control" min="1" v-model.number="mat.cantidad" />
+                        </div>
+                        <div class="col-md-3">
+                          <label class="form-label">Fecha entrega muelle</label>
+                          <input type="date" class="form-control" v-model="mat.fechaEntregaMuelle" />
+                        </div>
+                        <div class="col-md-12">
+                          <label class="form-label">Observación</label>
+                          <textarea class="form-control" rows="2" v-model="mat.observacion"></textarea>
+                        </div>
+                        <div class="col-12 text-end">
+                          <button type="button" class="btn btn-link text-danger" @click="removeMaterial(index)">Eliminar material</button>
+                        </div>
+                      </div>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-outline-primary" @click="addMaterial">Agregar material</button>
+                  </fieldset>
+                </div>
+              </template>
+
               <div class="col-md-4">
                 <label class="form-label">Aprobador</label>
-                <input class="form-control" v-model="editForm.aprobador" />
+                <select class="form-select" v-model="editForm.aprobador" :disabled="!nivelAprobacionInfo.codigo || loadingAprobadores">
+                  <option value="" disabled hidden>Seleccione un aprobador</option>
+                  <option v-for="approver in aprobadoresDisponibles" :key="approver.pagepin" :value="approver.name">
+                    {{ approver.name }} (Nivel {{ approver.la13 }})
+                  </option>
+                </select>
+                <div class="form-text text-muted" v-if="loadingAprobadores">Cargando aprobadores...</div>
+                <div class="form-text text-danger" v-else-if="nivelAprobacionInfo.codigo && aprobadoresDisponibles.length === 0">
+                  No hay aprobadores disponibles para el nivel {{ nivelAprobacionInfo.codigo }}.
+                </div>
               </div>
               <div class="col-md-4">
                 <label class="form-label">Correo</label>
                 <input class="form-control bg-light" v-model="editForm.correo" readonly />
               </div>
               <div class="col-md-4">
-                <label class="form-label">Cant. Pasajeros</label>
-                <input type="number" class="form-control" v-model.number="editForm.cantidadPasajeros" />
+                <label class="form-label">Gerencia</label>
+                <input class="form-control bg-light" v-model="editForm.gerencia" readonly />
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Solicitante</label>
+                <input class="form-control bg-light" v-model="editForm.solicitante" readonly />
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Cédula Solicitante</label>
+                <input class="form-control bg-light" v-model="editForm.cedulaSolicitante" readonly />
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Fecha creación</label>
+                <input class="form-control bg-light" v-model="editForm.fecha" readonly />
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Nivel de Aprobación</label>
+                <input class="form-control bg-light" :value="nivelAprobacionTexto" readonly />
               </div>
             </div>
           </div>

@@ -12,7 +12,6 @@ const NoAutorizado = () => import('@/views/NoAutorizado.vue');
 const TransportePersonal = () => import('@/components/TransportePersonal.vue');
 const MovimientoUnidadesMayores = () => import('@/components/MovimientoUnidadesMayores.vue');
 const SuministroLacustre = () => import('@/components/SuministroLacustre.vue');
-const ServiciosPortuarios = () => import('@/components/ServiciosPortuarios.vue');
 const EvaluacionServicio = () => import('@/components/EvaluacionServicio.vue');
 const Estadisticas = () => import('@/views/Estadisticas.vue');
 
@@ -65,12 +64,6 @@ const routes = [
     path: '/crear/suministro-lacustre',
     name: 'suministro-lacustre',
     component: SuministroLacustre,
-    meta: { roles: ['Solicitante', 'Administrador'] }
-  },
-  {
-    path: '/crear/servicios-portuarios',
-    name: 'crear-servicios-portuarios',
-    component: ServiciosPortuarios,
     meta: { roles: ['Solicitante', 'Administrador'] }
   },
   {

@@ -1,18 +1,5 @@
-import { api } from '@/utils/axios';
-
-export const postServiciosPortuarios = async (data) => {
-  try {
-    const response = await api.post('/api/solicitudes/servicios-portuarios', data);
-    return response.data.result;
-  } catch (error) {
-    let err = {};
-    if (error.response) {
-      err.status = error.response.status;
-      err.statusText = error.response.data.statusText || error.response.statusText;
-    } else {
-      err.status = 503;
-      err.statusText = 'Servicio no disponible. Contacte a su administrador para más información';
-    }
-    throw err;
-  }
+// Archivo neutralizado: Servicios Portuarios ya no forma parte de la aplicacion.
+// Este archivo permanece solo como placeholder para evitar errores de referencia accidentales.
+export const postServiciosPortuarios = async () => {
+  throw new Error('Servicio Portuarios eliminado: esta operación ya no está disponible.');
 };

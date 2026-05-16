@@ -8,7 +8,7 @@
       autocomplete="off"
       :value="search"
       @input="onInput($event.target.value)"
-      @focus="openDropdown = true"
+      @focus="onFocus"
       @blur="onBlur"
     />
 
@@ -19,7 +19,7 @@
     >
       <div v-if="loading" class="dropdown-item text-muted">Cargando...</div>
       <div v-else-if="filteredResults.length === 0" class="dropdown-item text-muted">
-        Ingresa al menos 2 caracteres para buscar.
+        {{ companyCode || companyName ? 'No se encontraron centros de costo para esta organización.' : 'Ingresa al menos 2 caracteres para buscar.' }}
       </div>
       <button
         v-for="item in filteredResults"
@@ -53,6 +53,14 @@ export default {
     required: {
       type: Boolean,
       default: false
+    },
+    companyCode: {
+      type: String,
+      default: ''
+    },
+    companyName: {
+      type: String,
+      default: ''
     }
   },
   data() {
@@ -67,21 +75,39 @@ export default {
   watch: {
     modelValue(value) {
       this.search = value || '';
+    },
+    companyCode() {
+      this.resetSelection();
+    },
+    companyName() {
+      this.resetSelection();
     }
   },
   computed: {
     filteredResults() {
       const term = (this.search || '').trim().toLowerCase();
-      if (term.length < 2) {
-        return [];
+      const hasCompany = !!(this.companyCode || this.companyName);
+
+      const candidatos = this.items.filter(item => {
+        const sameCompanyCode = this.companyCode ? (item.COMPANY || '').toString().trim().toLowerCase() === this.companyCode.toLowerCase().trim() : true;
+        const sameCompanyName = this.companyName ? (item.NAME || '').toString().trim().toLowerCase() === this.companyName.toLowerCase().trim() : true;
+        return sameCompanyCode && sameCompanyName;
+      });
+
+      if (term.length >= 2) {
+        return candidatos
+          .filter(item =>
+            item.GLACCOUNT.toLowerCase().includes(term) ||
+            item.NAME.toLowerCase().includes(term)
+          )
+          .slice(0, 20);
       }
 
-      return this.items
-        .filter(item =>
-          item.GLACCOUNT.toLowerCase().includes(term) ||
-          item.NAME.toLowerCase().includes(term)
-        )
-        .slice(0, 20);
+      if (hasCompany) {
+        return candidatos.slice(0, 20);
+      }
+
+      return [];
     }
   },
   methods: {
@@ -101,13 +127,18 @@ export default {
     onInput(value) {
       this.search = value;
       this.$emit('update:modelValue', value);
-
-      if (this.search.trim().length >= 2) {
+      this.openDropdown = value.trim().length >= 2 || !!(this.companyCode || this.companyName);
+      this.loadItems();
+    },
+    onFocus() {
+      if (this.search.trim().length >= 2 || this.companyCode || this.companyName) {
         this.openDropdown = true;
         this.loadItems();
-      } else {
-        this.openDropdown = false;
       }
+    },
+    resetSelection() {
+      this.search = '';
+      this.$emit('update:modelValue', '');
     },
     selectItem(item) {
       this.search = item.GLACCOUNT;

@@ -44,14 +44,7 @@
           </div>
         </div>
       </div>
-      <!-- <div class="col-6 col-sm-4 col-md-3 col-lg-2">
-        <div class="card shadow-sm h-100 bg-light">
-          <div class="card-body text-center">
-            <h6 class="card-title small">Servicios Portuarios</h6>
-            <p class="display-6 mb-0 numero-total">{{ countServiciosPortuarios }}</p>
-          </div>
-        </div>
-      </div> -->
+
     </div>
 
     <div v-if="!loading && filteredSolicitudes.length" class="table-responsive tabla-dashboard">
@@ -157,12 +150,6 @@ const countMovimientoUnidades = computed(() => {
 const countSuministroLacustre = computed(() => {
   return filteredSolicitudes.value.filter((sol) =>
     sol.tipoSolicitud === 'Suministro Lacustre'
-  ).length;
-});
-
-const countServiciosPortuarios = computed(() => {
-  return filteredSolicitudes.value.filter((sol) =>
-    sol.tipoSolicitud === 'Servicios Portuarios'
   ).length;
 });
 

@@ -81,11 +81,41 @@
 
           <div class="col-md-6">
             <label class="form-label fw-bold">Fecha Requerida de Inicio</label>
-            <input v-model="form.fechaInicio" type="datetime-local" class="form-control form-control-sm" required>
+            <div class="date-time-field-wrapper">
+              <input
+                v-model="form.fechaInicio"
+                type="datetime-local"
+                class="form-control form-control-sm"
+                required
+                @dblclick="handleDateFieldDblClick"
+              />
+              <button
+                type="button"
+                class="btn btn-sm date-time-select-button"
+                @click="confirmDateSelection($event)"
+              >
+                Seleccionar
+              </button>
+            </div>
           </div>
           <div class="col-md-6">
             <label class="form-label fw-bold">Fecha Requerida de Finalización</label>
-            <input v-model="form.fechaFin" type="datetime-local" class="form-control form-control-sm" required>
+            <div class="date-time-field-wrapper">
+              <input
+                v-model="form.fechaFin"
+                type="datetime-local"
+                class="form-control form-control-sm"
+                required
+                @dblclick="handleDateFieldDblClick"
+              />
+              <button
+                type="button"
+                class="btn btn-sm date-time-select-button"
+                @click="confirmDateSelection($event)"
+              >
+                Seleccionar
+              </button>
+            </div>
           </div>
 
           <div class="col-md-6">
@@ -120,7 +150,12 @@
 
           <div class="col-md-6">
             <label class="form-label fw-bold">Centro de costo CC/OI</label>
-            <CentroCostoAutocomplete v-model="form.organizacionCcOi" :required="true" />
+            <CentroCostoAutocomplete
+              v-model="form.organizacionCcOi"
+              :required="true"
+              :company-code="form.codigoOrganizacion"
+              :company-name="form.organizacion"
+            />
           </div>
 
           <div class="col-md-12 py-2">
@@ -158,7 +193,16 @@
 
           <div class="col-md-6">
             <label class="form-label fw-bold">Aprobador</label>
-            <input v-model="form.aprobador" type="text" class="form-control form-control-sm" required>
+            <select v-model="form.aprobador" class="form-select form-select-sm" :disabled="!nivelAprobacionInfo.codigo || loadingAprobadores" required>
+              <option value="" disabled hidden>Seleccione un aprobador</option>
+              <option v-for="approver in aprobadoresDisponibles" :key="approver.pagepin" :value="approver.name">
+                {{ approver.name }} (Nivel {{ approver.la13 }})
+              </option>
+            </select>
+            <div class="form-text text-muted" v-if="loadingAprobadores">Cargando aprobadores...</div>
+            <div class="form-text text-danger" v-else-if="nivelAprobacionInfo.codigo && aprobadoresDisponibles.length === 0">
+              No hay aprobadores disponibles para el nivel {{ nivelAprobacionInfo.codigo }}.
+            </div>
           </div>
           <div class="col-md-6">
             <label class="form-label fw-bold">Correo</label>
@@ -202,6 +246,7 @@ import { getLocations } from '@/services/getLocations';
 import { getServiceTypes } from '@/services/getServiceTypes';
 import { getCompanies } from '@/services/getCompanies';
 import { getModserv } from '@/services/getModserv';
+import { getAprobadoresLabor } from '@/services/getAprobadoresLabor';
 import CentroCostoAutocomplete from '@/components/CentroCostoAutocomplete.vue';
 import { getNivelAprobacion } from '@/utils/dateTime';
 
@@ -269,7 +314,8 @@ export default {
         { label: 'D', model: 'domingo' }
       ],
 
-
+      aprobadoresDisponibles: [],
+      loadingAprobadores: false,
       mostrarDropdownOrigen: false,
       mostrarDropdownDestino: false,
       mostrarDropdownEmpresa: false
@@ -316,6 +362,14 @@ export default {
     },
     nivelAprobacionTexto() {
       return this.nivelAprobacionInfo.texto;
+    }
+  },
+  watch: {
+    'form.fechaInicio': {
+      immediate: true,
+      handler() {
+        this.cargarAprobadores();
+      }
     }
   },
   async mounted() {
@@ -394,7 +448,7 @@ export default {
     seleccionarEmpresa(company) {
       this.form.organizacion = company.name || '';
       this.form.codigoOrganizacion = company.company || '';
-      this.form.organizacionCcOi = company.company || company.name || '';
+      this.form.organizacionCcOi = '';
       this.searchOrganizacion = company.name || '';
       this.mostrarDropdownEmpresa = false;
     },
@@ -402,6 +456,33 @@ export default {
     actualizarDia(model, valor) {
       const letra = (valor || '').toString().trim().toUpperCase().replace(/[^CF]/g, '').charAt(0);
       this.form[model] = letra;
+    },
+
+    handleDateFieldDblClick(event) {
+      const input = event.target;
+      if (input && typeof input.select === 'function') {
+        input.select();
+      }
+      setTimeout(() => {
+        if (input && typeof input.blur === 'function') {
+          input.blur();
+        }
+      }, 0);
+    },
+
+    confirmDateSelection(event) {
+      const wrapper = event.currentTarget.closest('.date-time-field-wrapper');
+      const input = wrapper ? wrapper.querySelector('input[type="datetime-local"]') : null;
+      if (input) {
+        if (typeof input.select === 'function') {
+          input.select();
+        }
+        setTimeout(() => {
+          if (typeof input.blur === 'function') {
+            input.blur();
+          }
+        }, 0);
+      }
     },
 
     async enviar() {
@@ -438,6 +519,29 @@ export default {
       this.mostrarDropdownOrigen = false;
       this.mostrarDropdownDestino = false;
       this.mostrarDropdownEmpresa = false;
+    },
+    async cargarAprobadores() {
+      const nivel = this.nivelAprobacionInfo.codigo;
+      if (!nivel) {
+        this.aprobadoresDisponibles = [];
+        this.form.aprobador = '';
+        return;
+      }
+
+      this.loadingAprobadores = true;
+      try {
+        const results = await getAprobadoresLabor(nivel);
+        this.aprobadoresDisponibles = Array.isArray(results) ? results : [];
+        if (!this.aprobadoresDisponibles.some(a => a.name === this.form.aprobador)) {
+          this.form.aprobador = '';
+        }
+      } catch (error) {
+        console.error('Error cargando aprobadores:', error);
+        this.aprobadoresDisponibles = [];
+        this.form.aprobador = '';
+      } finally {
+        this.loadingAprobadores = false;
+      }
     }
   }
 };

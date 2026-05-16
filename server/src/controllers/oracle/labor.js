@@ -21,31 +21,37 @@ const getActiveLabor = async (req, res) => {
  */
 const getFilteredLabor = async (req, res) => {
     try {
-        const results = await Labor.findAll({
-            // Definimos solo las columnas solicitadas
-            attributes: ['name', 'pagepin', 'la13'],
-            
-            // Aplicamos los filtros del WHERE
-            where: {
-                la3: 'S', // LA3 = 'S'
-                la13: {
-                    [Op.in]: ['1', '2', '3'] // La13 IN ('1','2','3')
-                },
-                pagepin: {
-                    [Op.ne]: null // Pagepin IS NOT NULL
-                }
-            },
+        const { nivel, name } = req.query;
+        const where = {
+            la3: 'S',
+            pagepin: {
+                [Op.ne]: null
+            }
+        };
 
-            // Opcional: Ordenar por nombre
+        if (nivel && ['1', '2', '3'].includes(String(nivel))) {
+            where.la13 = {
+                [Op.gte]: Number(nivel),
+                [Op.lte]: 3
+            };
+        } else {
+            where.la13 = {
+                [Op.in]: [1, 2, 3]
+            };
+        }
+
+        if (name && name.trim().length > 0) {
+            where[Op.or] = [
+                { name: { [Op.like]: `%${name.trim()}%` } },
+                { pagepin: { [Op.like]: `%${name.trim()}%` } }
+            ];
+        }
+
+        const results = await Labor.findAll({
+            attributes: ['name', 'pagepin', 'la13'],
+            where,
             order: [['name', 'ASC']]
         });
-
-        // Verificamos si hay resultados
-        if (results.length === 0) {
-            return res.status(404).json({
-                message: "No se encontraron registros que coincidan con los criterios."
-            });
-        }
 
         return res.status(200).json(results);
 

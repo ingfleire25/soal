@@ -108,7 +108,12 @@
           </div>
           <div class="col-md-6">
             <label class="form-label">Centro de costo CC/OI</label>
-            <CentroCostoAutocomplete v-model="form.organizacionCcOi" :required="true" />
+            <CentroCostoAutocomplete
+              v-model="form.organizacionCcOi"
+              :required="true"
+              :company-code="form.codigoOrganizacion"
+              :company-name="form.organizacion"
+            />
           </div>
           <div class="col-md-6">
             <label class="form-label">Tipo de Servicio</label>
@@ -138,7 +143,16 @@
           </div>
           <div class="col-md-6">
             <label class="form-label">Aprobador</label>
-            <input v-model="form.aprobador" type="text" class="form-control form-control-sm" required>
+            <select v-model="form.aprobador" class="form-select form-select-sm" :disabled="!nivelAprobacionInfo.codigo || loadingAprobadores" required>
+              <option value="" disabled hidden>Seleccione un aprobador</option>
+              <option v-for="approver in aprobadoresDisponibles" :key="approver.pagepin" :value="approver.name">
+                {{ approver.name }} (Nivel {{ approver.la13 }})
+              </option>
+            </select>
+            <div class="form-text text-muted" v-if="loadingAprobadores">Cargando aprobadores...</div>
+            <div class="form-text text-danger" v-else-if="nivelAprobacionInfo.codigo && aprobadoresDisponibles.length === 0">
+              No hay aprobadores disponibles para el nivel {{ nivelAprobacionInfo.codigo }}.
+            </div>
           </div>
           <div class="col-md-6">
             <label class="form-label">Correo</label>
@@ -173,10 +187,41 @@
           <div class="row g-3">
             <div class="col-md-6">
               <label class="form-label">Material</label>
+              <div class="position-relative">
+                <input
+                  v-model="mat.searchQuery"
+                  type="text"
+                  class="form-control form-control-sm"
+                  placeholder="Buscar material..."
+                  @input="buscarMaterial(index)"
+                  autocomplete="off"
+                  required
+                />
+                <div v-if="mat.searchResults && mat.searchResults.length > 0" class="dropdown-menu show w-100" style="max-height: 220px; overflow-y: auto; z-index: 1000;">
+                  <button
+                    v-for="item in mat.searchResults"
+                    :key="item.itemnum"
+                    type="button"
+                    class="dropdown-item"
+                    @click="seleccionarMaterial(index, item)"
+                  >
+                    <strong>{{ item.itemnum }}</strong> - {{ item.description }} <br>
+                    <small class="text-muted">{{ item.stocktype }}</small>
+                  </button>
+                </div>
+              </div>
+              <div class="form-text text-muted" v-if="mat.searchQuery && !mat.materialId">
+                Escribe al menos 2 caracteres para buscar.
+              </div>
+              <div class="form-text" v-if="mat.materialId">
+                Seleccionado: <strong>{{ mat.descripcion }}</strong>
+              </div>
+              <!--
               <select v-model="mat.materialId" class="form-control form-control-sm" @change="selectMaterial(index)">
                 <option value="">Seleccionar material</option>
                 <option v-for="m in materiales" :key="m.id" :value="m.id">{{ m.descripcion }} ({{ m.renglon }})</option>
               </select>
+              -->
             </div>
             <div class="col-md-3">
               <label class="form-label">Cantidad</label>
@@ -184,7 +229,22 @@
             </div>
             <div class="col-md-3">
               <label class="form-label">Fecha Entrega en Muelle</label>
-              <input v-model="mat.fechaEntregaMuelle" type="datetime-local" class="form-control form-control-sm" required>
+              <div class="date-time-field-wrapper">
+                <input
+                  v-model="mat.fechaEntregaMuelle"
+                  type="datetime-local"
+                  class="form-control form-control-sm"
+                  required
+                  @dblclick="handleDateFieldDblClick"
+                />
+                <button
+                  type="button"
+                  class="btn btn-sm date-time-select-button"
+                  @click="confirmDateSelection($event)"
+                >
+                  Seleccionar
+                </button>
+              </div>
             </div>
             <div class="col-md-11">
               <label class="form-label">Observación</label>
@@ -212,11 +272,13 @@
 
 <script>
 import { postSuministroLacustre } from '@/services/postSuministroLacustre';
-import { getMateriales } from '@/services/getMateriales';
+// import { getMateriales } from '@/services/getMateriales';
+import { getBasicItems } from '@/services/getBasicItems';
 import { useAuthStore } from '@/stores/auth';
 import { getLocations } from '@/services/getLocations';
 import { getServiceTypes } from '@/services/getServiceTypes';
 import { getCompanies } from '@/services/getCompanies';
+import { getAprobadoresLabor } from '@/services/getAprobadoresLabor';
 import CentroCostoAutocomplete from '@/components/CentroCostoAutocomplete.vue';
 import { toDatetimeLocal, getNivelAprobacion } from '@/utils/dateTime';
 
@@ -267,6 +329,8 @@ export default {
       companies: [],
       loadingCompanies: false,
       searchOrganizacion: '',
+      aprobadoresDisponibles: [],
+      loadingAprobadores: false,
 
       mostrarDropdownOrigen: false,
       mostrarDropdownDestino: false,
@@ -287,7 +351,7 @@ export default {
       this.form.correo = user.correo || user.email || user.username || '';
       this.form.gerencia = user.gerencia || '';
     }
-    this.loadMateriales();
+    // this.loadMateriales();
     this.cargarUbicaciones();
     this.cargarCompanies();
     this.cargarServiceTypes();
@@ -334,6 +398,7 @@ export default {
     }
   },
   methods: {
+    /*
     async loadMateriales() {
       try {
         this.materiales = await getMateriales();
@@ -341,6 +406,7 @@ export default {
         console.error('Error cargando materiales:', error);
       }
     },
+    */
     async cargarUbicaciones() {
       this.loadingLocations = true;
       try {
@@ -371,7 +437,7 @@ export default {
     seleccionarEmpresa(company) {
       this.form.organizacion = company.name || '';
       this.form.codigoOrganizacion = company.company || '';
-      this.form.organizacionCcOi = company.company || company.name || '';
+      this.form.organizacionCcOi = '';
       this.searchOrganizacion = company.name || '';
       this.mostrarDropdownEmpresa = false;
     },
@@ -387,6 +453,63 @@ export default {
       this.searchDestino = loc.LOCATION;
       this.mostrarDropdownDestino = false;
     },
+    async buscarMaterial(index) {
+      const material = this.form.materiales[index];
+      const query = (material.searchQuery || '').trim();
+
+      material.materialId = '';
+      material.renglon = '';
+      material.descripcion = '';
+      material.searchResults = [];
+
+      if (query.length < 2) {
+        return;
+      }
+
+      material.searching = true;
+      try {
+        const results = await getBasicItems(query);
+        material.searchResults = Array.isArray(results) ? results.slice(0, 50) : [];
+      } catch (error) {
+        console.error('Error buscando materiales:', error);
+        material.searchResults = [];
+      } finally {
+        material.searching = false;
+      }
+    },
+    seleccionarMaterial(index, item) {
+      const material = this.form.materiales[index];
+      material.materialId = item.itemnum;
+      material.renglon = item.itemnum;
+      material.descripcion = item.description;
+      material.searchQuery = `${item.itemnum} - ${item.description}`;
+      material.searchResults = [];
+    },
+    handleDateFieldDblClick(event) {
+      const input = event.target;
+      if (input && typeof input.select === 'function') {
+        input.select();
+      }
+      setTimeout(() => {
+        if (input && typeof input.blur === 'function') {
+          input.blur();
+        }
+      }, 0);
+    },
+    confirmDateSelection(event) {
+      const wrapper = event.currentTarget.closest('.date-time-field-wrapper');
+      const input = wrapper ? wrapper.querySelector('input[type="datetime-local"]') : null;
+      if (input) {
+        if (typeof input.select === 'function') {
+          input.select();
+        }
+        setTimeout(() => {
+          if (typeof input.blur === 'function') {
+            input.blur();
+          }
+        }, 0);
+      }
+    },
     addMaterial() {
       this.form.materiales.push({
         materialId: '',
@@ -394,7 +517,10 @@ export default {
         descripcion: '',
         cantidad: 1,
         fechaEntregaMuelle: '',
-        observacion: ''
+        observacion: '',
+        searchQuery: '',
+        searchResults: [],
+        searching: false
       });
     },
     removeMaterial(index) {

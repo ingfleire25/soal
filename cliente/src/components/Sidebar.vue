@@ -253,12 +253,6 @@ function navigateTo(name, mode = 'crear') {
     } else {
       router.push({ name: 'tabla', query: { tipoSolicitud: 'Suministro Lacustre' } });
     }
-  } else if (name === 'servicios-portuarios') {
-    if (mode === 'crear') {
-      router.push({ name: 'crear-servicios-portuarios' });
-    } else {
-      router.push({ name: 'tabla', query: { tipoSolicitud: 'Servicios Portuarios' } });
-    }
   } else if (name === 'ver-todas') {
     router.push({ name: 'tabla' });
   } else if (name === 'administracion') {

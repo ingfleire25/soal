@@ -84,11 +84,39 @@
                 </div>
                 <div class="col-md-3">
                     <label class="form-label">Fecha Inicio</label>
-                    <input v-model="form.fechaInicio" type="datetime-local" class="form-control form-control-sm">
+                    <div class="date-time-field-wrapper">
+                        <input
+                          v-model="form.fechaInicio"
+                          type="datetime-local"
+                          class="form-control form-control-sm"
+                          @dblclick="handleDateFieldDblClick"
+                        />
+                        <button
+                          type="button"
+                          class="btn btn-sm date-time-select-button"
+                          @click="confirmDateSelection($event)"
+                        >
+                          Seleccionar
+                        </button>
+                    </div>
                 </div>
                 <div class="col-md-3">
                     <label class="form-label">Fecha Finalización</label>
-                    <input v-model="form.fechaFin" type="datetime-local" class="form-control form-control-sm">
+                    <div class="date-time-field-wrapper">
+                        <input
+                          v-model="form.fechaFin"
+                          type="datetime-local"
+                          class="form-control form-control-sm"
+                          @dblclick="handleDateFieldDblClick"
+                        />
+                        <button
+                          type="button"
+                          class="btn btn-sm date-time-select-button"
+                          @click="confirmDateSelection($event)"
+                        >
+                          Seleccionar
+                        </button>
+                    </div>
                 </div>
                 <div class="col-md-6">
                     <label class="form-label">Días Req.</label>
@@ -179,6 +207,33 @@ function limpiarForm() {
         modalidad: '',
         diasSeleccionados: []
     });
+}
+
+function handleDateFieldDblClick(event) {
+    const input = event.target;
+    if (input && typeof input.select === 'function') {
+        input.select();
+    }
+    setTimeout(() => {
+        if (input && typeof input.blur === 'function') {
+            input.blur();
+        }
+    }, 0);
+}
+
+function confirmDateSelection(event) {
+    const wrapper = event.currentTarget.closest('.date-time-field-wrapper');
+    const input = wrapper ? wrapper.querySelector('input[type="datetime-local"]') : null;
+    if (input) {
+        if (typeof input.select === 'function') {
+            input.select();
+        }
+        setTimeout(() => {
+            if (typeof input.blur === 'function') {
+                input.blur();
+            }
+        }, 0);
+    }
 }
 </script>
 

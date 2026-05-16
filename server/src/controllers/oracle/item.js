@@ -7,10 +7,20 @@ const { Op } = require('sequelize');
  */
 const getBasicItems = async (req, res) => {
     try {
+        const whereClause = {};
+        const searchQuery = (req.query.q || '').toString().trim();
+        if (searchQuery.length > 0) {
+            whereClause[Op.or] = [
+                { itemnum: { [Op.like]: `%${searchQuery}%` } },
+                { description: { [Op.like]: `%${searchQuery}%` } },
+                { stocktype: { [Op.like]: `%${searchQuery}%` } }
+            ];
+        }
+
         const items = await Item.findAll({
             // Seleccionamos solo las columnas requeridas
             attributes: ['itemnum', 'description', 'stocktype'],
-            
+            where: whereClause,
             // Opcional: puedes agregar un límite si la tabla es muy grande
             // limit: 100, 
             

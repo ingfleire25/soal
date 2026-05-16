@@ -54,6 +54,36 @@ button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
 
+.date-time-field-wrapper {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  background: #f2f3f4;
+  border: 1px solid #c5c7c9;
+  border-radius: 0.75rem;
+  padding: 0.45rem;
+  margin-top: 0.4rem;
+}
+.date-time-field-wrapper .form-control {
+  flex: 1;
+  min-width: 0;
+  background: #eceef0;
+  border-color: #b8bbbf;
+}
+.date-time-field-wrapper .date-time-select-button {
+  min-width: 110px;
+  border: 1px solid #b0b4b8;
+  background: #dee1e4;
+  color: #1f2428;
+}
+.date-time-field-wrapper .date-time-select-button:hover {
+  background: #cfd4d8;
+}
+.date-time-field-wrapper input:focus {
+  outline: 2px solid #9fa5aa;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.08);
+}
+
 .card {
   padding: 2em;
 }

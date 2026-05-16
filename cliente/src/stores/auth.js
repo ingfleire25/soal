@@ -1,40 +1,103 @@
 import { reactive, computed, watch } from 'vue'
 
 const STORAGE_KEY = 'auth'
+const EXPIRATION_MS = 20 * 60 * 1000
 
 const state = reactive({
   user: null,
   token: null,
   isAuthenticated: false,
-  remember: false
+  remember: false,
+  lastActivity: null
 })
+
+let inactivityTimer = null
+let activityWatcherAttached = false
 
 function loadAuth() {
   const saved = localStorage.getItem(STORAGE_KEY)
   if (saved) {
     try {
       const parsed = JSON.parse(saved)
-      state.user = parsed.user || null
-      state.token = parsed.token || null
-      state.isAuthenticated = !!parsed.token
-      state.remember = !!parsed.token
+      const token = parsed.token || parsed.tokenAcceso || null
+      const lastActivity = typeof parsed.lastActivity === 'number' ? parsed.lastActivity : null
+
+      if (!token || !parsed.user) {
+        localStorage.removeItem(STORAGE_KEY)
+        return
+      }
+
+      if (lastActivity && Date.now() - lastActivity > EXPIRATION_MS) {
+        localStorage.removeItem(STORAGE_KEY)
+        return
+      }
+
+      state.user = parsed.user
+      state.token = token
+      state.isAuthenticated = true
+      state.remember = true
+      state.lastActivity = lastActivity || Date.now()
+      attachActivityWatchers()
+      resetInactivityTimer()
     } catch (error) {
       console.error('[auth] no se pudo parsear auth en localStorage', error)
       state.user = null
       state.token = null
       state.isAuthenticated = false
       state.remember = false
+      state.lastActivity = null
       localStorage.removeItem(STORAGE_KEY)
     }
   }
 }
 
 function saveAuth() {
-  if (state.isAuthenticated && state.user && state.token && state.remember) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ user: state.user, token: state.token }))
+  if (state.isAuthenticated && state.user && state.token) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      user: state.user,
+      token: state.token,
+      tokenAcceso: state.token,
+      lastActivity: state.lastActivity || Date.now()
+    }))
   } else {
     localStorage.removeItem(STORAGE_KEY)
   }
+}
+
+function updateLastActivity() {
+  if (!state.isAuthenticated) return
+  state.lastActivity = Date.now()
+  saveAuth()
+  resetInactivityTimer()
+}
+
+function resetInactivityTimer() {
+  if (inactivityTimer) {
+    clearTimeout(inactivityTimer)
+    inactivityTimer = null
+  }
+  if (!state.isAuthenticated) return
+  inactivityTimer = window.setTimeout(() => {
+    logout(true)
+  }, EXPIRATION_MS)
+}
+
+function attachActivityWatchers() {
+  if (activityWatcherAttached) return
+  const events = ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll']
+  events.forEach((eventName) => {
+    window.addEventListener(eventName, updateLastActivity)
+  })
+  activityWatcherAttached = true
+}
+
+function detachActivityWatchers() {
+  if (!activityWatcherAttached) return
+  const events = ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll']
+  events.forEach((eventName) => {
+    window.removeEventListener(eventName, updateLastActivity)
+  })
+  activityWatcherAttached = false
 }
 
 // Cuando cambia cualquier campo, persistir
@@ -62,14 +125,23 @@ export function useAuthStore() {
     state.token = token
     state.isAuthenticated = true
     state.remember = !!recordar
+    state.lastActivity = Date.now()
+    attachActivityWatchers()
+    resetInactivityTimer()
     saveAuth()
   }
 
-  async function logout() {
+  async function logout(isExpired = false) {
     state.user = null
     state.token = null
     state.isAuthenticated = false
     state.remember = false
+    state.lastActivity = null
+    detachActivityWatchers()
+    if (inactivityTimer) {
+      clearTimeout(inactivityTimer)
+      inactivityTimer = null
+    }
     saveAuth()
     window.location.href = '/iniciar-sesion'
   }
@@ -81,11 +153,15 @@ export function useAuthStore() {
 
     try {
       const parsed = JSON.parse(saved)
-      if (parsed?.token && parsed?.user) {
+      const token = parsed?.token || parsed?.tokenAcceso
+      if (token && parsed?.user) {
         state.user = parsed.user
-        state.token = parsed.token
+        state.token = token
         state.isAuthenticated = true
         state.remember = true
+        state.lastActivity = typeof parsed.lastActivity === 'number' ? parsed.lastActivity : Date.now()
+        attachActivityWatchers()
+        resetInactivityTimer()
         return true
       }
       return false

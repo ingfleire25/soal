@@ -1,4 +1,4 @@
-const { Solicitud, SuministroLacustre, ServiciosPortuarios, Materiales } = require('../db');
+const { Solicitud, SuministroLacustre, Materiales } = require('../db');
 const { Op } = require('sequelize');
 
 const getNextSequentialId = async (model, prefix) => {
@@ -41,11 +41,9 @@ exports.getAll = async (req, res) => {
   try {
     const solicitudes = await Solicitud.findAll({ order: [['createdAt', 'DESC']] });
     const suministro = await SuministroLacustre.findAll({ include: [{ model: Materiales, as: 'materiales' }], order: [['createdAt', 'DESC']] });
-    const servicios = await ServiciosPortuarios.findAll({ order: [['createdAt', 'DESC']] });
     const all = [
       ...solicitudes.map(s => ({ ...s.dataValues, tipoTabla: 'solicitudes' })),
-      ...suministro.map(s => ({ ...s.dataValues, tipoTabla: 'suministroLacustre' })),
-      ...servicios.map(s => ({ ...s.dataValues, tipoTabla: 'serviciosPortuarios' }))
+      ...suministro.map(s => ({ ...s.dataValues, tipoTabla: 'suministroLacustre' }))
     ].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     res.status(200).json({ statusCode: 200, statusText: 'OK', result: all });
   } catch (err) {
@@ -152,10 +150,6 @@ exports.updateSolicitud = async (req, res) => {
       solicitud = await SuministroLacustre.findByPk(id);
       modelo = 'SuministroLacustre';
     }
-    if (!solicitud) {
-      solicitud = await ServiciosPortuarios.findByPk(id);
-      modelo = 'ServiciosPortuarios';
-    }
 
     if (!solicitud) {
       return res.status(404).json({ statusCode: 404, statusText: 'Solicitud no encontrada' });
@@ -170,7 +164,7 @@ exports.updateSolicitud = async (req, res) => {
       nivelAprobacion
     });
 
-    res.status(200).json({ statusCode: 200, statusText: 'Solicitud actualizada', result: { ...solicitud.dataValues, tipoTabla: modelo === 'Solicitud' ? 'solicitudes' : modelo === 'SuministroLacustre' ? 'suministroLacustre' : 'serviciosPortuarios' } });
+    res.status(200).json({ statusCode: 200, statusText: 'Solicitud actualizada', result: { ...solicitud.dataValues, tipoTabla: modelo === 'Solicitud' ? 'solicitudes' : 'suministroLacustre' } });
   } catch (err) {
     console.error(err);
     res.status(500).json({ statusCode: 500, statusText: 'Error al actualizar solicitud', error: err.message });
@@ -192,10 +186,6 @@ exports.cambiarEstado = async (req, res) => {
       solicitud = await SuministroLacustre.findByPk(id);
       modelo = 'SuministroLacustre';
     }
-    if (!solicitud) {
-      solicitud = await ServiciosPortuarios.findByPk(id);
-      modelo = 'ServiciosPortuarios';
-    }
 
     if (!solicitud) {
       return res.status(404).json({ statusCode: 404, statusText: 'Solicitud no encontrada' });
@@ -206,7 +196,7 @@ exports.cambiarEstado = async (req, res) => {
       motivoRechazo: estado === 'rechazada' ? motivoRechazo || null : null
     });
 
-    res.status(200).json({ statusCode: 200, statusText: 'Estado actualizado', result: { ...solicitud.dataValues, tipoTabla: modelo === 'Solicitud' ? 'solicitudes' : modelo === 'SuministroLacustre' ? 'suministroLacustre' : 'serviciosPortuarios' } });
+    res.status(200).json({ statusCode: 200, statusText: 'Estado actualizado', result: { ...solicitud.dataValues, tipoTabla: modelo === 'Solicitud' ? 'solicitudes' : 'suministroLacustre' } });
   } catch (err) {
     console.error(err);
     res.status(500).json({ statusCode: 500, statusText: 'Error al actualizar estado', error: err.message });
@@ -298,56 +288,3 @@ exports.postSuministroLacustre = async (req, res) => {
   }
 };
 
-exports.postServiciosPortuarios = async (req, res) => {
-  let {
-    descripcion, origen, descripcionOrigen, destino, descripcionDestino,
-    fechaInicio, organizacionCcOi, multiplesCcOi, sumatoriaPorcentaje,
-    tipoServicio, unidadMovilizar, aprobador, correo, gerencia, solicitante, cedulaSolicitante,
-    fecha, subtipo
-  } = req.body;
-
-  organizacionCcOi = normalizeOrganizacionCcOi(req.body);
-  const payload = { ...req.body, organizacionCcOi };
-
-  const requiredFields = ['descripcion', 'origen', 'destino', 'fechaInicio', 'organizacionCcOi', 'tipoServicio', 'unidadMovilizar', 'aprobador', 'correo', 'gerencia', 'solicitante', 'cedulaSolicitante', 'fecha'];
-  for (const field of requiredFields) {
-    if (!payload[field]) {
-      return res.status(400).json({ statusCode: 400, statusText: `Falta el campo obligatorio: ${field}` });
-    }
-  }
-
-  try {
-    const nivelAprobacion = getApprovalLevel(fechaInicio, fecha);
-    const id = await getNextSequentialId(ServiciosPortuarios, 'SP');
-    const nuevo = await ServiciosPortuarios.create({
-      id,
-      descripcion,
-      origen,
-      descripcionOrigen,
-      destino,
-      descripcionDestino,
-      fechaInicio,
-      organizacionCcOi,
-      multiplesCcOi,
-      sumatoriaPorcentaje,
-      tipoServicio,
-      unidadMovilizar,
-      aprobador,
-      correo,
-      gerencia,
-      solicitante,
-      cedulaSolicitante,
-      fecha,
-      tipoSolicitud: 'Servicios Portuarios',
-      subtipo,
-      nivelAprobacion,
-      estado: 'pendiente',
-      motivoRechazo: null
-    });
-
-    res.status(201).json({ statusCode: 201, statusText: 'Servicio portuario creado', result: nuevo });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ statusCode: 500, statusText: 'Error al crear servicio portuario', error: err.message });
-  }
-};

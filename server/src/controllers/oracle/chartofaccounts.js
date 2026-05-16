@@ -16,7 +16,7 @@ const getChartWithCompanies = async (req, res) => {
       include: [{
         model: Companies,
         as: 'companyData',
-        attributes: ['name'],
+        attributes: ['name', 'company'],
         required: true
       }],
       order: [
@@ -26,7 +26,8 @@ const getChartWithCompanies = async (req, res) => {
 
     const cleanData = results.map(item => ({
       GLACCOUNT: item.glaccount,
-      NAME: item.companyData ? item.companyData.name : null
+      NAME: item.companyData ? item.companyData.name : null,
+      COMPANY: item.companyData ? item.companyData.company : null
     }));
 
     return res.status(200).json(cleanData);

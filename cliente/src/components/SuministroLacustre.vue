@@ -205,17 +205,16 @@
                     class="dropdown-item"
                     @click="seleccionarMaterial(index, item)"
                   >
-                    <strong>{{ item.itemnum }}</strong> - {{ item.description }} <br>
-                    <small class="text-muted">{{ item.stocktype }}</small>
+                    <strong>{{ item.itemnum + " "}}</strong> - {{ item.description + " " }} - <strong class="text-muted">{{  item.stocktype }}</strong>
                   </button>
                 </div>
               </div>
               <div class="form-text text-muted" v-if="mat.searchQuery && !mat.materialId">
                 Escribe al menos 2 caracteres para buscar.
               </div>
-              <div class="form-text" v-if="mat.materialId">
+              <!-- <div class="form-text" v-if="mat.materialId">
                 Seleccionado: <strong>{{ mat.descripcion }}</strong>
-              </div>
+              </div> -->
               <!--
               <select v-model="mat.materialId" class="form-control form-control-sm" @change="selectMaterial(index)">
                 <option value="">Seleccionar material</option>
@@ -237,13 +236,13 @@
                   required
                   @dblclick="handleDateFieldDblClick"
                 />
-                <button
+                <!-- <button
                   type="button"
                   class="btn btn-sm date-time-select-button"
                   @click="confirmDateSelection($event)"
                 >
                   Seleccionar
-                </button>
+                </button> -->
               </div>
             </div>
             <div class="col-md-11">
@@ -331,6 +330,8 @@ export default {
       searchOrganizacion: '',
       aprobadoresDisponibles: [],
       loadingAprobadores: false,
+      // Timers para debounce en búsqueda de materiales
+      searchTimers: {},
 
       mostrarDropdownOrigen: false,
       mostrarDropdownDestino: false,
@@ -397,6 +398,14 @@ export default {
       return this.nivelAprobacionInfo.texto;
     }
   },
+  watch: {
+    'form.fechaInicio': {
+      immediate: true,
+      handler() {
+        this.cargarAprobadores();
+      }
+    }
+  },
   methods: {
     /*
     async loadMateriales() {
@@ -453,29 +462,38 @@ export default {
       this.searchDestino = loc.LOCATION;
       this.mostrarDropdownDestino = false;
     },
-    async buscarMaterial(index) {
+    buscarMaterial(index) {
       const material = this.form.materiales[index];
+      if (!material) return;
       const query = (material.searchQuery || '').trim();
 
-      material.materialId = '';
-      material.renglon = '';
-      material.descripcion = '';
-      material.searchResults = [];
-
-      if (query.length < 2) {
-        return;
+      // debounce por índice
+      if (this.searchTimers[index]) {
+        clearTimeout(this.searchTimers[index]);
       }
 
-      material.searching = true;
-      try {
-        const results = await getBasicItems(query);
-        material.searchResults = Array.isArray(results) ? results.slice(0, 50) : [];
-      } catch (error) {
-        console.error('Error buscando materiales:', error);
+      this.searchTimers[index] = setTimeout(async () => {
+        material.materialId = '';
+        material.renglon = '';
+        material.descripcion = '';
         material.searchResults = [];
-      } finally {
-        material.searching = false;
-      }
+
+        if (query.length < 2) {
+          material.searchResults = [];
+          return;
+        }
+
+        material.searching = true;
+        try {
+          const results = await getBasicItems(query);
+          material.searchResults = Array.isArray(results) ? results.slice(0, 50) : [];
+        } catch (error) {
+          console.error('Error buscando materiales:', error);
+          material.searchResults = [];
+        } finally {
+          material.searching = false;
+        }
+      }, 300);
     },
     seleccionarMaterial(index, item) {
       const material = this.form.materiales[index];
@@ -563,6 +581,30 @@ export default {
         this.loading = false;
       }
     },
+    async cargarAprobadores() {
+      const nivel = this.nivelAprobacionInfo.codigo;
+      if (!nivel) {
+        this.aprobadoresDisponibles = [];
+        this.form.aprobador = '';
+        return;
+      }
+
+      this.loadingAprobadores = true;
+      try {
+        const results = await getAprobadoresLabor(nivel);
+        this.aprobadoresDisponibles = Array.isArray(results) ? results : [];
+        if (!this.aprobadoresDisponibles.some(a => a.name === this.form.aprobador)) {
+          this.form.aprobador = '';
+        }
+      } catch (error) {
+        console.error('Error cargando aprobadores:', error);
+        this.aprobadoresDisponibles = [];
+        this.form.aprobador = '';
+      } finally {
+        this.loadingAprobadores = false;
+      }
+    },
+
     resetForm() {
       const currentSolicitante = this.form.solicitante;
       const currentCedula = this.form.cedulaSolicitante;

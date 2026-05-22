@@ -34,6 +34,13 @@ respuesta de la evaluacion de servicios.
 
 cuando entro a la ruta de suministro lacustre no puedo navegar mas a otra ruta...
 
+crear correo en el modelo de usuario ya que no esta.
+
+los modales de edicion deben ser segun cada formulario de creacion
+
+crear los servicios de item y labor para aprobadores.
+vincular aprobadores segun su nivel de aprobacion.
+
 
 +++++++++++++++++++++++++++++++++++++++++++++++++++
 +++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -44,22 +51,24 @@ cuando entro a la ruta de suministro lacustre no puedo navegar mas a otra ruta..
 
 crear historico. si la fecha de la solicitud ya caduco en la semana o fue rechada que se vea en la tabla de historico con filtro de busqueda.
 
-el modal de edicion debe ser customizado segun el tipo de formulario que lo creo no todos los formulario 
-piden lo mismo la edicion es diferente para cada uno.
-
 HACE FALTA IMPLEMENTAR SWEETALERT PARA EL MENSAJE DE SATISFACTORIO O NO
 
 Revizar los filtros sobre administrador no trae todas las coincidencias.
 
 correo debe traer el cuerpo completo del correo.
 
-crear correo en el modelo de usuario ya que no esta.
-
 no puedeo guardar una edicion. creo que debo completar los campos vacios. para guardar.
 
-los modales de edicion deben ser segun cada formulario de creacion.
+crear modal de vision detallada sobre cada solicitud que se pueda ver toda la informacion para cualquiera que la vea
 
-crear los servicios de item y labor para aprobadores.
-vincular aprobadores segun su nivel de aprobacion.
+crear controlador de dominio para loguearse contra ldap.
 
+elimiminar de estadisticas servicios portuarios
 
+revisar donde guarda la informacion en MAXIMO
+
+revisar los correlativos que ya estan en MAXIMO
+
+Buscar el campo unidad a movilizar
+
+los administradores no deben solicitar pero si aprobar y ver todas las solicitudes de todos las genrencias y poder aprobar cualquiera.

@@ -21,6 +21,7 @@ router.get('/labor/active', labor.getActiveLabor);
 router.get('/labor/filtered', labor.getFilteredLabor);
 
 router.get('/osel', osel.getOselData);
+router.post('/osel', osel.createOsel);
 router.get('/chartofaccounts', chartofaccounts.getChartWithCompanies);
 router.get('/item', item.getBasicItems)
 

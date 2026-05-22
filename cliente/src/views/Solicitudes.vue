@@ -33,8 +33,14 @@ const serviceTypesTP = ref([]);
 const serviceTypesMUM = ref([]);
 const serviceTypesSL = ref([]);
 const modserv = ref([]);
+const editForm = ref({});
+const aprobadoresDisponibles = ref([]);
+const loadingAprobadores = ref(false);
 const selectedTipo = ref('');
 const selectedEstado = ref('');
+
+// Timers para debounce en búsqueda de materiales (por índice)
+const materialSearchTimers = new Map();
 
 const tipoOptions = [
   { value: '', label: 'Todos los tipos' },
@@ -247,28 +253,40 @@ const cargarAprobadores = async () => {
   }
 };
 
-const buscarMaterial = async (index) => {
+const buscarMaterial = (index) => {
   const material = editForm.value.materiales?.[index];
   if (!material) return;
   const query = (material.searchQuery || '').trim();
 
-  material.materialId = '';
-  material.renglon = '';
-  material.descripcion = '';
-  material.searchResults = [];
-
-  if (query.length < 2) return;
-
-  material.searching = true;
-  try {
-    const results = await getBasicItems(query);
-    material.searchResults = Array.isArray(results) ? results.slice(0, 50) : [];
-  } catch (error) {
-    console.error('Error buscando materiales:', error);
-    material.searchResults = [];
-  } finally {
-    material.searching = false;
+  // debounce por índice
+  if (materialSearchTimers.has(index)) {
+    clearTimeout(materialSearchTimers.get(index));
   }
+
+  const timer = setTimeout(async () => {
+    material.materialId = '';
+    material.renglon = '';
+    material.descripcion = '';
+    material.searchResults = [];
+
+    if (query.length < 2) {
+      material.searchResults = [];
+      return;
+    }
+
+    material.searching = true;
+    try {
+      const results = await getBasicItems(query);
+      material.searchResults = Array.isArray(results) ? results.slice(0, 50) : [];
+    } catch (error) {
+      console.error('Error buscando materiales:', error);
+      material.searchResults = [];
+    } finally {
+      material.searching = false;
+    }
+  }, 300);
+
+  materialSearchTimers.set(index, timer);
 };
 
 const seleccionarMaterial = (index, item) => {
@@ -305,7 +323,6 @@ const removeMaterial = (index) => {
 };
 
 const editingId = ref(null);
-const editForm = ref({});
 const modalRef = ref(null);
 const modalInstance = ref(null);
 

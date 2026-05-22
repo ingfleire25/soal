@@ -1,5 +1,6 @@
 const { Osel } = require('../../db');
 
+
 const getOselData = async (req, res) => {
   try {
     const orders = await Osel.findAll({
@@ -14,4 +15,19 @@ const getOselData = async (req, res) => {
   }
 };
 
-module.exports = { getOselData };
+// Crear un nuevo registro en Osel
+const createOsel = async (req, res) => {
+  try {
+    const data = req.body;
+    const nuevoOsel = await Osel.create(data);
+    return res.status(201).json(nuevoOsel);
+  } catch (error) {
+    console.error('Error creando Osel:', error);
+    return res.status(500).json({
+      message: 'Error al crear registro Osel',
+      error: error.message
+    });
+  }
+};
+
+module.exports = { getOselData, createOsel };

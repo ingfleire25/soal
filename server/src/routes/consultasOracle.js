@@ -9,6 +9,7 @@ const valuelist = require('../controllers/oracle/valuelist');
 const companies = require('../controllers/oracle/companies');
 const chartofaccounts = require('../controllers/oracle/chartofaccounts');
 const item = require('../controllers/oracle/item');
+const pm = require('../controllers/oracle/pm')
 
 
 // public endpoints
@@ -25,6 +26,8 @@ router.post('/osel', osel.createOsel);
 router.get('/chartofaccounts', chartofaccounts.getChartWithCompanies);
 router.get('/item', item.getBasicItems)
 
+router.get('/pm', pm.getPms)
+router.post('/pm', pm.createPm)
 
 
 module.exports = router;  

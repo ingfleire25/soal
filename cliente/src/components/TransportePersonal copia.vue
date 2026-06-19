@@ -228,7 +228,7 @@
       </fieldset>
 
       <div class="d-flex justify-content-end">
-        <button type="submit" class="btn btn-primary px-5" :disabled="loading">
+        <button type="submit" class="btn btn-primary px-5" :disabled="loading || sumatoriaInvalida">
           <span v-if="loading" class="spinner-border spinner-border-sm me-2"></span>
           Enviar Solicitud
         </button>
@@ -240,8 +240,7 @@
 </template>
 
 <script>
-// import { postSolicitud } from '@/services/postSolicitud';
-import { postPm } from '../services/postPm';
+import { postSolicitud } from '@/services/postSolicitud';
 import { useAuthStore } from '@/stores/auth';
 import { getLocations } from '@/services/getLocations';
 import { getServiceTypes } from '@/services/getServiceTypes';
@@ -491,112 +490,18 @@ export default {
         alert('Debe seleccionar una organización');
         return;
       }
-
-  this.loading = true;
-  try {
-    // PARSEO Y MAPEO: Convertir la estructura de Vue a la del modelo PM de Sequelize
-    const payloadMapeado = {
-      // Campos requeridos obligatorios (Not Null) que identificamos en tus errores previos
-      // Nota: Si no manejas secuencia automática, genera o incrementa un rowstamp simulado aquí
-      rowstamp: 324694702, // Genera un ID numérico único basado en el timestamp actual
-      pmnum: 9065,
-      supervisor: this.form.aprobador ? this.form.aprobador.substring(0, 12).toUpperCase() : 'SIN_SUPERV',
-      usetargetdate: 'S',
-      lastmeterreading: 0.00,
-      frequency: 1,
-      meterfrequency: 0.00,
-      pmcounter: 0,
-      priority: 1,
-      jpseqinuse: 'N',
-      pm17: '24X7',
-      pm18: this.form.fechaInicio ? new Date(this.form.fechaInicio).toISOString() : new Date().toISOString(),
-      changedate: new Date().toISOString(),
-      changeby: this.form.solicitante ? this.form.solicitante.substring(0, 18).toUpperCase() : 'SISTEMA',
-      
-      // Mapeos específicos del formulario de transporte
-      description: this.form.descripcion.substring(0, 50),
-      pm6: this.form.origen.substring(0, 15),                // Ubicación Origen
-      pm7: this.form.descripcionOrigen.substring(0, 50),     // Descripción Origen
-      pm8: this.form.destino.substring(0, 15),               // Ubicación Destino
-      pm9: this.form.descripcionDestino.substring(0, 50),    // Descripción Destino
-      pm10: this.form.modserv || 'LANTRP',                  // Modalidad de servicio o default
-      
-      // Fechas procesadas
-      firstdate: this.form.fechaInicio ? new Date(this.form.fechaInicio).toISOString() : null,
-      nextdate: this.form.fechaInicio ? this.form.fechaInicio.split('T')[0] : null,
-      lastcompdate: this.form.fechaFin ? this.form.fechaFin.split('T')[0] : null,
-      
-      // Organización y Cuentas
-      pm1: '2026', // Año fiscal corriente
-      pm2: this.form.codigoOrganizacion.substring(0, 18), 
-      pm5: this.form.organizacionCcOi ? this.form.organizacionCcOi.substring(0, 18) : '101181D', // Centro Costo
-      glaccount: '10118A1A12', // Cuenta contable fija o por defecto
-      haschildren: 'N',
-      usefrequency: 'S',
-      frequnit: 'MESES',
-      meterfrequency2: 0.00,
-      lastmeterreading2: 0.00,
-      
-      // Configuración de Días de la semana (C o F) mapeados uno a uno
-      pmjp1: this.form.lunes || 'F',
-      pmjp2: this.form.martes || 'F',
-      pmjp3: this.form.miercoles || 'F',
-      pmjp4: this.form.jueves || 'F',
-      pmjp5: this.form.viernes || 'F',
-      pmjp6: this.form.sabado || 'F',
-      pmjp7: this.form.domingo || 'F',
-      
-      // Personal y Aprobaciones
-      pm12: parseInt(this.form.cantidadPasajeros, 10) || 1,
-      pm13: this.form.aprobador ? this.form.aprobador.substring(0, 50) : 'SIN APROBADOR',
-      pm14: this.form.gerencia ? this.form.gerencia.substring(0, 50) : 'MANTENIMIENTO',
-      pm16: this.form.cedulaSolicitante ? this.form.cedulaSolicitante.substring(0, 20) : '0',
-      pmjp8: 'SR512085', // Código estático de ruta o servicio interno
-      
-      wostatus: 'PENDPROG',
-      overridemasterupd: 'N',
-      ismasterpm: 'N',
-      applymasterpmtoeq: 'S',
-      applymasterpmtoloc: 'S',
-      updtimebasedfreq: 'S',
-      updstartdate: 'S',
-      updmeter1: 'S',
-      updmeter2: 'S',
-      updjpsequence: 'S',
-      updextdate: 'S',
-      updseasonaldates: 'S'
-    };
-
-    // Si tu controlador maneja el autoincremento en base de datos de manera manual (como vimos antes)
-    // omitimos agregar 'pmnum' aquí. De lo contrario, puedes pasarlo:
-    // payloadMapeado.pmnum = "ALGO_UNICO";
-
-    // Enviamos el objeto parseado directo al servicio de Axios / Fetch
-    await postPm(payloadMapeado);
-    
-    alert('Solicitud enviada exitosamente');
-    this.resetForm();
-  } catch (error) {
-    alert('Error al enviar solicitud: ' + (error.response?.data?.message || error.message));
-  } finally {
-    this.loading = false;
-  }
-},
-
-//cambio de funcion enviar arriba
-//funcion residuo abajo  
-  // this.loading = true;
-  //     try {
-  //       const payload = { ...this.form, nivelAprobacion: this.nivelAprobacionInfo.codigo };
-  //       await postSolicitud(payload);
-  //       alert('Solicitud enviada exitosamente');
-  //       this.resetForm();
-  //     } catch (error) {
-  //       alert('Error al enviar solicitud: ' + (error.response?.data?.statusText || error.message));
-  //     } finally {
-  //       this.loading = false;
-  //     }
-  //   },
+      this.loading = true;
+      try {
+        const payload = { ...this.form, nivelAprobacion: this.nivelAprobacionInfo.codigo };
+        await postSolicitud(payload);
+        alert('Solicitud enviada exitosamente');
+        this.resetForm();
+      } catch (error) {
+        alert('Error al enviar solicitud: ' + (error.response?.data?.statusText || error.message));
+      } finally {
+        this.loading = false;
+      }
+    },
 
     resetForm() {
       const { solicitante, cedulaSolicitante, subtipo, gerencia, correo } = this.form;

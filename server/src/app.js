@@ -10,7 +10,10 @@ server.name = 'SOAL-API';
 /**
  * MIDDLEWARES
  */
-
+const util = require('util');
+if (!util.isDate) {
+    util.isDate = (obj) => Object.prototype.toString.call(obj) === '[object Date]';
+}
 // Permite peticiones desde el frontend configurado para evitar error CORS con withCredentials
 server.use(cors({
   origin: 'http://localhost:5173',

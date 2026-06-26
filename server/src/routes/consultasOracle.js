@@ -10,6 +10,7 @@ const companies = require('../controllers/oracle/companies');
 const chartofaccounts = require('../controllers/oracle/chartofaccounts');
 const item = require('../controllers/oracle/item');
 const pm = require('../controllers/oracle/pm')
+const pmx = require('../controllers/oracle/pmx');
 
 
 // public endpoints
@@ -28,6 +29,9 @@ router.get('/item', item.getBasicItems)
 
 router.get('/pm', pm.getPms)
 router.post('/pm', pm.createPm)
+
+router.get('/pmx', pmx.getPmx);
+router.post('/pmx', pmx.createPmx)
 
 
 module.exports = router;  

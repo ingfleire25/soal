@@ -1,6 +1,6 @@
 const { DataTypes } = require('sequelize');
 
-module.exports = (sequelize) => {
+module.exports = (sequelize) => { 
   return sequelize.define('Item', {
     rowstamp: {
       type: DataTypes.STRING(40),

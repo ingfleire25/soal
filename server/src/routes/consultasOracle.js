@@ -11,6 +11,7 @@ const chartofaccounts = require('../controllers/oracle/chartofaccounts');
 const item = require('../controllers/oracle/item');
 const pm = require('../controllers/oracle/pm')
 const pmx = require('../controllers/oracle/pmx');
+const equipment = require('../controllers/oracle/equipment')
 
 
 // public endpoints
@@ -32,6 +33,8 @@ router.post('/pm', pm.createPm)
 
 router.get('/pmx', pmx.getPmx);
 router.post('/pmx', pmx.createPmx)
+
+router.get('/equipment', equipment.getBasicEquipment)
 
 
 module.exports = router;  

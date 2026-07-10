@@ -12,6 +12,7 @@ const item = require('../controllers/oracle/item');
 const pm = require('../controllers/oracle/pm')
 const pmx = require('../controllers/oracle/pmx');
 const equipment = require('../controllers/oracle/equipment')
+const wostatus = require('../controllers/oracle/wostatus')
 
 
 // public endpoints
@@ -21,7 +22,7 @@ router.get('/locations', locations.getAll);
 router.get('/companies', companies.getCompaniesSimple);
 router.post('/valuelist/listname', valuelist.getValueListBySubtype); // Aquí pasas SUBTYPETP, SUBTYPESL, etc.
 router.get('/labor/active', labor.getActiveLabor);
-router.get('/labor/filtered', labor.getFilteredLabor);
+router.get('/labor/filtered', labor.getFilteredLabor); 
 
 router.get('/osel', osel.getOselData);
 router.post('/osel', osel.createOsel);
@@ -35,6 +36,8 @@ router.get('/pmx', pmx.getPmx);
 router.post('/pmx', pmx.createPmx)
 
 router.get('/equipment', equipment.getBasicEquipment)
+
+router.put('/wostatus/:wonum', wostatus.updateWoStatus)
 
 
 module.exports = router;  

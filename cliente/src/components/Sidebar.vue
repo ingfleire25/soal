@@ -129,6 +129,16 @@
           </div>
         </a>
       </li>
+      <!-- LI para Historico -->
+      <li class="sidebar-item">
+        <a href="#" class="sidebar-link d-flex align-items-center justify-content-between px-3" 
+           @click.prevent="navigateTo('historico')">
+          <div class="d-flex align-items-center">
+            <i class="material-icons">history</i>
+            <span v-if="isExpanded" class="link-text ms-2">Histórico</span>
+          </div>
+        </a>
+      </li>
       <!-- LI para Evaluacion -->
       <li v-if="canUseEvaluacion" class="sidebar-item">
         <a href="#" class="sidebar-link d-flex align-items-center justify-content-between px-3" 
@@ -255,6 +265,8 @@ function navigateTo(name, mode = 'crear') {
     }
   } else if (name === 'ver-todas') {
     router.push({ name: 'tabla' });
+  } else if (name === 'historico') {
+    router.push({ name: 'historico' });
   } else if (name === 'administracion') {
     router.push({ name: 'administracion' });
   } else if (name === 'crearViejo') {

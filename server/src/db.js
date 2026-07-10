@@ -39,6 +39,10 @@ const sequelizeOracle = new Sequelize(ORA_SERVICE_NAME, ORA_USER, ORA_PASSWORD, 
     host: ORA_HOST,
     port: ORA_PORT, 
     dialect: 'oracle',
+    /* MODIFICACIÓN: Se añade timezone '-04:00' para sincronizar la hora local de Venezuela 
+       con Sequelize y evitar el desfase automático hacia el formato UTC estándar (Z).
+    */
+    timezone: '-04:00',
     logging: false,
     dialectOptions: {
         connectString: `(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=${ORA_HOST})(PORT=${ORA_PORT}))(CONNECT_DATA=(SERVICE_NAME=${ORA_SERVICE_NAME})))`

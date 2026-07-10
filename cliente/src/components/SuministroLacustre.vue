@@ -3,33 +3,46 @@
   <div class="container bg-white p-4 shadow-sm rounded">
     <form @submit.prevent="enviar">
       <fieldset class="border p-3 mb-4 rounded">
-        <legend class="w-auto px-2 fs-5 text-primary">Detalles de la Solicitud</legend>
+        <legend class="w-auto px-2 fs-5 text-primary">
+          Detalles de la Solicitud
+        </legend>
         <div class="row g-3">
-            <div class="col-md-12">
+          <div class="col-md-12">
             <label class="form-label">Descripción</label>
-            <textarea v-model="form.descripcion" class="form-control form-control-sm" rows="2" required></textarea>
+            <textarea
+              v-model="form.descripcion"
+              class="form-control form-control-sm"
+              rows="2"
+              required
+            ></textarea>
           </div>
           <div></div>
           <div class="col-md-6">
             <label class="form-label">Origen</label>
             <div class="position-relative">
-              <input 
-                v-model="searchOrigen" 
-                type="text" 
-                class="form-control form-control-sm" 
-                placeholder="Buscar ubicación..." 
+              <input
+                v-model="searchOrigen"
+                type="text"
+                class="form-control form-control-sm"
+                placeholder="Buscar ubicación..."
                 required
-                @input="mostrarDropdownOrigen = true" 
+                @input="mostrarDropdownOrigen = true"
+              />
+              <div
+                v-if="
+                  mostrarDropdownOrigen && ubicacionesFiltradasOrigen.length > 0
+                "
+                class="dropdown-menu show w-100"
+                style="max-height: 200px; overflow-y: auto"
               >
-              <div v-if="mostrarDropdownOrigen && ubicacionesFiltradasOrigen.length > 0" class="dropdown-menu show w-100" style="max-height: 200px; overflow-y: auto;">
-                <button 
-                  v-for="(loc, index) in ubicacionesFiltradasOrigen" 
+                <button
+                  v-for="(loc, index) in ubicacionesFiltradasOrigen"
                   :key="index"
                   type="button"
                   class="dropdown-item"
                   @click="seleccionarOrigen(loc)"
                 >
-                  <strong>{{ loc.LOCATION }}-</strong><br>
+                  <strong>{{ loc.LOCATION }}-</strong><br />
                   <small>{{ loc.DESCRIPTION }}</small>
                 </button>
               </div>
@@ -37,28 +50,41 @@
           </div>
           <div class="col-md-6">
             <label class="form-label">Descripción Origen</label>
-            <textarea v-model="form.descripcionOrigen" class="form-control form-control-sm" rows="2" readonly></textarea>
+            <textarea
+              v-model="form.descripcionOrigen"
+              class="form-control form-control-sm"
+              rows="2"
+              readonly
+            ></textarea>
           </div>
           <div class="col-md-6">
             <label class="form-label">Destino</label>
             <div class="position-relative">
-              <input 
-                v-model="searchDestino" 
-                type="text" 
-                class="form-control form-control-sm" 
-                placeholder="Buscar ubicación..." 
+              <input
+                v-model="searchDestino"
+                type="text"
+                class="form-control form-control-sm"
+                placeholder="Buscar ubicación..."
                 required
                 @input="mostrarDropdownDestino = true"
+              />
+              <div
+                v-if="
+                  mostrarDropdownDestino &&
+                  ubicacionesFiltradasDestino.length > 0
+                "
+                class="dropdown-menu show w-100"
+                style="max-height: 200px; overflow-y: auto"
               >
-              <div v-if="mostrarDropdownDestino && ubicacionesFiltradasDestino.length > 0" class="dropdown-menu show w-100" style="max-height: 200px; overflow-y: auto;">
-                <button 
-                  v-for="(loc, index) in ubicacionesFiltradasDestino" 
+                <button
+                  v-for="(loc, index) in ubicacionesFiltradasDestino"
                   :key="index"
                   type="button"
                   class="dropdown-item"
                   @click="seleccionarDestino(loc)"
                 >
-                  <strong>{{ loc.LOCATION }}</strong><br>
+                  <strong>{{ loc.LOCATION }}</strong
+                  ><br />
                   <small>{{ loc.DESCRIPTION }}</small>
                 </button>
               </div>
@@ -66,37 +92,56 @@
           </div>
           <div class="col-md-6">
             <label class="form-label">Descripción Destino</label>
-            <textarea v-model="form.descripcionDestino" class="form-control form-control-sm" rows="2" readonly></textarea>
+            <textarea
+              v-model="form.descripcionDestino"
+              class="form-control form-control-sm"
+              rows="2"
+              readonly
+            ></textarea>
           </div>
           <div class="col-md-6">
             <label class="form-label">Fecha Requerida de Inicio</label>
-            <input v-model="form.fechaInicio" type="datetime-local" class="form-control form-control-sm" required>
+            <input
+              v-model="form.fechaInicio"
+              type="datetime-local"
+              class="form-control form-control-sm"
+              required
+            />
           </div>
           <div class="col-md-6">
             <label class="form-label">Fecha Requerida de Finalización</label>
-            <input v-model="form.fechaFin" type="datetime-local" class="form-control form-control-sm" required>
+            <input
+              v-model="form.fechaFin"
+              type="datetime-local"
+              class="form-control form-control-sm"
+              required
+            />
           </div>
           <div class="col-md-6">
-
             <label class="form-label">Organización</label>
             <div class="position-relative">
-              <input 
-                v-model="searchOrganizacion" 
-                type="text" 
-                class="form-control form-control-sm" 
-                placeholder="Buscar empresa..." 
+              <input
+                v-model="searchOrganizacion"
+                type="text"
+                class="form-control form-control-sm"
+                placeholder="Buscar empresa..."
                 required
                 @input="mostrarDropdownEmpresa = true"
+              />
+              <div
+                v-if="mostrarDropdownEmpresa && companiesFiltradas.length > 0"
+                class="dropdown-menu show w-100"
+                style="max-height: 200px; overflow-y: auto"
               >
-              <div v-if="mostrarDropdownEmpresa && companiesFiltradas.length > 0" class="dropdown-menu show w-100" style="max-height: 200px; overflow-y: auto;">
-                <button 
-                  v-for="(company, index) in companiesFiltradas" 
+                <button
+                  v-for="(company, index) in companiesFiltradas"
                   :key="index"
                   type="button"
                   class="dropdown-item"
                   @click="seleccionarEmpresa(company)"
                 >
-                  <strong>{{ company.name }}</strong><br>
+                  <strong>{{ company.name }}</strong
+                  ><br />
                   <small>{{ company.company }}</small>
                 </button>
               </div>
@@ -104,7 +149,12 @@
           </div>
           <div class="col-md-6">
             <label class="form-label">Código Organización</label>
-            <input v-model="form.codigoOrganizacion" type="text" class="form-control form-control-sm" readonly>
+            <input
+              v-model="form.codigoOrganizacion"
+              type="text"
+              class="form-control form-control-sm"
+              readonly
+            />
           </div>
           <div class="col-md-6">
             <label class="form-label">Centro de costo CC/OI</label>
@@ -118,72 +168,155 @@
           <div class="col-md-6">
             <label class="form-label">Tipo de Servicio</label>
             <!-- <input v-model="form.tipoServicio" class="form-control form-control-sm" rows="2" required></input> -->
-            <select v-model="form.tipoServicio" class="form-control form-control-sm" required>
+            <select
+              v-model="form.tipoServicio"
+              class="form-control form-control-sm"
+              required
+            >
               <option value="">Seleccione un tipo de servicio</option>
-              <option v-for="type in serviceTypes" :key="type.valdesc" :value="type.valdesc">
+              <option
+                v-for="type in serviceTypes"
+                :key="type.valdesc"
+                :value="type.valdesc"
+              >
                 {{ type.valdesc }}
               </option>
             </select>
           </div>
           <div class="col-md-6">
             <label class="form-label">Persona que Envía</label>
-            <input v-model="form.personaEnvia" type="text" class="form-control form-control-sm" required>
+            <input
+              v-model="form.personaEnvia"
+              type="text"
+              class="form-control form-control-sm"
+              required
+            />
           </div>
           <div class="col-md-6">
             <label class="form-label">Descripción Persona que Envía</label>
-            <input v-model="form.descripcionPersonaEnvia" type="text" class="form-control form-control-sm" required>
+            <input
+              v-model="form.descripcionPersonaEnvia"
+              type="text"
+              class="form-control form-control-sm"
+              required
+            />
           </div>
           <div class="col-md-6">
             <label class="form-label">Persona que Recibe</label>
-            <input v-model="form.personaRecibe" type="text" class="form-control form-control-sm" required>
+            <input
+              v-model="form.personaRecibe"
+              type="text"
+              class="form-control form-control-sm"
+              required
+            />
           </div>
           <div class="col-md-6">
             <label class="form-label">Descripción Persona que Recibe</label>
-            <input v-model="form.descripcionPersonaRecibe" type="text" class="form-control form-control-sm" required>
+            <input
+              v-model="form.descripcionPersonaRecibe"
+              type="text"
+              class="form-control form-control-sm"
+              required
+            />
           </div>
           <div class="col-md-6">
             <label class="form-label">Aprobador</label>
-            <select v-model="form.aprobador" class="form-select form-select-sm" :disabled="!nivelAprobacionInfo.codigo || loadingAprobadores" required>
+            <select
+              v-model="form.aprobador"
+              class="form-select form-select-sm"
+              :disabled="!nivelAprobacionInfo.codigo || loadingAprobadores"
+              required
+            >
               <option value="" disabled hidden>Seleccione un aprobador</option>
-              <option v-for="approver in aprobadoresDisponibles" :key="approver.pagepin" :value="approver.name">
+              <option
+                v-for="approver in aprobadoresDisponibles"
+                :key="approver.pagepin"
+                :value="approver.name"
+              >
                 {{ approver.name }} (Nivel {{ approver.la13 }})
               </option>
             </select>
-            <div class="form-text text-muted" v-if="loadingAprobadores">Cargando aprobadores...</div>
-            <div class="form-text text-danger" v-else-if="nivelAprobacionInfo.codigo && aprobadoresDisponibles.length === 0">
-              No hay aprobadores disponibles para el nivel {{ nivelAprobacionInfo.codigo }}.
+            <div class="form-text text-muted" v-if="loadingAprobadores">
+              Cargando aprobadores...
+            </div>
+            <div
+              class="form-text text-danger"
+              v-else-if="
+                nivelAprobacionInfo.codigo &&
+                aprobadoresDisponibles.length === 0
+              "
+            >
+              No hay aprobadores disponibles para el nivel
+              {{ nivelAprobacionInfo.codigo }}.
             </div>
           </div>
           <div class="col-md-6">
             <label class="form-label">Correo</label>
-            <input v-model="form.correo" type="email" class="form-control form-control-sm bg-light" readonly required>
+            <input
+              v-model="form.correo"
+              type="email"
+              class="form-control form-control-sm bg-light"
+              readonly
+              required
+            />
           </div>
           <div class="col-md-6">
             <label class="form-label">Gerencia</label>
-            <input v-model="form.gerencia" type="text" class="form-control form-control-sm bg-light" readonly>
+            <input
+              v-model="form.gerencia"
+              type="text"
+              class="form-control form-control-sm bg-light"
+              readonly
+            />
           </div>
           <div class="col-md-6">
             <label class="form-label">Solicitante</label>
-            <input v-model="form.solicitante" type="text" class="form-control form-control-sm" readonly>
+            <input
+              v-model="form.solicitante"
+              type="text"
+              class="form-control form-control-sm"
+              readonly
+            />
           </div>
           <div class="col-md-6">
             <label class="form-label">Cédula Solicitante</label>
-            <input v-model="form.cedulaSolicitante" type="text" class="form-control form-control-sm" readonly>
+            <input
+              v-model="form.cedulaSolicitante"
+              type="text"
+              class="form-control form-control-sm"
+              readonly
+            />
           </div>
           <div class="col-md-6">
             <label class="form-label">Fecha</label>
-            <input v-model="form.fecha" type="datetime-local" class="form-control form-control-sm" readonly>
+            <input
+              v-model="form.fecha"
+              type="datetime-local"
+              class="form-control form-control-sm"
+              readonly
+            />
           </div>
           <div class="col-md-6">
             <label class="form-label">Nivel de Aprobación</label>
-            <input :value="nivelAprobacionTexto" type="text" class="form-control form-control-sm bg-light" readonly>
+            <input
+              :value="nivelAprobacionTexto"
+              type="text"
+              class="form-control form-control-sm bg-light"
+              readonly
+            />
           </div>
         </div>
       </fieldset>
 
       <fieldset class="border p-3 mb-4 rounded">
-        <legend class="w-auto px-2 fs-5 text-primary">Materiales a Transportar</legend>
-        <div v-for="(mat, index) in form.materiales" :key="index" class="border p-3 mb-3 rounded">
+        <legend class="w-auto px-2 fs-5 text-primary">
+          Materiales a Transportar
+        </legend>
+        <div
+          v-for="(mat, index) in form.materiales"
+          :key="index"
+          class="border p-3 mb-3 rounded"
+        >
           <div class="row g-3">
             <div class="col-md-6">
               <label class="form-label">Material</label>
@@ -197,7 +330,11 @@
                   autocomplete="off"
                   required
                 />
-                <div v-if="mat.searchResults && mat.searchResults.length > 0" class="dropdown-menu show w-100" style="max-height: 220px; overflow-y: auto; z-index: 1000;">
+                <div
+                  v-if="mat.searchResults && mat.searchResults.length > 0"
+                  class="dropdown-menu show w-100"
+                  style="max-height: 220px; overflow-y: auto; z-index: 1000"
+                >
                   <button
                     v-for="item in mat.searchResults"
                     :key="item.itemnum"
@@ -205,11 +342,16 @@
                     class="dropdown-item"
                     @click="seleccionarMaterial(index, item)"
                   >
-                    <strong>{{ item.itemnum + " "}}</strong> - {{ item.description + " " }} - <strong class="text-muted">{{  item.stocktype }}</strong>
+                    <strong>{{ item.itemnum + " " }}</strong> -
+                    {{ item.description + " " }} -
+                    <strong class="text-muted">{{ item.stocktype }}</strong>
                   </button>
                 </div>
               </div>
-              <div class="form-text text-muted" v-if="mat.searchQuery && !mat.materialId">
+              <div
+                class="form-text text-muted"
+                v-if="mat.searchQuery && !mat.materialId"
+              >
                 Escribe al menos 2 caracteres para buscar.
               </div>
               <!-- <div class="form-text" v-if="mat.materialId">
@@ -224,7 +366,12 @@
             </div>
             <div class="col-md-3">
               <label class="form-label">Cantidad</label>
-              <input v-model.number="mat.cantidad" type="number" class="form-control form-control-sm" required>
+              <input
+                v-model.number="mat.cantidad"
+                type="number"
+                class="form-control form-control-sm"
+                required
+              />
             </div>
             <div class="col-md-3">
               <label class="form-label">Fecha Entrega en Muelle</label>
@@ -247,87 +394,109 @@
             </div>
             <div class="col-md-11">
               <label class="form-label">Observación</label>
-              <textarea v-model="mat.observacion" class="form-control form-control-sm" rows="2"></textarea>
+              <textarea
+                v-model="mat.observacion"
+                class="form-control form-control-sm"
+                rows="2"
+              ></textarea>
             </div>
             <div class="col-md-1 d-flex align-items-end">
-              <button type="button" class="btn btn-sm btn-outline-danger" @click="removeMaterial(index)">X</button>
+              <button
+                type="button"
+                class="btn btn-sm btn-outline-danger"
+                @click="removeMaterial(index)"
+              >
+                X
+              </button>
             </div>
           </div>
         </div>
-        <button type="button" class="btn btn-sm btn-outline-primary" @click="addMaterial">Agregar Material</button>
+        <button
+          type="button"
+          class="btn btn-sm btn-outline-primary"
+          @click="addMaterial"
+        >
+          Agregar Material
+        </button>
       </fieldset>
 
       <div class="d-flex justify-content-end">
-        <button type="submit" class="btn btn-primary" :disabled="loading || loadingLocations">
-          <span v-if="loading" class="spinner-border spinner-border-sm me-2"></span>
+        <button
+          type="submit"
+          class="btn btn-primary"
+          :disabled="loading || loadingLocations"
+        >
+          <span
+            v-if="loading"
+            class="spinner-border spinner-border-sm me-2"
+          ></span>
           Enviar Solicitud
         </button>
       </div>
     </form>
   </div>
-
-
 </template>
 
 <script>
-import { postSuministroLacustre } from '@/services/postSuministroLacustre';
+import { postSuministroLacustre } from "@/services/postSuministroLacustre";
 // import { getMateriales } from '@/services/getMateriales';
-import { getBasicItems } from '@/services/getBasicItems';
-import { useAuthStore } from '@/stores/auth';
-import { getLocations } from '@/services/getLocations';
-import { getServiceTypes } from '@/services/getServiceTypes';
-import { getCompanies } from '@/services/getCompanies';
-import { getAprobadoresLabor } from '@/services/getAprobadoresLabor';
-import CentroCostoAutocomplete from '@/components/CentroCostoAutocomplete.vue';
-import { toDatetimeLocal, getNivelAprobacion } from '@/utils/dateTime';
+import { getBasicItems } from "@/services/getBasicItems";
+import { useAuthStore } from "@/stores/auth";
+import { getLocations } from "@/services/getLocations";
+import { getServiceTypes } from "@/services/getServiceTypes";
+import { getCompanies } from "@/services/getCompanies";
+import { getAprobadoresLabor } from "@/services/getAprobadoresLabor";
+import CentroCostoAutocomplete from "@/components/CentroCostoAutocomplete.vue";
+import { toDatetimeLocal, getNivelAprobacion } from "@/utils/dateTime";
+import { notifySuccess, notifyError } from "@/utils/alertService";
 
 export default {
-  name: 'SuministroLacustre',
+  name: "SuministroLacustre",
   components: {
-    CentroCostoAutocomplete
+    CentroCostoAutocomplete,
   },
   data() {
     return {
       form: {
-        descripcion: '',
-        origen: '',
-        descripcionOrigen: '',
-        destino: '',
-        descripcionDestino: '',
-        fechaInicio: '',
-        fechaFin: '',
-        organizacionCcOi: '',
-        organizacion: '',
-        codigoOrganizacion: '',
-        tipoServicio: '',
-        personaEnvia: '',
-        descripcionPersonaEnvia: '',
-        personaRecibe: '',
-        descripcionPersonaRecibe: '',
-        aprobador: '',
-        correo: '',
-        gerencia: '',
-        solicitante: '',
-        cedulaSolicitante: '',
-        fecha: '',
-        tipoSolicitud: 'Suministro Lacustre',
-        subtipo: 'Ocasional',
-        materiales: []
+        descripcion: "",
+        origen: "",
+        descripcionOrigen: "",
+        destino: "",
+        descripcionDestino: "",
+        fechaInicio: "",
+        fechaFin: "",
+        organizacionCcOi: "",
+        organizacion: "",
+        codigoOrganizacion: "",
+        tipoServicio: "",
+        personaEnvia: "",
+        descripcionPersonaEnvia: "",
+        personaRecibe: "",
+        descripcionPersonaRecibe: "",
+        aprobador: "",
+        correo: "",
+        gerencia: "",
+        solicitante: "",
+        cedulaSolicitante: "",
+        fecha: "",
+        tipoSolicitud: "Suministro Lacustre",
+        subtipo: "Ocasional",
+        materiales: [],
       },
       materiales: [],
       loading: false,
-      
+
       // Lógica de ubicaciones
       locations: [],
       loadingLocations: false,
-      searchOrigen: '',
-      searchDestino: '',
-      
+      searchOrigen: "",
+      searchDestino: "",
+
       // Tipos de servicio
       serviceTypes: [],
       companies: [],
       loadingCompanies: false,
-      searchOrganizacion: '',
+      searchOrganizacion: "",
       aprobadoresDisponibles: [],
       loadingAprobadores: false,
       // Timers para debounce en búsqueda de materiales
@@ -335,7 +504,7 @@ export default {
 
       mostrarDropdownOrigen: false,
       mostrarDropdownDestino: false,
-      mostrarDropdownEmpresa: false
+      mostrarDropdownEmpresa: false,
     };
   },
   mounted() {
@@ -343,14 +512,14 @@ export default {
       this.form.subtipo = this.$route.query.subtipo;
     }
     // this.form.fecha = new Date().toISOString().split('T')[0];
-    this.form.fecha = toDatetimeLocal()
+    this.form.fecha = toDatetimeLocal();
     const authStore = useAuthStore();
     const user = authStore.user?.value;
     if (user) {
       this.form.solicitante = `${user.nombres} ${user.apellidos}`;
       this.form.cedulaSolicitante = user.cedula;
-      this.form.correo = user.correo || user.email || user.username || '';
-      this.form.gerencia = user.gerencia || '';
+      this.form.correo = user.correo || user.email || user.username || "";
+      this.form.gerencia = user.gerencia || "";
     }
     // this.loadMateriales();
     this.cargarUbicaciones();
@@ -365,9 +534,10 @@ export default {
       const term = this.searchOrganizacion.trim().toLowerCase();
       if (term.length < 2) return [];
       return this.companies
-        .filter(company =>
-          (company.name || '').toLowerCase().includes(term) ||
-          (company.company || '').toLowerCase().includes(term)
+        .filter(
+          (company) =>
+            (company.name || "").toLowerCase().includes(term) ||
+            (company.company || "").toLowerCase().includes(term),
         )
         .slice(0, 50);
     },
@@ -375,9 +545,10 @@ export default {
       const term = this.searchOrigen.trim().toLowerCase();
       if (term.length < 2) return [];
       return this.locations
-        .filter(loc => 
-          loc.LOCATION.toLowerCase().includes(term) || 
-          loc.DESCRIPTION.toLowerCase().includes(term)
+        .filter(
+          (loc) =>
+            loc.LOCATION.toLowerCase().includes(term) ||
+            loc.DESCRIPTION.toLowerCase().includes(term),
         )
         .slice(0, 50);
     },
@@ -385,9 +556,10 @@ export default {
       const term = this.searchDestino.trim().toLowerCase();
       if (term.length < 2) return [];
       return this.locations
-        .filter(loc => 
-          loc.LOCATION.toLowerCase().includes(term) || 
-          loc.DESCRIPTION.toLowerCase().includes(term)
+        .filter(
+          (loc) =>
+            loc.LOCATION.toLowerCase().includes(term) ||
+            loc.DESCRIPTION.toLowerCase().includes(term),
         )
         .slice(0, 50);
     },
@@ -396,15 +568,15 @@ export default {
     },
     nivelAprobacionTexto() {
       return this.nivelAprobacionInfo.texto;
-    }
+    },
   },
   watch: {
-    'form.fechaInicio': {
+    "form.fechaInicio": {
       immediate: true,
       handler() {
         this.cargarAprobadores();
-      }
-    }
+      },
+    },
   },
   methods: {
     /*
@@ -428,7 +600,7 @@ export default {
     },
     async cargarServiceTypes() {
       try {
-        this.serviceTypes = await getServiceTypes('SUBTYPESL');
+        this.serviceTypes = await getServiceTypes("SUBTYPESL");
       } catch (error) {
         console.error("Error cargando tipos de servicio", error);
       }
@@ -438,16 +610,16 @@ export default {
       try {
         this.companies = await getCompanies();
       } catch (error) {
-        console.error('Error cargando compañías:', error);
+        console.error("Error cargando compañías:", error);
       } finally {
         this.loadingCompanies = false;
       }
     },
     seleccionarEmpresa(company) {
-      this.form.organizacion = company.name || '';
-      this.form.codigoOrganizacion = company.company || '';
-      this.form.organizacionCcOi = '';
-      this.searchOrganizacion = company.name || '';
+      this.form.organizacion = company.name || "";
+      this.form.codigoOrganizacion = company.company || "";
+      this.form.organizacionCcOi = "";
+      this.searchOrganizacion = company.name || "";
       this.mostrarDropdownEmpresa = false;
     },
     seleccionarOrigen(loc) {
@@ -465,7 +637,7 @@ export default {
     buscarMaterial(index) {
       const material = this.form.materiales[index];
       if (!material) return;
-      const query = (material.searchQuery || '').trim();
+      const query = (material.searchQuery || "").trim();
 
       // debounce por índice
       if (this.searchTimers[index]) {
@@ -473,9 +645,9 @@ export default {
       }
 
       this.searchTimers[index] = setTimeout(async () => {
-        material.materialId = '';
-        material.renglon = '';
-        material.descripcion = '';
+        material.materialId = "";
+        material.renglon = "";
+        material.descripcion = "";
         material.searchResults = [];
 
         if (query.length < 2) {
@@ -486,9 +658,11 @@ export default {
         material.searching = true;
         try {
           const results = await getBasicItems(query);
-          material.searchResults = Array.isArray(results) ? results.slice(0, 50) : [];
+          material.searchResults = Array.isArray(results)
+            ? results.slice(0, 50)
+            : [];
         } catch (error) {
-          console.error('Error buscando materiales:', error);
+          console.error("Error buscando materiales:", error);
           material.searchResults = [];
         } finally {
           material.searching = false;
@@ -505,24 +679,26 @@ export default {
     },
     handleDateFieldDblClick(event) {
       const input = event.target;
-      if (input && typeof input.select === 'function') {
+      if (input && typeof input.select === "function") {
         input.select();
       }
       setTimeout(() => {
-        if (input && typeof input.blur === 'function') {
+        if (input && typeof input.blur === "function") {
           input.blur();
         }
       }, 0);
     },
     confirmDateSelection(event) {
-      const wrapper = event.currentTarget.closest('.date-time-field-wrapper');
-      const input = wrapper ? wrapper.querySelector('input[type="datetime-local"]') : null;
+      const wrapper = event.currentTarget.closest(".date-time-field-wrapper");
+      const input = wrapper
+        ? wrapper.querySelector('input[type="datetime-local"]')
+        : null;
       if (input) {
-        if (typeof input.select === 'function') {
+        if (typeof input.select === "function") {
           input.select();
         }
         setTimeout(() => {
-          if (typeof input.blur === 'function') {
+          if (typeof input.blur === "function") {
             input.blur();
           }
         }, 0);
@@ -530,15 +706,15 @@ export default {
     },
     addMaterial() {
       this.form.materiales.push({
-        materialId: '',
-        renglon: '',
-        descripcion: '',
+        materialId: "",
+        renglon: "",
+        descripcion: "",
         cantidad: 1,
-        fechaEntregaMuelle: '',
-        observacion: '',
-        searchQuery: '',
+        fechaEntregaMuelle: "",
+        observacion: "",
+        searchQuery: "",
         searchResults: [],
-        searching: false
+        searching: false,
       });
     },
     removeMaterial(index) {
@@ -546,7 +722,7 @@ export default {
     },
     selectMaterial(index) {
       const mat = this.form.materiales[index];
-      const selected = this.materiales.find(m => m.id === mat.materialId);
+      const selected = this.materiales.find((m) => m.id === mat.materialId);
       if (selected) {
         mat.renglon = selected.renglon;
         mat.descripcion = selected.descripcion;
@@ -554,29 +730,32 @@ export default {
     },
     async enviar() {
       if (this.form.materiales.length === 0) {
-        alert('Debe agregar al menos un material');
+        notifyError("Debe agregar al menos un material");
         return;
       }
       if (!this.form.codigoOrganizacion.trim()) {
-        alert('Debe seleccionar una organización');
+        notifyError("Debe seleccionar una organización");
         return;
       }
       this.loading = true;
       try {
-        const dataToSend = { ...this.form, nivelAprobacion: this.nivelAprobacionInfo.codigo };
-        // Map materiales to include renglon and descripcion
-        dataToSend.materiales = dataToSend.materiales.map(m => ({
+        const dataToSend = {
+          ...this.form,
+          nivelAprobacion: this.nivelAprobacionInfo.codigo,
+        };
+        // Map materiales to include renglon y descripcion
+        dataToSend.materiales = dataToSend.materiales.map((m) => ({
           renglon: m.renglon,
           descripcion: m.descripcion,
           cantidad: m.cantidad,
           fechaEntregaMuelle: m.fechaEntregaMuelle,
-          observacion: m.observacion
+          observacion: m.observacion,
         }));
         await postSuministroLacustre(dataToSend);
-        alert('Solicitud enviada exitosamente');
+        notifySuccess("Solicitud enviada exitosamente");
         this.resetForm();
       } catch (error) {
-        alert('Error al enviar solicitud: ' + error.statusText);
+        notifyError("Error al enviar solicitud: " + error.statusText);
       } finally {
         this.loading = false;
       }
@@ -585,7 +764,7 @@ export default {
       const nivel = this.nivelAprobacionInfo.codigo;
       if (!nivel) {
         this.aprobadoresDisponibles = [];
-        this.form.aprobador = '';
+        this.form.aprobador = "";
         return;
       }
 
@@ -593,13 +772,17 @@ export default {
       try {
         const results = await getAprobadoresLabor(nivel);
         this.aprobadoresDisponibles = Array.isArray(results) ? results : [];
-        if (!this.aprobadoresDisponibles.some(a => a.name === this.form.aprobador)) {
-          this.form.aprobador = '';
+        if (
+          !this.aprobadoresDisponibles.some(
+            (a) => a.name === this.form.aprobador,
+          )
+        ) {
+          this.form.aprobador = "";
         }
       } catch (error) {
-        console.error('Error cargando aprobadores:', error);
+        console.error("Error cargando aprobadores:", error);
         this.aprobadoresDisponibles = [];
-        this.form.aprobador = '';
+        this.form.aprobador = "";
       } finally {
         this.loadingAprobadores = false;
       }
@@ -613,54 +796,60 @@ export default {
       const currentSubtipo = this.form.subtipo;
       const currentFecha = this.form.fecha;
       Object.assign(this.form, {
-        descripcion: '',
-        origen: '',
-        descripcionOrigen: '',
-        destino: '',
-        descripcionDestino: '',
-        fechaInicio: '',
-        fechaFin: '',
-        organizacionCcOi: '',
-        organizacion: '',
-        codigoOrganizacion: '',
-        tipoServicio: '',
-        personaEnvia: '',
-        descripcionPersonaEnvia: '',
-        personaRecibe: '',
-        descripcionPersonaRecibe: '',
-        aprobador: '',
+        descripcion: "",
+        origen: "",
+        descripcionOrigen: "",
+        destino: "",
+        descripcionDestino: "",
+        fechaInicio: "",
+        fechaFin: "",
+        organizacionCcOi: "",
+        organizacion: "",
+        codigoOrganizacion: "",
+        tipoServicio: "",
+        personaEnvia: "",
+        descripcionPersonaEnvia: "",
+        personaRecibe: "",
+        descripcionPersonaRecibe: "",
+        aprobador: "",
         correo: currentCorreo,
         gerencia: currentGerencia,
         solicitante: currentSolicitante,
         cedulaSolicitante: currentCedula,
         fecha: currentFecha,
-        tipoSolicitud: 'Suministro Lacustre',
+        tipoSolicitud: "Suministro Lacustre",
         subtipo: currentSubtipo,
-        materiales: []
+        materiales: [],
       });
-      this.searchOrigen = '';
-      this.searchDestino = '';
-      this.searchOrganizacion = '';
+      this.searchOrigen = "";
+      this.searchDestino = "";
+      this.searchOrganizacion = "";
 
       this.mostrarDropdownOrigen = false;
       this.mostrarDropdownDestino = false;
       this.mostrarDropdownEmpresa = false;
-    }
-  }
+    },
+  },
 };
 </script>
 
 <style scoped>
 .modal-overlay {
   position: fixed;
-  top: 0; left: 0; width: 100%; height: 100%;
-  background: rgba(0,0,0,0.5);
-  display: flex; justify-content: center; align-items: center;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
   z-index: 1050;
 }
 .modal-content {
   background: white;
-  width: 90%; max-width: 600px;
+  width: 90%;
+  max-width: 600px;
   max-height: 80vh;
   border-radius: 8px;
   overflow: hidden;

@@ -204,7 +204,7 @@ async function handleLogin() {
 }
 
 function handleForgotPassword() {
-  alert('Funcionalidad de recuperación de contraseña no implementada')
+  notifyInfo('Funcionalidad de recuperación de contraseña no implementada')
 }
 </script>
 

@@ -362,6 +362,7 @@ import { getModserv } from "@/services/getModserv";
 import { getAprobadoresLabor } from "@/services/getAprobadoresLabor";
 import CentroCostoAutocomplete from "@/components/CentroCostoAutocomplete.vue";
 import { getNivelAprobacion } from "@/utils/dateTime";
+import { notifySuccess, notifyError } from "@/utils/alertService";
 
 export default {
   name: "TransportePersonal",
@@ -609,7 +610,7 @@ export default {
 
     async enviar() {
       if (!this.form.codigoOrganizacion.trim()) {
-        alert("Debe seleccionar una organización");
+        notifyError("Debe seleccionar una organización");
         return;
       }
       this.loading = true;
@@ -619,10 +620,10 @@ export default {
           nivelAprobacion: this.nivelAprobacionInfo.codigo,
         };
         await postSolicitud(payload);
-        alert("Solicitud enviada exitosamente");
+        notifySuccess("Solicitud enviada exitosamente");
         this.resetForm();
       } catch (error) {
-        alert(
+        notifyError(
           "Error al enviar solicitud: " +
             (error.response?.data?.statusText || error.message),
         );

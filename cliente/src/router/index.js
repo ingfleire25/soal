@@ -1,116 +1,128 @@
 import { createRouter, createWebHistory } from "vue-router";
-import { useAuthStore } from '@/stores/auth';
+import { useAuthStore } from "@/stores/auth";
 
 // two simple views: create request and see list
-const Login = () => import('@/views/Login.vue');
-const Crear = () => import('@/views/CrearSolicitud.vue');
-const Tabla = () => import('@/views/Solicitudes.vue');
-const Dashboard = () => import('@/views/Dashboard.vue');
-const PlanDashboard = () => import('@/views/PlanDashboard.vue');
-const Administracion = () => import('@/views/Administracion.vue');
-const NoAutorizado = () => import('@/views/NoAutorizado.vue');
-const TransportePersonal = () => import('@/components/TransportePersonal.vue');
-const MovimientoUnidadesMayores = () => import('@/components/MovimientoUnidadesMayores.vue');
-const SuministroLacustre = () => import('@/components/SuministroLacustre.vue');
-const EvaluacionServicio = () => import('@/components/EvaluacionServicio.vue');
-const Estadisticas = () => import('@/views/Estadisticas.vue');
+const Login = () => import("@/views/Login.vue");
+const Crear = () => import("@/views/CrearSolicitud.vue");
+const Tabla = () => import("@/views/Solicitudes.vue");
+const Dashboard = () => import("@/views/Dashboard.vue");
+const PlanDashboard = () => import("@/views/PlanDashboard.vue");
+const Administracion = () => import("@/views/Administracion.vue");
+const Historico = () => import("@/views/Historico.vue");
+const NoAutorizado = () => import("@/views/NoAutorizado.vue");
+const TransportePersonal = () => import("@/components/TransportePersonal.vue");
+const MovimientoUnidadesMayores = () =>
+  import("@/components/MovimientoUnidadesMayores.vue");
+const SuministroLacustre = () => import("@/components/SuministroLacustre.vue");
+const EvaluacionServicio = () => import("@/components/EvaluacionServicio.vue");
+const Estadisticas = () => import("@/views/Estadisticas.vue");
 
 const routes = [
-  { path: '/', redirect: '/iniciar-sesion' },
-  { path: '/iniciar-sesion', name: 'login', component: Login },
+  { path: "/", redirect: "/iniciar-sesion" },
+  { path: "/iniciar-sesion", name: "login", component: Login },
   {
-    path: '/dashboard',
-    name: 'dashboard',
+    path: "/dashboard",
+    name: "dashboard",
     component: Dashboard,
-    meta: { roles: ['Solicitante', 'Aprobador', 'Administrador'] }
+    meta: { roles: ["Solicitante", "Aprobador", "Administrador"] },
   },
   {
-    path: '/crearViejo',
-    name: 'crearViejo',
+    path: "/crearViejo",
+    name: "crearViejo",
     component: Crear,
-    meta: { roles: ['Solicitante', 'Administrador'] }
+    meta: { roles: ["Solicitante", "Administrador"] },
   },
   {
-    path: '/solicitudes',
-    name: 'tabla',
+    path: "/solicitudes",
+    name: "tabla",
     component: Tabla,
-    meta: { roles: ['Solicitante', 'Aprobador', 'Administrador'] }
+    meta: { roles: ["Solicitante", "Aprobador", "Administrador"] },
   },
   {
-    path: '/administracion',
-    name: 'administracion',
+    path: "/administracion",
+    name: "administracion",
     component: Administracion,
-    meta: { roles: ['Administrador'] }
+    meta: { roles: ["Administrador"] },
   },
   {
-    path: '/plan',
-    name: 'plan',
+    path: "/plan",
+    name: "plan",
     component: PlanDashboard,
-    meta: { roles: ['Solicitante', 'Aprobador', 'Administrador'] }
+    meta: { roles: ["Solicitante", "Aprobador", "Administrador"] },
   },
   {
-    path: '/crear/transporte-personal',
-    name: 'transporte-personal',
+    path: "/historico",
+    name: "historico",
+    component: Historico,
+    meta: { roles: ["Solicitante", "Aprobador", "Administrador"] },
+  },
+  {
+    path: "/crear/transporte-personal",
+    name: "transporte-personal",
     component: TransportePersonal,
-    meta: { roles: ['Solicitante', 'Administrador'] }
+    meta: { roles: ["Solicitante", "Administrador"] },
   },
   {
-    path: '/crear/movimiento-unidades-mayores',
-    name: 'movimiento-unidades-mayores',
+    path: "/crear/movimiento-unidades-mayores",
+    name: "movimiento-unidades-mayores",
     component: MovimientoUnidadesMayores,
-    meta: { roles: ['Solicitante', 'Administrador'] }
+    meta: { roles: ["Solicitante", "Administrador"] },
   },
   {
-    path: '/crear/suministro-lacustre',
-    name: 'suministro-lacustre',
+    path: "/crear/suministro-lacustre",
+    name: "suministro-lacustre",
     component: SuministroLacustre,
-    meta: { roles: ['Solicitante', 'Administrador'] }
+    meta: { roles: ["Solicitante", "Administrador"] },
   },
   {
-    path: '/evaluacion',
-    name: 'evaluacion',
+    path: "/evaluacion",
+    name: "evaluacion",
     component: EvaluacionServicio,
-    meta: { roles: ['Solicitante', 'Aprobador', 'Administrador'] }
+    meta: { roles: ["Solicitante", "Aprobador", "Administrador"] },
   },
   {
-    path: '/estadisticas',
-    name: 'estadisticas',
+    path: "/estadisticas",
+    name: "estadisticas",
     component: Estadisticas,
-    meta: { roles: ['Aprobador', 'Administrador'] }
+    meta: { roles: ["Aprobador", "Administrador"] },
   },
   {
-    path: '/no-autorizado',
-    name: 'no-autorizado',
-    component: NoAutorizado
+    path: "/no-autorizado",
+    name: "no-autorizado",
+    component: NoAutorizado,
   },
   {
-    path: '/:catchAll(.*)',
-    redirect: '/dashboard'
-  }
+    path: "/:catchAll(.*)",
+    redirect: "/dashboard",
+  },
 ];
 
 const router = createRouter({
   history: createWebHistory(),
-  routes
+  routes,
 });
 
 router.beforeEach((to, from) => {
   const auth = useAuthStore();
 
-  if (to.name === 'login') {
+  if (to.name === "login") {
     if (auth.isAuthenticated.value) {
-      return { name: 'dashboard' };
+      return { name: "dashboard" };
     }
     return true;
   }
 
   if (!auth.isAuthenticated.value) {
-    return { name: 'login' };
+    return { name: "login" };
   }
 
   const requiredRoles = to.meta?.roles;
-  if (requiredRoles && requiredRoles.length > 0 && !auth.hasAnyRole(requiredRoles)) {
-    return { name: 'no-autorizado' };
+  if (
+    requiredRoles &&
+    requiredRoles.length > 0 &&
+    !auth.hasAnyRole(requiredRoles)
+  ) {
+    return { name: "no-autorizado" };
   }
 
   return true;

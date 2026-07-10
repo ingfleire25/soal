@@ -360,6 +360,7 @@ import { getAprobadoresLabor } from "@/services/getAprobadoresLabor";
 import { getEquipment } from "@/services/getEquipment";
 import CentroCostoAutocomplete from "@/components/CentroCostoAutocomplete.vue";
 import { toDatetimeLocal, getNivelAprobacion } from "@/utils/dateTime";
+import { notifySuccess, notifyError } from '@/utils/alertService';
 
 export default {
   name: "MovimientoUnidadesMayores",
@@ -618,11 +619,11 @@ export default {
     },
     async enviar() {
       if (!this.form.codigoOrganizacion.trim()) {
-        alert("Debe seleccionar una organización");
+        notifyError("Debe seleccionar una organización");
         return;
       }
       if (!this.form.organizacionCcOi.trim()) {
-        alert("Debe ingresar el Centro de costo CC/OI");
+        notifyError("Debe ingresar el Centro de costo CC/OI");
         return;
       }
       this.loading = true;
@@ -633,10 +634,10 @@ export default {
         };
         delete dataToSend.id;
         await postSolicitud(dataToSend);
-        alert("Solicitud enviada exitosamente");
+        notifySuccess("Solicitud enviada exitosamente");
         this.resetForm();
       } catch (error) {
-        alert(
+        notifyError(
           "Error al enviar solicitud: " +
             (error.statusText || "Error desconocido"),
         );

@@ -149,16 +149,16 @@ export default {
     },
     async enviarEvaluacion() {
       if (!this.form.codigoSolicitud.trim()) {
-        alert('Debe seleccionar el código de solicitud a evaluar.');
+        notifyError('Debe seleccionar el código de solicitud a evaluar.');
         return;
       }
       this.loading = true;
       try {
         await postEvaluacion(this.form);
-        alert('Evaluación registrada correctamente.');
+        notifySuccess('Evaluación registrada correctamente.');
         this.resetForm();
       } catch (error) {
-        alert('Error al registrar evaluación: ' + (error.statusText || 'Error desconocido'));
+        notifyError('Error al registrar evaluación: ' + (error.statusText || 'Error desconocido'));
       } finally {
         this.loading = false;
       }

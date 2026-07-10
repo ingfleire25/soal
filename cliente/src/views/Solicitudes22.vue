@@ -13,6 +13,7 @@ import { getBasicItems } from '@/services/getBasicItems';
 import { getAprobadoresLabor } from '@/services/getAprobadoresLabor';
 import CentroCostoAutocomplete from '@/components/CentroCostoAutocomplete.vue';
 import { toDatetimeLocalFromISOString, getNivelAprobacion } from '@/utils/dateTime';
+import { notifyError } from '@/utils/alertService';
 
 const route = useRoute();
 const auth = useAuthStore();
@@ -291,7 +292,7 @@ const aprobar = async (s) => {
     await cambiarEstado(s.id, { estado: 'aprobada' });
     await cargarSolicitudes();
   } catch (e) {
-    alert('Error al aprobar: ' + e.statusText);
+    notifyError('Error al aprobar: ' + e.statusText);
   }
 };
 
@@ -302,7 +303,7 @@ const rechazar = async (s) => {
     await cambiarEstado(s.id, { estado: 'rechazada', motivoRechazo: motivo });
     await cargarSolicitudes();
   } catch (e) {
-    alert('Error al rechazar: ' + e.statusText);
+    notifyError('Error al rechazar: ' + e.statusText);
   }
 };
 
@@ -402,7 +403,7 @@ const guardarEdicion = async () => {
     await cargarSolicitudes();
     cancelarEdicion();
   } catch (e) {
-    alert('Error al guardar edición: ' + e.statusText);
+    notifyError('Error al guardar edición: ' + e.statusText);
   }
 };
 

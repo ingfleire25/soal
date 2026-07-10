@@ -69,6 +69,10 @@ revisar donde guarda la informacion en MAXIMO
 
 revisar los correlativos que ya estan en MAXIMO
 
-Buscar el campo unidad a movilizar
-
 los administradores no deben solicitar pero si aprobar y ver todas las solicitudes de todos las genrencias y poder aprobar cualquiera.
+
+Si quieres, puedo también reemplazar los confirm(...) y prompt(...) por modales SweetAlert en Solicitudes.vue y Solicitudes22.vue.
+
+ Necesito captar el nivel de aprobacion y enviarlo  al backend para el parseo al objeto que espera oracle pm.
+
+ 

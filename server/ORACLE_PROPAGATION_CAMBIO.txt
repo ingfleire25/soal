@@ -1,0 +1,46 @@
+Cambio realizado: propagación de solicitudes aprobadas hacia Oracle
+
+Resumen general
+- Cuando una solicitud pasa a estado aprobado, el backend ahora puede enviar su información a Oracle mediante un flujo modular.
+- La implementación está separada en tres capas principales:
+  1. Parser: convierte los datos de la solicitud en un contexto normalizado.
+  2. Builder por tipo: genera los payloads específicos para cada tipo de solicitud.
+  3. Writers: crean los registros en las tablas correspondientes (PM, OSEL, WOSTATUS y WORKORDER).
+
+Qué se agregó
+- Un servicio central de propagación en server/src/services/oracle/propagationService.js.
+- Un parser general en server/src/services/oracle/parsers/solicitudParser.js.
+- Un parser base con normalización en server/src/services/oracle/parsers/baseParser.js.
+- Builders específicos por tipo:
+  - Transporte Personal
+  - Movimiento Unidades Mayores
+  - Suministro Lacustre
+- Writers para cada entidad Oracle:
+  - PM
+  - OSEL
+  - WOSTATUS
+  - WORKORDER
+- Controladores auxiliares para WorkOrder y AutoKey en server/src/controllers/oracle/.
+
+Flujo de ejecución
+1. La solicitud aprobada entra al servicio de propagación.
+2. Se obtiene un PMNUM disponible.
+3. Se construye un WONUM temporal.
+4. Se arma el payload para PM y se crea el registro.
+5. Si PM se creó correctamente, se crea OSEL.
+6. Si OSEL se creó correctamente, se crea WOSTATUS.
+7. Si WOSTATUS se creó correctamente, se crea WORKORDER.
+8. El servicio devuelve resultados parciales si algún paso falla, para facilitar el diagnóstico.
+
+¿Por qué está modularizado?
+- Facilita el mantenimiento.
+- Hace más simple agregar nuevos tipos de solicitud o nuevas tablas Oracle en el futuro.
+- Evita que toda la lógica quede acoplada en un solo controlador.
+
+Puntos importantes a tener en cuenta
+- Los datos del formulario se normalizan porque el backend puede recibir nombres de campo ligeramente distintos.
+- Se usa un tipo de workorder distinto según la solicitud para que Oracle pueda clasificarla correctamente.
+- La propagación no depende de un único flujo monolítico; cada tipo tiene su propio builder.
+
+Próximo paso recomendado
+- Probar el flujo real contra la instancia Oracle para ajustar campos o validaciones según el esquema de producción.

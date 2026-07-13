@@ -1,4 +1,5 @@
 import { reactive, computed, watch } from 'vue'
+import router from '@/router'
 
 const STORAGE_KEY = 'auth'
 const EXPIRATION_MS = 20 * 60 * 1000
@@ -143,7 +144,13 @@ export function useAuthStore() {
       inactivityTimer = null
     }
     saveAuth()
-    window.location.href = '/iniciar-sesion'
+    // Navegar sin recargar la página para evitar remounts innecesarios
+    try {
+      router.replace({ name: 'login' })
+    } catch (e) {
+      // Fallback a location por si algo falla
+      window.location.href = '/iniciar-sesion'
+    }
   }
 
   function checkAuth() {

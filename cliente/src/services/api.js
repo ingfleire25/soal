@@ -1,4 +1,5 @@
 import axios from 'axios';
+import router from '@/router';
 
 const BACKEND_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
@@ -26,9 +27,13 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // Manejar token expirado
+      // Manejar token expirado: limpiar almacenamiento y navegar al login
       localStorage.removeItem('auth');
-      window.location.href = '/iniciar-sesion';
+      try {
+        router.replace({ name: 'login' });
+      } catch (e) {
+        window.location.href = '/iniciar-sesion';
+      }
     }
     return Promise.reject(error);
   }

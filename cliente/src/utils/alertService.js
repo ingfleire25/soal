@@ -53,3 +53,21 @@ export const confirmAction = (options) => {
     ...options,
   });
 };
+
+export const promptAction = (options) => {
+  return Swal.fire({
+    icon: "question",
+    input: "text",
+    inputLabel: options.inputLabel || "Ingrese el motivo",
+    inputPlaceholder: options.inputPlaceholder || "Escriba aquí...",
+    inputAttributes: {
+      maxlength: 250,
+      autocapitalize: "sentences",
+      autocorrect: "off",
+    },
+    showCancelButton: true,
+    confirmButtonText: "Enviar",
+    cancelButtonText: "Cancelar",
+    ...options,
+  });
+};

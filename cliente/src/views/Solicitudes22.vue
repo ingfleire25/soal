@@ -13,7 +13,7 @@ import { getBasicItems } from '@/services/getBasicItems';
 import { getAprobadoresLabor } from '@/services/getAprobadoresLabor';
 import CentroCostoAutocomplete from '@/components/CentroCostoAutocomplete.vue';
 import { toDatetimeLocalFromISOString, getNivelAprobacion } from '@/utils/dateTime';
-import { notifyError } from '@/utils/alertService';
+import { notifyError, confirmAction, promptAction } from '@/utils/alertService';
 
 const route = useRoute();
 const auth = useAuthStore();
@@ -287,7 +287,12 @@ const puedeAprobar = (s) => {
 };
 
 const aprobar = async (s) => {
-  if (!confirm('¿Confirma aprobación de la solicitud?')) return;
+  const resultado = await confirmAction({
+    title: '¿Confirma aprobación de la solicitud?',
+    text: 'Esta acción marcará la solicitud como aprobada.',
+  });
+  if (!resultado.isConfirmed) return;
+
   try {
     await cambiarEstado(s.id, { estado: 'aprobada' });
     await cargarSolicitudes();
@@ -297,8 +302,21 @@ const aprobar = async (s) => {
 };
 
 const rechazar = async (s) => {
-  const motivo = prompt('Motivo de rechazo');
-  if (!motivo) return;
+  const resultado = await promptAction({
+    title: 'Motivo de rechazo',
+    inputLabel: 'Ingrese el motivo de rechazo:',
+    inputPlaceholder: 'Razón del rechazo',
+    inputValidator: (value) => {
+      if (!value || !value.trim()) {
+        return 'El motivo es obligatorio.';
+      }
+      return null;
+    },
+  });
+
+  if (!resultado.isConfirmed || !resultado.value) return;
+  const motivo = resultado.value.trim();
+
   try {
     await cambiarEstado(s.id, { estado: 'rechazada', motivoRechazo: motivo });
     await cargarSolicitudes();

@@ -11,6 +11,8 @@ const chartofaccounts = require('../controllers/oracle/chartofaccounts');
 const item = require('../controllers/oracle/item');
 const pm = require('../controllers/oracle/pm')
 const pmx = require('../controllers/oracle/pmx');
+const workorder = require('../controllers/oracle/workorder');
+const autokey = require('../controllers/oracle/autokey');
 const equipment = require('../controllers/oracle/equipment')
 const wostatus = require('../controllers/oracle/wostatus')
 
@@ -34,6 +36,14 @@ router.post('/pm', pm.createPm)
 
 router.get('/pmx', pmx.getPmx);
 router.post('/pmx', pmx.createPmx)
+
+router.get('/workorder', workorder.getWorkorders);
+router.get('/workorder/:wonum', workorder.getWorkorders);
+router.post('/workorder', workorder.createWorkorder);
+
+router.get('/autokey', autokey.getAutokeys);
+router.get('/autokey/:tbname', autokey.getAutokeys);
+router.post('/autokey', autokey.createAutokey);
 
 router.get('/equipment', equipment.getBasicEquipment)
 

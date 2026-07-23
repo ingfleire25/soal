@@ -15,6 +15,8 @@ const workorder = require('../controllers/oracle/workorder');
 const autokey = require('../controllers/oracle/autokey');
 const equipment = require('../controllers/oracle/equipment')
 const wostatus = require('../controllers/oracle/wostatus')
+const servacct =require('../controllers/oracle/servacct')
+const wpmaterial = require('../controllers/oracle/wpmaterial')
 
 
 // public endpoints
@@ -48,6 +50,12 @@ router.post('/autokey', autokey.createAutokey);
 router.get('/equipment', equipment.getBasicEquipment)
 
 router.put('/wostatus/:wonum', wostatus.updateWoStatus)
+
+router.get('/servacct/:wonum', servacct.getServaccts)
+router.post('/servacct/create', servacct.createServacct)
+
+router.get('/wpmaterial/:wonum', wpmaterial.getWpMaterialsByWonum)
+router.post('/wpmaterial/create', wpmaterial.createWpMaterial)
 
 
 module.exports = router;  

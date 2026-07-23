@@ -75,4 +75,6 @@ Si quieres, puedo también reemplazar los confirm(...) y prompt(...) por modales
 
  Necesito captar el nivel de aprobacion y enviarlo  al backend para el parseo al objeto que espera oracle pm.
 
- 
+ las cedulas van si V NI EL GUION SOLO NUMERO SIN CARACTERES ESPECIALES
+
+ DEBO CAPTAR EL CODIGO DE GLAACCOUNT PARA ENVIARLO AL PARSEO

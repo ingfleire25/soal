@@ -12,6 +12,12 @@ const getWorkType = (context) => {
 const buildPayloads = (solicitud, pmnum, wonum) => {
   const context = buildBaseContext(solicitud);
   const tipo = getWorkType(context);
+  console.log('[Oracle parser] buildPayloads', {
+    solicitudId: solicitud?.id || solicitud?.solicitudId || null,
+    tipo,
+    pmnum,
+    wonum,
+  });
 
   if (tipo === 'Movimiento Unidades Mayores' || tipo === 'OUM') {
     return buildMovimientoUnidadesMayoresPayloads(solicitud, pmnum, wonum);

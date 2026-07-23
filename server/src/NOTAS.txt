@@ -43,3 +43,94 @@ redirige a /iniciar-sesion
 📌 Nota final
 localStorage no se escribe si no se marca Recordar en login, pero estado en memoria sigue activo hasta cerrar pestaña.
 Para mantener entre refresh: usar Recordar (true) y checkAuth() rehidrata.
+
+
+Últimos cambios
+baseParser.js
+
+Se agregó parseDateString() con soporte DMY y formatos a. m. / p. m..
+formatOracleDate(value) ahora devuelve Sequelize.literal("TO_DATE(...,'DD/MM/YYYY')").
+formatOracleTimestampTz(value) ahora devuelve Sequelize.literal("TO_DATE(...,'DD/MM/YYYY HH24:MI:SS')").
+Esto significa que los payloads deberían generar SQL con TO_DATE(...) en lugar de enviar fechas como binds ISO.
+El parser de workorder usa esos helpers:
+
+statusdate y wo1 deben ser DATE solo con día.
+targstartdate debe ser TIMESTAMP con hora.
+Qué está pasando en tmp_inspect_oracle_date.js
+El archivo actual tmp_inspect_oracle_date.js no prueba los cambios del parser.
+Ese script crea un objeto values con new Date(...), lo que produce bindings tipo ISO y un INSERT ... VALUES (:1, ...).
+Por eso el output muestra fechas como "2026-07-15T04:00:00.000Z".
+En resumen: el script actual no está usando formatOracleDate() ni formatOracleTimestampTz().
+
+Cómo probarlo tú mismo
+Cambia tmp_inspect_oracle_date.js para usar el parser real y generar el payload Oracle, por ejemplo:
+const db = require("./src/db");
+const { buildTransportePersonalPayloads } = require("./src/services/oracle/parsers/types/transportePersonalParser");
+const WorkOrder = db.WorkOrder || db.Workorder;
+
+const payloads = buildTransportePersonalPayloads(
+  {
+    fechaInicio: "15/07/2026",
+    fechaFin: "16/07/2026",
+    origen: "origen",
+    destino: "destino",
+    aprobador: "sup",
+    changeby: "rep",
+    descripcion: "desc",
+    descripcionOrigen: "orig",
+    descripcionDestino: "dest",
+    correo: "c@d.com",
+    organizacion: "ORG",
+    dias: {
+      lunes: "N",
+      martes: "N",
+      miercoles: "N",
+      jueves: "N",
+      viernes: "N",
+      sabado: "N",
+      domingo: "N",
+    },
+  },
+  "PM1",
+  "WO123456",
+);
+
+const workorder = payloads.workorderPayload;
+
+const sql = db.connOracle.getQueryInterface().queryGenerator.insertQuery(
+  WorkOrder.getTableName(),
+  workorder,
+  WorkOrder.rawAttributes,
+);
+
+console.log("query:", sql.query);
+console.log("bind:", JSON.stringify(sql.bind, null, 2));
+
+Qué debes esperar ver
+En query:, que los campos statusdate y wo1 aparezcan como:
+TO_DATE('15/07/2026','DD/MM/YYYY')
+Para targstartdate, algo como:
+TO_DATE('15/07/2026 07:00:00','DD/MM/YYYY HH24:MI:SS')
+En bind: solo deberían aparecer los campos que no son literales SQL.
+Si quieres verificar solo el parser
+Puedes usar también directamente el helper:
+
+const { normalizeDate, formatOracleDate, formatOracleTimestampTz } = require("./src/services/oracle/parsers/baseParser");
+
+console.log(normalizeDate("25/11/1999 6:30:00 a. m."));
+console.log(formatOracleDate("25/11/1999"));
+console.log(formatOracleTimestampTz("25/11/1999 6:30:00 a. m."));
+
+Conclusión
+El cambio real fue en el parser: pasar de fechas JS a expresiones Oracle con TO_DATE.
+tmp_inspect_oracle_date.js debe actualizarse para usar ese parser, no datos Date planos.
+Cuando ejecutes el script revisa el query y confirma que los TO_DATE(...) estén presentes.
+Si quieres, te puedo darte el contenido exacto listo para pegar en tmp_inspect_oracle_date.js.
+
+select * from WORKORDER t  where t.pmnum = '41214210' --> se guardo en workorder tipo oum. y guarda eqnum
+select * from WORKORDER t where t.pmnum = '41214212' --> no se guardo tipo tp
+
+
+en la tabla WPMATERIAL se debe guardar todos los materiales relacionados al tipo SL un registro por cada material a enviar repitiendo el wonum
+
+promnt para empezar backend: estoy trabajando con node 24.15.0, "sequelize": "6.24.0", express: 4.18.1 postgres 15 y oracle 9.1. en mi single page aplication tengo modelos que trabajan en ambas db.

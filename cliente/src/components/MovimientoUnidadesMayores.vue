@@ -193,7 +193,7 @@
                 v-model="form.unidadMovilizar"
                 type="text"
                 class="form-control form-control-sm"
-                placeholder="Buscar unidad..."
+                placeholder="Ingrese el equipo a trasladar"
                 autocomplete="off"
                 required
                 @input="buscarEquipos"

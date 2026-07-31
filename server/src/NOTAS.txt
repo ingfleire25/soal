@@ -134,3 +134,22 @@ select * from WORKORDER t where t.pmnum = '41214212' --> no se guardo tipo tp
 en la tabla WPMATERIAL se debe guardar todos los materiales relacionados al tipo SL un registro por cada material a enviar repitiendo el wonum
 
 promnt para empezar backend: estoy trabajando con node 24.15.0, "sequelize": "6.24.0", express: 4.18.1 postgres 15 y oracle 9.1. en mi single page aplication tengo modelos que trabajan en ambas db.
+
+pm16: context.cedulaSolicitante, //traer la extension del solicitante TP PM
+REVISAR QUE ESTA LLEGANDO POR AQUI NO APARECE E CODIGO: PM10 DE TP PM deberia ser el codigo del tipo de servicio a traer
+
+PRIORIDAD TAMPOCO ESTA LLEGANDO
+REVISAR CODIGO DE ORIGEN Y DESCRIPCION PARA ORIGEN Y DESTINO 41214215 720:00
+EN SERVICIO RECCURRENTE ESTA LLEGANDO EL PMNUM
+changeby pide indicador  se le esta pasando nombre de PM
+SUPERVISOR PIDE CEDULA DE SUPERVISOR Y LE LLEGA NOMBRE DE APROBADOR TABLA PM
+PM13 pide nombre de solicitante y llega aprobador o viceverca PM
+
+
+el modal de confirmacion debe crear al momento de confirmar la informacion donde muentra la odst y el correlativo
+igualmente debe ser creada la informacion de envio de correo y la logica para esto también
+
+select * from WORKORDER t where t.wonum = '572496'
+select * from WORKORDER t ORDER BY WONUM DESC
+select  * from WORKORDER t WHERE T.DESCRIPTION LIKE '%1993%'
+select MAX(WONUM) from WORKORDER t 

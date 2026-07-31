@@ -429,7 +429,7 @@ const buildBaseContext = (solicitud = {}) => {
       10,
     ),
     subtipo: normalizeText(
-      getFirstValue(solicitud, ["subtipo", "categoria"]),
+      getFirstValue(solicitud, ["value", "subtipo", "categoria"]),
       20,
     ),
 

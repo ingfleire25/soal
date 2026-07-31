@@ -29,7 +29,7 @@ const buildMovimientoUnidadesMayoresPayloads = (solicitud, pmnum, wonum) => {
       description: context.descripcion,
       pm6: context.origen,
       pm7: context.descripcionOrigen,
-      pm8: context.destino,
+      pm8: context.destino, 
       pm9: context.descripcionDestino,
       pm10: context.modserv,
       pm11: formatOracleTimestampTz(context.fechaInicio),

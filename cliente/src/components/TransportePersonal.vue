@@ -253,6 +253,7 @@
                 :value="type.valdesc"
               >
                 {{ type.valdesc }}
+                {{ type.value }}
               </option>
             </select>
           </div>

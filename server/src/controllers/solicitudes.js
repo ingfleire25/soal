@@ -1,6 +1,7 @@
 const { Solicitud, SuministroLacustre, Materiales } = require("../db");
 const { Op } = require("sequelize");
 const { sendSolicitudToOracle } = require("./oracle/solicitudOracle");
+const mailer = require("../../utils/mailer");
 
 const getNextSequentialId = async (model, prefix) => {
   const latest = await model.findOne({
@@ -210,6 +211,17 @@ exports.postSolicitud = async (req, res) => {
     res
       .status(201)
       .json({ statusCode: 201, statusText: "Solicitud creada", result: nueva });
+
+    // Enviar correo de confirmación (no bloquear la respuesta)
+    try {
+      if (nueva && nueva.correo) {
+        mailer
+          .sendSolicitudCreated(nueva.correo, nueva.dataValues)
+          .catch((e) => console.error('Error enviando correo de creación:', e.message));
+      }
+    } catch (e) {
+      console.error('Error iniciando envío de correo de creación:', e.message);
+    }
   } catch (err) {
     console.error(err);
     res.status(500).json({
@@ -348,6 +360,14 @@ exports.cambiarEstado = async (req, res) => {
     if (estado === "aprobada" && modelo === "Solicitud") {
       try {
         await sendSolicitudToOracle(solicitud.dataValues);
+        // Enviar correo de aprobación
+        try {
+          if (solicitud && solicitud.correo) {
+            await mailer.sendSolicitudApproved(solicitud.correo, solicitud.dataValues).catch(err => console.error('Error enviando correo de aprobación:', err.message));
+          }
+        } catch (mailErr) {
+          console.error('Error iniciando envío de correo de aprobación:', mailErr.message);
+        }
       } catch (oracleError) {
         console.error(
           "Error al enviar solicitud aprobada a Oracle:",
@@ -361,7 +381,18 @@ exports.cambiarEstado = async (req, res) => {
         });
       }
     }
-
+    if (estado === 'rechazada') {
+      // Enviar correo de rechazo con motivo
+      try {
+        if (solicitud && solicitud.correo) {
+          mailer
+            .sendSolicitudRejected(solicitud.correo, solicitud.dataValues, motivoRechazo)
+            .catch((e) => console.error('Error enviando correo de rechazo:', e.message));
+        }
+      } catch (e) {
+        console.error('Error iniciando envío de correo de rechazo:', e.message);
+      }
+    }
     res.status(200).json({
       statusCode: 200,
       statusText: "Estado actualizado",

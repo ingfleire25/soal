@@ -1,11 +1,14 @@
 <script setup>
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, watch } from 'vue';
 import { getSolicitudes } from '@/services/getSolicitudes';
 
 const lista = ref([]);
 const loading = ref(false);
 const error = ref('');
 const searchQuery = ref('');
+const paginaActual = ref(1);
+const registrosPorPagina = ref(10);
+const opcionesRegistros = [10, 25, 50];
 
 const ahora = () => new Date();
 
@@ -76,6 +79,21 @@ const listaFiltrada = computed(() => {
   });
 });
 
+const totalPaginas = computed(() =>
+  Math.max(1, Math.ceil(listaFiltrada.value.length / registrosPorPagina.value)),
+);
+const paginas = computed(() =>
+  Array.from({ length: totalPaginas.value }, (_, indice) => indice + 1),
+);
+const listaPaginada = computed(() => {
+  const inicio = (paginaActual.value - 1) * registrosPorPagina.value;
+  return listaFiltrada.value.slice(inicio, inicio + registrosPorPagina.value);
+});
+
+watch([listaFiltrada, searchQuery, registrosPorPagina], () => {
+  paginaActual.value = 1;
+});
+
 const formatoFecha = (valor) => {
   if (!valor) return '-';
   const fecha = new Date(valor);
@@ -123,8 +141,8 @@ onMounted(cargarSolicitudes);
         <thead>
           <tr>
             <th>ID</th>
-            <th>Tipo</th>
-            <th>Subtipo</th>
+            <th>Descripción</th>
+            <th>Aprobador</th>
             <th>Solicitante</th>
             <th>Cédula</th>
             <th>Origen</th>
@@ -137,10 +155,10 @@ onMounted(cargarSolicitudes);
           </tr>
         </thead>
         <tbody>
-          <tr v-for="sol in listaFiltrada" :key="sol.id">
+          <tr v-for="sol in listaPaginada" :key="sol.id">
             <td>{{ sol.id }}</td>
-            <td>{{ sol.tipoSolicitud }}</td>
-            <td>{{ sol.subtipo || '-' }}</td>
+            <td>{{ sol.descripcion || '-' }}</td>
+            <td>{{ sol.aprobador || '-' }}</td>
             <td>{{ sol.solicitante || '-' }}</td>
             <td>{{ sol.cedulaSolicitante || '-' }}</td>
             <td>{{ sol.origen || '-' }}</td>
@@ -163,6 +181,56 @@ onMounted(cargarSolicitudes);
           </tr>
         </tbody>
       </table>
+    </div>
+
+    <div
+      v-if="!loading && listaFiltrada.length"
+      class="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-3"
+    >
+      <label class="d-flex align-items-center gap-2 mb-0">
+        <span>Mostrar</span>
+        <select v-model.number="registrosPorPagina" class="form-select form-select-sm w-auto">
+          <option v-for="opcion in opcionesRegistros" :key="opcion" :value="opcion">
+            {{ opcion }}
+          </option>
+        </select>
+        <span>solicitudes</span>
+      </label>
+
+      <nav v-if="totalPaginas > 1" aria-label="Paginación del histórico">
+        <ul class="pagination pagination-sm mb-0">
+          <li class="page-item" :class="{ disabled: paginaActual === 1 }">
+            <button
+              class="page-link"
+              type="button"
+              :disabled="paginaActual === 1"
+              @click="paginaActual--"
+            >
+              Anterior
+            </button>
+          </li>
+          <li
+            v-for="pagina in paginas"
+            :key="pagina"
+            class="page-item"
+            :class="{ active: paginaActual === pagina }"
+          >
+            <button class="page-link" type="button" @click="paginaActual = pagina">
+              {{ pagina }}
+            </button>
+          </li>
+          <li class="page-item" :class="{ disabled: paginaActual === totalPaginas }">
+            <button
+              class="page-link"
+              type="button"
+              :disabled="paginaActual === totalPaginas"
+              @click="paginaActual++"
+            >
+              Siguiente
+            </button>
+          </li>
+        </ul>
+      </nav>
     </div>
 
     <div v-if="!loading && !listaFiltrada.length" class="alert alert-secondary">

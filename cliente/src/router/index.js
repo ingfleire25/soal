@@ -3,16 +3,13 @@ import { useAuthStore } from "@/stores/auth";
 
 // two simple views: create request and see list
 const Login = () => import("@/views/Login.vue");
-const Crear = () => import("@/views/CrearSolicitud.vue");
 const Tabla = () => import("@/views/Solicitudes.vue");
-const Dashboard = () => import("@/views/Dashboard.vue");
 const PlanDashboard = () => import("@/views/PlanDashboard.vue");
 const Administracion = () => import("@/views/Administracion.vue");
 const Historico = () => import("@/views/Historico.vue");
 const NoAutorizado = () => import("@/views/NoAutorizado.vue");
 const TransportePersonal = () => import("@/components/TransportePersonal.vue");
-const MovimientoUnidadesMayores = () =>
-  import("@/components/MovimientoUnidadesMayores.vue");
+const MovimientoUnidadesMayores = () => import("@/components/MovimientoUnidadesMayores.vue");
 const SuministroLacustre = () => import("@/components/SuministroLacustre.vue");
 const EvaluacionServicio = () => import("@/components/EvaluacionServicio.vue");
 const Estadisticas = () => import("@/views/Estadisticas.vue");
@@ -20,18 +17,6 @@ const Estadisticas = () => import("@/views/Estadisticas.vue");
 const routes = [
   { path: "/", redirect: "/iniciar-sesion" },
   { path: "/iniciar-sesion", name: "login", component: Login },
-  {
-    path: "/dashboard",
-    name: "dashboard",
-    component: Dashboard,
-    meta: { roles: ["Solicitante", "Aprobador", "Administrador"] },
-  },
-  {
-    path: "/crearViejo",
-    name: "crearViejo",
-    component: Crear,
-    meta: { roles: ["Solicitante", "Administrador"] },
-  },
   {
     path: "/solicitudes",
     name: "tabla",

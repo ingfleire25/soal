@@ -48,7 +48,7 @@ const getFilteredLabor = async (req, res) => {
         }
 
         const results = await Labor.findAll({
-            attributes: ['name', 'pagepin', 'la13'],
+            attributes: ['name', 'pagepin', 'la13', 'laborcode'],
             where,
             order: [['name', 'ASC']]
         });

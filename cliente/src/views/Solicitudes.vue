@@ -12,7 +12,7 @@ import { getModserv } from "@/services/getModserv";
 import { getBasicItems } from "@/services/getBasicItems";
 import { getAprobadoresLabor } from "@/services/getAprobadoresLabor";
 import CentroCostoAutocomplete from "@/components/CentroCostoAutocomplete.vue";
-import { notifyError, confirmAction, promptAction } from '@/utils/alertService';
+import { notifyError, confirmAction, promptAction } from "@/utils/alertService";
 import {
   toDatetimeLocalFromISOString,
   getNivelAprobacion,
@@ -42,6 +42,9 @@ const aprobadoresDisponibles = ref([]);
 const loadingAprobadores = ref(false);
 const selectedTipo = ref("");
 const selectedEstado = ref("");
+const paginaActual = ref(1);
+const registrosPorPagina = ref(10);
+const opcionesRegistros = [10, 25, 50];
 
 // Timers para debounce en búsqueda de materiales (por índice)
 const materialSearchTimers = new Map();
@@ -197,6 +200,30 @@ const listaFiltrada = computed(() => {
     return true;
   });
 });
+
+const totalPaginas = computed(() =>
+  Math.max(1, Math.ceil(listaFiltrada.value.length / registrosPorPagina.value)),
+);
+const paginas = computed(() =>
+  Array.from({ length: totalPaginas.value }, (_, indice) => indice + 1),
+);
+const listaPaginada = computed(() => {
+  const inicio = (paginaActual.value - 1) * registrosPorPagina.value;
+  return listaFiltrada.value.slice(inicio, inicio + registrosPorPagina.value);
+});
+
+watch(
+  [
+    listaFiltrada,
+    searchQuery,
+    selectedTipo,
+    selectedEstado,
+    registrosPorPagina,
+  ],
+  () => {
+    paginaActual.value = 1;
+  },
+);
 
 const cargarSolicitudes = async () => {
   error.value = "";
@@ -661,8 +688,8 @@ const confirmDateSelection = (event) => {
         <thead>
           <tr>
             <th>ID</th>
-            <th>Tipo</th>
-            <th>Subtipo</th>
+            <th>Descripción</th>
+            <th>Aprobador</th>
             <th>Solicitante</th>
             <th>Cédula</th>
             <th>Origen</th>
@@ -675,10 +702,10 @@ const confirmDateSelection = (event) => {
           </tr>
         </thead>
         <tbody>
-          <tr v-for="s in listaFiltrada" :key="s.id">
+          <tr v-for="s in listaPaginada" :key="s.id">
             <td>{{ s.id }}</td>
-            <td>{{ s.tipoSolicitud }}</td>
-            <td>{{ s.subtipo }}</td>
+            <td>{{ s.descripcion || "-" }}</td>
+            <td>{{ s.aprobador || "-" }}</td>
             <td>{{ s.solicitante }}</td>
             <td>{{ s.cedulaSolicitante }}</td>
             <td>{{ s.origen }}</td>
@@ -699,7 +726,11 @@ const confirmDateSelection = (event) => {
               </span>
             </td>
             <td>{{ s.motivoRechazo || "-" }}</td>
-            <td class="acciones-cell">
+            <td
+              :class="{
+                'acciones-cell': puedeEditar(s) || puedeAprobar(s),
+              }"
+            >
               <button
                 v-if="puedeEditar(s)"
                 @click="iniciarEdicion(s)"
@@ -730,6 +761,70 @@ const confirmDateSelection = (event) => {
           </tr>
         </tbody>
       </table>
+    </div>
+
+    <div
+      v-if="!loading && listaFiltrada.length"
+      class="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-3"
+    >
+      <label class="d-flex align-items-center gap-2 mb-0">
+        <span>Mostrar</span>
+        <select
+          v-model.number="registrosPorPagina"
+          class="form-select form-select-sm w-auto"
+        >
+          <option
+            v-for="opcion in opcionesRegistros"
+            :key="opcion"
+            :value="opcion"
+          >
+            {{ opcion }}
+          </option>
+        </select>
+        <span>solicitudes</span>
+      </label>
+
+      <nav v-if="totalPaginas > 1" aria-label="Paginación de solicitudes">
+        <ul class="pagination pagination-sm mb-0">
+          <li class="page-item" :class="{ disabled: paginaActual === 1 }">
+            <button
+              class="page-link"
+              type="button"
+              :disabled="paginaActual === 1"
+              @click="paginaActual--"
+            >
+              Anterior
+            </button>
+          </li>
+          <li
+            v-for="pagina in paginas"
+            :key="pagina"
+            class="page-item"
+            :class="{ active: paginaActual === pagina }"
+          >
+            <button
+              class="page-link"
+              type="button"
+              @click="paginaActual = pagina"
+            >
+              {{ pagina }}
+            </button>
+          </li>
+          <li
+            class="page-item"
+            :class="{ disabled: paginaActual === totalPaginas }"
+          >
+            <button
+              class="page-link"
+              type="button"
+              :disabled="paginaActual === totalPaginas"
+              @click="paginaActual++"
+            >
+              Siguiente
+            </button>
+          </li>
+        </ul>
+      </nav>
     </div>
 
     <p v-if="!loading && !listaFiltrada.length" class="text-secondary">

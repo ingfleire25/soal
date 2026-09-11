@@ -69,12 +69,12 @@
           </div>
           <div class="col-md-6">
             <label class="form-label fw-bold">Descripción Origen</label>
-            <textarea
+            <input
               v-model="form.descripcionOrigen"
               class="form-control form-control-sm bg-light"
               rows="2"
               readonly
-            ></textarea>
+            ></input>
           </div>
 
           <div class="col-md-6">
@@ -112,12 +112,12 @@
           </div>
           <div class="col-md-6">
             <label class="form-label fw-bold">Descripción Destino</label>
-            <textarea
+            <input
               v-model="form.descripcionDestino"
               class="form-control form-control-sm bg-light"
               rows="2"
               readonly
-            ></textarea>
+            ></input>
           </div>
 
           <div class="col-md-6">
@@ -250,7 +250,7 @@
               <option
                 v-for="type in serviceTypes"
                 :key="type.valdesc"
-                :value="type.valdesc"
+                :value="type.value"
               >
                 {{ type.valdesc }}
                 {{ type.value }}
@@ -262,6 +262,7 @@
             <label class="form-label fw-bold">Aprobador</label>
             <select
               v-model="form.aprobador"
+              @change="actualizarAprobador"
               class="form-select form-select-sm"
               :disabled="!nivelAprobacionInfo.codigo || loadingAprobadores"
               required
@@ -272,7 +273,7 @@
                 :key="approver.pagepin"
                 :value="approver.name"
               >
-                {{ approver.name }} (Nivel {{ approver.la13 }})
+                {{ approver.name }} - {{ approver.laborcode }}  <!-- (Nivel {{ approver.la13 }})  -->
               </option>
             </select>
             <div class="form-text text-muted" v-if="loadingAprobadores">
@@ -393,7 +394,9 @@ export default {
         cantidadPasajeros: 1,
         tipoServicio: "",
         aprobador: "",
+        cedulaAprobador: "",
         correo: "",
+        telefono: "",
         gerencia: "",
         solicitante: "",
         cedulaSolicitante: "",
@@ -503,6 +506,7 @@ export default {
       this.form.solicitante = `${user.nombres} ${user.apellidos}`;
       this.form.cedulaSolicitante = user.cedula;
       this.form.correo = user.correo || user.email || user.username || "";
+      this.form.telefono = user.telefono || user.extension || "";
       this.form.gerencia = user.gerencia || "";
     }
 
@@ -670,6 +674,10 @@ export default {
         ) {
           this.form.aprobador = "";
         }
+        const aprobador = this.aprobadoresDisponibles.find(
+          (item) => item.name === this.form.aprobador,
+        );
+        this.form.cedulaAprobador = aprobador?.laborcode || "";
       } catch (error) {
         console.error("Error cargando aprobadores:", error);
         this.aprobadoresDisponibles = [];
@@ -677,6 +685,12 @@ export default {
       } finally {
         this.loadingAprobadores = false;
       }
+    },
+    actualizarAprobador() {
+      const aprobador = this.aprobadoresDisponibles.find(
+        (item) => item.name === this.form.aprobador,
+      );
+      this.form.cedulaAprobador = aprobador?.laborcode || "";
     },
   },
 };

@@ -1,6 +1,6 @@
 <template>
   <h4 class="text-primary mb-4">{{ titulo }}</h4>
-  <div class="container bg-white p-4 shadow-sm rounded">
+  <div class="bg-white p-4 shadow-sm rounded">
     <form @submit.prevent="enviar">
       <fieldset class="border p-3 mb-4 rounded">
         <legend class="w-auto px-2 fs-5 text-primary">
@@ -50,12 +50,12 @@
           </div>
           <div class="col-md-6">
             <label class="form-label">Descripción Origen</label>
-            <textarea
+            <input
               v-model="form.descripcionOrigen"
               class="form-control form-control-sm"
               rows="2"
               readonly
-            ></textarea>
+            ></input>
           </div>
           <div class="col-md-6">
             <label class="form-label">Destino</label>
@@ -92,12 +92,12 @@
           </div>
           <div class="col-md-6">
             <label class="form-label">Descripción Destino</label>
-            <textarea
+            <input
               v-model="form.descripcionDestino"
               class="form-control form-control-sm"
               rows="2"
               readonly
-            ></textarea>
+            ></input>
           </div>
           <div class="col-md-6">
             <label class="form-label">Fecha Requerida de Inicio</label>

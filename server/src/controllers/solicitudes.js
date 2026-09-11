@@ -108,7 +108,9 @@ exports.postSolicitud = async (req, res) => {
     cantidadPasajeros,
     tipoServicio,
     aprobador,
+    cedulaAprobador,
     correo,
+    telefono,
     gerencia,
     solicitante,
     cedulaSolicitante,
@@ -168,10 +170,13 @@ exports.postSolicitud = async (req, res) => {
     }
 
     const nivelAprobacion = getApprovalLevel(fechaInicio, fecha);
-    const id = await getNextSequentialId(
-      Solicitud,
-      tipoSolicitud === "Movimiento Unidades Mayores" ? "OUM" : "TP",
-    );
+    const prefijoSolicitud =
+      tipoSolicitud === "Transporte de Personal" && subtipo === "Recurrente"
+        ? "TPR"
+        : tipoSolicitud === "Movimiento Unidades Mayores"
+          ? "OUM"
+          : "TP";
+    const id = await getNextSequentialId(Solicitud, prefijoSolicitud);
     const nueva = await Solicitud.create({
       id,
       descripcion,
@@ -194,7 +199,9 @@ exports.postSolicitud = async (req, res) => {
       cantidadPasajeros,
       tipoServicio,
       aprobador,
+      cedulaAprobador,
       correo,
+      telefono,
       gerencia,
       solicitante,
       cedulaSolicitante,
@@ -217,10 +224,12 @@ exports.postSolicitud = async (req, res) => {
       if (nueva && nueva.correo) {
         mailer
           .sendSolicitudCreated(nueva.correo, nueva.dataValues)
-          .catch((e) => console.error('Error enviando correo de creación:', e.message));
+          .catch((e) =>
+            console.error("Error enviando correo de creación:", e.message),
+          );
       }
     } catch (e) {
-      console.error('Error iniciando envío de correo de creación:', e.message);
+      console.error("Error iniciando envío de correo de creación:", e.message);
     }
   } catch (err) {
     console.error(err);
@@ -254,7 +263,9 @@ exports.updateSolicitud = async (req, res) => {
     cantidadPasajeros,
     tipoServicio,
     aprobador,
+    cedulaAprobador,
     correo,
+    telefono,
     gerencia,
     tipoSolicitud,
     subtipo,
@@ -301,7 +312,9 @@ exports.updateSolicitud = async (req, res) => {
       cantidadPasajeros,
       tipoServicio,
       aprobador,
+      cedulaAprobador,
       correo,
+      telefono,
       gerencia,
       tipoSolicitud,
       subtipo,
@@ -363,10 +376,20 @@ exports.cambiarEstado = async (req, res) => {
         // Enviar correo de aprobación
         try {
           if (solicitud && solicitud.correo) {
-            await mailer.sendSolicitudApproved(solicitud.correo, solicitud.dataValues).catch(err => console.error('Error enviando correo de aprobación:', err.message));
+            await mailer
+              .sendSolicitudApproved(solicitud.correo, solicitud.dataValues)
+              .catch((err) =>
+                console.error(
+                  "Error enviando correo de aprobación:",
+                  err.message,
+                ),
+              );
           }
         } catch (mailErr) {
-          console.error('Error iniciando envío de correo de aprobación:', mailErr.message);
+          console.error(
+            "Error iniciando envío de correo de aprobación:",
+            mailErr.message,
+          );
         }
       } catch (oracleError) {
         console.error(
@@ -381,16 +404,22 @@ exports.cambiarEstado = async (req, res) => {
         });
       }
     }
-    if (estado === 'rechazada') {
+    if (estado === "rechazada") {
       // Enviar correo de rechazo con motivo
       try {
         if (solicitud && solicitud.correo) {
           mailer
-            .sendSolicitudRejected(solicitud.correo, solicitud.dataValues, motivoRechazo)
-            .catch((e) => console.error('Error enviando correo de rechazo:', e.message));
+            .sendSolicitudRejected(
+              solicitud.correo,
+              solicitud.dataValues,
+              motivoRechazo,
+            )
+            .catch((e) =>
+              console.error("Error enviando correo de rechazo:", e.message),
+            );
         }
       } catch (e) {
-        console.error('Error iniciando envío de correo de rechazo:', e.message);
+        console.error("Error iniciando envío de correo de rechazo:", e.message);
       }
     }
     res.status(200).json({

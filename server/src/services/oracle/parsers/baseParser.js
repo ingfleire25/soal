@@ -324,11 +324,21 @@ const buildBaseContext = (solicitud = {}) => {
     "",
   );
 
+  //prueba para incluir el nivel de aprobacion en el context
+    const nivelAprobacion = getFirstValue(
+      solicitud,
+      [
+        "nivelAprobacion",
+        "nivelAprobacionTexto"
+      ],"",
+    );
+
   const context = {
     solicitud,
     tipoSolicitud,
     fechaInicio,
     fechaFin,
+    nivelAprobacion,
     fechaSolicitud:
       normalizeDate(
         getFirstValue(solicitud, [
@@ -392,6 +402,14 @@ const buildBaseContext = (solicitud = {}) => {
         ]),
         12,
       ) || "SIN_SUPERV",
+      cedulaAprobador: 
+        normalizeText(
+          getFirstValue(solicitud,[
+              "cedulaAprobador",
+              "laborcode",
+              "codigoAprobador"
+          ])
+        ),
     solicitante:
       normalizeText(
         getFirstValue(solicitud, [
@@ -404,6 +422,10 @@ const buildBaseContext = (solicitud = {}) => {
     correo: normalizeText(
       getFirstValue(solicitud, ["correo", "email", "correoSolicitante"]),
       50,
+    ),
+    telefono: normalizeText(
+      getFirstValue(solicitud, ["telefono", "phone", "extension"]),
+      20,
     ),
     gerencia:
       normalizeText(

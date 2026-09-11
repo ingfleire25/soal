@@ -28,7 +28,9 @@ module.exports = ( sequelize ) => {
         tipoServicio: { type: DataTypes.STRING, allowNull: false }, // Subtipo
         gerencia: { type: DataTypes.STRING, allowNull: true },
         aprobador: { type: DataTypes.STRING, allowNull: false },
+        cedulaAprobador: { type: DataTypes.STRING, allowNull: true },
         correo: { type: DataTypes.STRING, allowNull: false },
+        telefono: { type: DataTypes.STRING, allowNull: true },
         solicitante: { type: DataTypes.STRING, allowNull: false },
         cedulaSolicitante: { type: DataTypes.STRING, allowNull: false },
         tipoSolicitud: { type: DataTypes.STRING, allowNull: false }, // e.g., 'Transporte de Personal'

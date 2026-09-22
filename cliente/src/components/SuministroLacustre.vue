@@ -177,9 +177,10 @@
               <option
                 v-for="type in serviceTypes"
                 :key="type.valdesc"
-                :value="type.valdesc"
+                :value="type.value"
               >
                 {{ type.valdesc }}
+                {{ type.value }}
               </option>
             </select>
           </div>
@@ -223,6 +224,7 @@
             <label class="form-label">Aprobador</label>
             <select
               v-model="form.aprobador"
+              @change="actualizarAprobador"
               class="form-select form-select-sm"
               :disabled="!nivelAprobacionInfo.codigo || loadingAprobadores"
               required
@@ -233,7 +235,7 @@
                 :key="approver.pagepin"
                 :value="approver.name"
               >
-                {{ approver.name }} (Nivel {{ approver.la13 }})
+                {{ approver.name }} - {{ approver.laborcode }}
               </option>
             </select>
             <div class="form-text text-muted" v-if="loadingAprobadores">
@@ -258,6 +260,15 @@
               class="form-control form-control-sm bg-light"
               readonly
               required
+            />
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Teléfono</label>
+            <input
+              v-model="form.telefono"
+              type="text"
+              class="form-control form-control-sm bg-light"
+              readonly
             />
           </div>
           <div class="col-md-6">
@@ -474,7 +485,9 @@ export default {
         personaRecibe: "",
         descripcionPersonaRecibe: "",
         aprobador: "",
+        cedulaAprobador: "",
         correo: "",
+        telefono: "",
         gerencia: "",
         solicitante: "",
         cedulaSolicitante: "",
@@ -519,6 +532,7 @@ export default {
       this.form.solicitante = `${user.nombres} ${user.apellidos}`;
       this.form.cedulaSolicitante = user.cedula;
       this.form.correo = user.correo || user.email || user.username || "";
+      this.form.telefono = user.telefono || user.extension || "";
       this.form.gerencia = user.gerencia || "";
     }
     // this.loadMateriales();
@@ -778,11 +792,17 @@ export default {
           )
         ) {
           this.form.aprobador = "";
+          this.form.cedulaAprobador = "";
         }
+        const aprobador = this.aprobadoresDisponibles.find(
+          (item) => item.name === this.form.aprobador,
+        );
+        this.form.cedulaAprobador = aprobador?.laborcode || "";
       } catch (error) {
         console.error("Error cargando aprobadores:", error);
         this.aprobadoresDisponibles = [];
         this.form.aprobador = "";
+        this.form.cedulaAprobador = "";
       } finally {
         this.loadingAprobadores = false;
       }
@@ -792,6 +812,7 @@ export default {
       const currentSolicitante = this.form.solicitante;
       const currentCedula = this.form.cedulaSolicitante;
       const currentCorreo = this.form.correo;
+      const currentTelefono = this.form.telefono;
       const currentGerencia = this.form.gerencia;
       const currentSubtipo = this.form.subtipo;
       const currentFecha = this.form.fecha;
@@ -812,7 +833,9 @@ export default {
         personaRecibe: "",
         descripcionPersonaRecibe: "",
         aprobador: "",
+        cedulaAprobador: "",
         correo: currentCorreo,
+        telefono: currentTelefono,
         gerencia: currentGerencia,
         solicitante: currentSolicitante,
         cedulaSolicitante: currentCedula,
@@ -828,6 +851,12 @@ export default {
       this.mostrarDropdownOrigen = false;
       this.mostrarDropdownDestino = false;
       this.mostrarDropdownEmpresa = false;
+    },
+    actualizarAprobador() {
+      const aprobador = this.aprobadoresDisponibles.find(
+        (item) => item.name === this.form.aprobador,
+      );
+      this.form.cedulaAprobador = aprobador?.laborcode || "";
     },
   },
 };

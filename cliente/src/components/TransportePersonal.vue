@@ -622,8 +622,9 @@ export default {
       try {
         const payload = {
           ...this.form,
-          nivelAprobacion: this.nivelAprobacionInfo.codigo,
+          nivelAprobacion: Number(this.nivelAprobacionInfo.codigo) || 0,
         };
+        console.log("[TransportePersonal] payload enviado", payload);
         await postSolicitud(payload);
         notifySuccess("Solicitud enviada exitosamente");
         this.resetForm();

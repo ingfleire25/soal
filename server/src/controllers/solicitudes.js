@@ -96,6 +96,8 @@ exports.postSolicitud = async (req, res) => {
     descripcionDestino,
     fechaInicio,
     fechaFin,
+    organizacion,
+    codigoOrganizacion,
     organizacionCcOi,
     multiplesCcOi,
     lunes,
@@ -141,7 +143,12 @@ exports.postSolicitud = async (req, res) => {
     "tipoSolicitud",
   ];
   if (tipoSolicitud === "Transporte de Personal") {
-    requiredFields.push("fechaFin", "cantidadPasajeros");
+    requiredFields.push(
+      "fechaFin",
+      "cantidadPasajeros",
+      "organizacion",
+      "codigoOrganizacion",
+    );
   }
 
   for (const field of requiredFields) {
@@ -186,7 +193,10 @@ exports.postSolicitud = async (req, res) => {
       descripcionDestino,
       fechaInicio,
       fechaFin,
+      nombreOrganizacion: organizacion,
+      codigoOrganizacion,
       organizacionCcOi,
+      centroCostoCcOi: organizacionCcOi,
       multiplesCcOi,
       sumatoriaPorcentaje,
       lunes: parseDiaToBool(lunes),
@@ -251,6 +261,8 @@ exports.updateSolicitud = async (req, res) => {
     descripcionDestino,
     fechaInicio,
     fechaFin,
+    organizacion,
+    codigoOrganizacion,
     organizacionCcOi,
     multiplesCcOi,
     lunes,
@@ -300,7 +312,10 @@ exports.updateSolicitud = async (req, res) => {
       descripcionDestino,
       fechaInicio,
       fechaFin,
+      nombreOrganizacion: organizacion,
+      codigoOrganizacion,
       organizacionCcOi,
+      centroCostoCcOi: organizacionCcOi,
       multiplesCcOi,
       lunes: parseDiaToBool(lunes),
       martes: parseDiaToBool(martes),

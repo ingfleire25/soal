@@ -19,7 +19,7 @@ const buildPayloads = (solicitud, pmnum, wonum) => {
     wonum,
   });
 
-  if (tipo === 'Movimiento Unidades Mayores' || tipo === 'OUM') {
+  if (tipo === 'Movimiento Unidades Mayores' || tipo === 'OUM' || tipo === 'MUM') {
     return buildMovimientoUnidadesMayoresPayloads(solicitud, pmnum, wonum);
   }
 

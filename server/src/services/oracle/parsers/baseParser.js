@@ -94,8 +94,6 @@ const getTimezoneOffset = (date) => {
   return `${sign}${hours}:${minutes}`;
 };
 
-
-
 // Helpers de apoyo que ya utilizas en tu archivo
 const normalizeDate1 = (value) => {
   if (!value) return null;
@@ -103,11 +101,8 @@ const normalizeDate1 = (value) => {
   return isNaN(date.getTime()) ? null : date;
 };
 
-
-
-
 // // Array con las abreviaturas de los meses en inglés (estándar para 'DEC', 'NOV', etc.)
-// // Si tu base de datos de Oracle está configurada en español ('DIC', 'ENE', etc.), 
+// // Si tu base de datos de Oracle está configurada en español ('DIC', 'ENE', etc.),
 // // simplemente reemplaza los nombres en este array.
 // const MONTHS_3_LETTERS = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
 
@@ -129,7 +124,7 @@ const normalizeDate1 = (value) => {
 
 // /**
 //  * Formatea fechas tipo TARGSTARTDATE -> '01/DEC/1999 13:16:02'
-//  * Mantiene el formato DD/MON/YYYY requerido por el trigger para la porción de la fecha, 
+//  * Mantiene el formato DD/MON/YYYY requerido por el trigger para la porción de la fecha,
 //  * junto con la hora en formato de 24 horas.
 //  */
 // const formatOracleTimestampTz = (value) => {
@@ -139,7 +134,7 @@ const normalizeDate1 = (value) => {
 //   const year = date.getFullYear();
 //   const month = MONTHS_3_LETTERS[date.getMonth()]; // Ej: 'DEC'
 //   const day = pad2(date.getDate());
-  
+
 //   const hours = pad2(date.getHours());
 //   const minutes = pad2(date.getMinutes());
 //   const seconds = pad2(date.getSeconds());
@@ -152,7 +147,7 @@ const normalizeDate1 = (value) => {
 // };
 
 //**
- /* Asegura dos dígitos para el formato de fecha (ej. 01, 09, 12)
+/* Asegura dos dígitos para el formato de fecha (ej. 01, 09, 12)
  */
 
 /**
@@ -183,7 +178,7 @@ const formatOracleTimestampTz = (value) => {
   const year = date.getFullYear();
   const month = pad2(date.getMonth() + 1);
   const day = pad2(date.getDate());
-  
+
   const hours = pad2(date.getHours());
   const minutes = pad2(date.getMinutes());
   const seconds = pad2(date.getSeconds());
@@ -191,7 +186,7 @@ const formatOracleTimestampTz = (value) => {
   // Usamos la máscara exacta 'DD/MM/YYYY HH24:MI:SS' para que Oracle consuma
   // cada parte del string sin que sobre ni falte nada.
   return Sequelize.literal(
-    `TO_DATE('${day}/${month}/${year} ${hours}:${minutes}:${seconds}', 'DD/MM/YYYY HH24:MI:SS')`
+    `TO_DATE('${day}/${month}/${year} ${hours}:${minutes}:${seconds}', 'DD/MM/YYYY HH24:MI:SS')`,
   );
 };
 
@@ -240,7 +235,8 @@ const normalizeTipoSolicitud = (value) => {
   if (
     normalized.includes("movimiento") ||
     normalized.includes("unidades") ||
-    normalized.includes("oum")
+    normalized.includes("oum") ||
+    normalized === "mum"
   ) {
     return "Movimiento Unidades Mayores";
   }
@@ -304,10 +300,10 @@ const buildBaseContext = (solicitud = {}) => {
   const unidadMovilizar = getFirstValue(
     solicitud,
     [
-      "unidadMovilizar",       // Formato frontend (camelCase)
-      "unidad_movilizar",     // Posible formato Postgres (snake_case)
-      "eqnum",                // Código nativo de equipos/Maximo
-      "unidad"                // Alternativa genérica
+      "unidadMovilizar", // Formato frontend (camelCase)
+      "unidad_movilizar", // Posible formato Postgres (snake_case)
+      "eqnum", // Código nativo de equipos/Maximo
+      "unidad", // Alternativa genérica
     ],
     "",
   );
@@ -316,29 +312,28 @@ const buildBaseContext = (solicitud = {}) => {
   const descripcionUnidad = getFirstValue(
     solicitud,
     [
-      "descripcionUnidad",    // Formato frontend (camelCase)
-      "descripcion_unidad",   // Posible formato Postgres (snake_case)
-      "description",          // Propiedad nativa de tu getEquipment
-      "unidadDescripcion"     // Alternativa genérica
+      "descripcionUnidad", // Formato frontend (camelCase)
+      "descripcion_unidad", // Posible formato Postgres (snake_case)
+      "description", // Propiedad nativa de tu getEquipment
+      "unidadDescripcion", // Alternativa genérica
     ],
     "",
   );
 
-  //prueba para incluir el nivel de aprobacion en el context
-    const nivelAprobacion = getFirstValue(
-      solicitud,
-      [
-        "nivelAprobacion",
-        "nivelAprobacionTexto"
-      ],"",
-    );
+  const nivelAprobacion =
+    Number.parseInt(
+      getFirstValue(solicitud, ["nivelAprobacion", "nivelAprobacionCodigo"], 0),
+      10,
+    ) || 0;
 
   const context = {
     solicitud,
+    solicitudId: solicitud?.id || solicitud?.solicitudId || null,
     tipoSolicitud,
     fechaInicio,
     fechaFin,
     nivelAprobacion,
+    prioridad: nivelAprobacion,
     fechaSolicitud:
       normalizeDate(
         getFirstValue(solicitud, [
@@ -385,13 +380,38 @@ const buildBaseContext = (solicitud = {}) => {
           "",
         ),
       ) || normalizeText(destino, 50),
+    organizacionNombre: normalizeText(
+      getFirstValue(
+        solicitud,
+        ["nombreOrganizacion", "organizacionNombre", "organizacion"],
+        "",
+      ),
+      50,
+    ),
+    organizacionCodigo: normalizeText(
+      getFirstValue(
+        solicitud,
+        ["codigoOrganizacion", "organizacionCodigo", "companyCode"],
+        "",
+      ),
+      18,
+    ),
+    centroCostoCcOi: normalizeText(
+      getFirstValue(
+        solicitud,
+        ["centroCostoCcOi", "organizacionCcOi", "ccoi"],
+        "",
+      ),
+      18,
+    ),
+    // Alias legacy: conserva el nombre de organización para consumidores antiguos.
     organizacion: normalizeText(
       getFirstValue(
         solicitud,
-        ["organizacionCcOi", "codigoOrganizacion", "organizacion", "ccoi"],
-        "101181D",
+        ["nombreOrganizacion", "organizacionNombre", "organizacion"],
+        "",
       ),
-      18,
+      50,
     ),
     aprobador:
       normalizeText(
@@ -402,14 +422,13 @@ const buildBaseContext = (solicitud = {}) => {
         ]),
         12,
       ) || "SIN_SUPERV",
-      cedulaAprobador: 
-        normalizeText(
-          getFirstValue(solicitud,[
-              "cedulaAprobador",
-              "laborcode",
-              "codigoAprobador"
-          ])
-        ),
+    cedulaAprobador: normalizeText(
+      getFirstValue(solicitud, [
+        "cedulaAprobador",
+        "laborcode",
+        "codigoAprobador",
+      ]),
+    ),
     solicitante:
       normalizeText(
         getFirstValue(solicitud, [
@@ -445,7 +464,7 @@ const buildBaseContext = (solicitud = {}) => {
       normalizeText(
         getFirstValue(solicitud, ["modserv", "modalidad", "modalidadServicio"]),
         10,
-      ) || "LANTRP",
+      ) || "8X5",
     tipoServicio: normalizeText(
       getFirstValue(solicitud, ["tipoServicio", "servicio", "tipo"]),
       10,

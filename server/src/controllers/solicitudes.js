@@ -4,21 +4,18 @@ const { sendSolicitudToOracle } = require("./oracle/solicitudOracle");
 const mailer = require("../../utils/mailer");
 
 const getNextSequentialId = async (model, prefix) => {
-  const latest = await model.findOne({
-    where: { id: { [Op.like]: `${prefix}-%` } },
-    order: [["id", "DESC"]],
+  const solicitudes = await model.findAll({
+    where: { id: { [Op.like]: `${prefix}%` } },
     attributes: ["id"],
   });
 
-  let nextNumber = 1;
-  if (latest && latest.id) {
-    const match = latest.id.match(new RegExp(`^${prefix}-(\\d{4})$`));
-    if (match) {
-      nextNumber = parseInt(match[1], 10) + 1;
-    }
-  }
+  const prefixPattern = new RegExp(`^${prefix}-?(\\d+)$`);
+  const highestNumber = solicitudes.reduce((highest, solicitud) => {
+    const match = String(solicitud.id || "").match(prefixPattern);
+    return match ? Math.max(highest, Number(match[1])) : highest;
+  }, 0);
 
-  return `${prefix}-${String(nextNumber).padStart(4, "0")}`;
+  return `${prefix}${String(highestNumber + 1).padStart(4, "0")}`;
 };
 
 const normalizeOrganizacionCcOi = (body) => {

@@ -92,3 +92,71 @@ CREAR MENSAJE DE DE APROBADO CON EL NUMERO DE ODST
 572606 eSTATUS CERRADA
 LA SOL RECURRENTE NO SE CREAN DIRECTAMENTE CON ODST SINO QUE MES POR MES SE LE CREA POR SOT UNA ODST SEGUN TRANSCURRA EL TIEMPO
 569536 SOLICITUD SL ESTATUS PENPROG PARA EXAMINAR LA BD
+
+hay qeu eliminar el guion en solicituid para probar si se guarda en req de osel
+
+Voy a seguir el valor desde el <select> del componente hasta el modelo y la persistencia. La hipótesis es que el frontend sí envía "", pero el backend lo convierte explícitamente a false mediante parseDiaToBool, por lo que la base termina guardando F; verificaré también el tipo de columna para definir cómo conservar el tercer estado.
+
+
+
+
+Confirmado: el problema está en dos capas. parseDiaToBool convierte el valor vacío en false, y el modelo PostgreSQL declara cada día como BOOLEAN, así que se pierde la diferencia entre “Fijo” y “sin selección”. Voy a conservar los valores como C, F o null y ajustar la normalización hacia Oracle para que el tercer estado siga siendo vacío/nulo.
+
+
+
+
+
+
+
+
+
+
+También encontré una segunda conversión: el parser de Oracle usa return letra || "F", por lo que incluso un valor nulo vuelve a convertirse en F antes de insertar. Corregiré ambas conversiones y cambiaré los campos del modelo de solicitud a texto nullable, porque un booleano no puede representar C, F y “sin selección”.
+
+Generating patch (36 lines) in solicitudes.js
+
+Hay una decisión importante: mientras las columnas sean booleanas, es imposible guardar literalmente C, F y “sin selección” como tres estados. Además, el parser Oracle actualmente convierte null a F, así que corregiré ambos puntos: columnas de días como texto nullable en PostgreSQL y normalización Oracle que devuelva null cuando no hay valor.
+
+SELECT * 
+FROM WORKORDER t 
+WHERE t.worktype = 'TP' 
+  AND t.status = 'PENDPROG' 
+ORDER BY t.wonum DESC;
+
+SELECT * FROM ALL_TAB_COLUMNS T 
+WHERE T.COLUMN_NAME = 'ITEMNUM'
+
+// CONSULTA PARA GUARDAR INFORMACION EN LAS SL MATERIALES
+
+{
+  "ok": true,
+  "total": 1,
+  "data": [
+    {
+      "rowstamp": "325069334",
+      "wonum": "572484",
+      "wpoperation": null,
+      "itemnum": "AGUALT",
+      "location": null,
+      "itemqty": "50000",
+      "unitcost": "0",
+      "ldkey": null,
+      "directreq": "N",
+      "vendor": null,
+      "requiredate": "2025-12-14T13:59:59.000Z",
+      "requestby": null,
+      "pr": null,
+      "wpm1": null,
+      "wpm2": null,
+      "wpm3": null,
+      "wpm4": null,
+      "wpm5": "LITROS",
+      "wpm6": null,
+      "prlinenum": null,
+      "unitcosthaschanged": "N",
+      "issueto": null
+    }
+  ]
+}
+
+DEBO IMPLEMENTAR WPMATERIAL PARA GUARDAR SOLICITUDES DE TIPO SL EN ESA TABLA SE GUARDAN TODOS LOS MATERIALES DE SL 

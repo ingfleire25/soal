@@ -67,13 +67,13 @@ const getNextPmnum = async () => {
   return next;
 };
 
-const createPmRecord = async ({ payload }) => {
+const createPmRecord = async ({ payload, transaction }) => {
   console.log("[Oracle writer] createPmRecord", {
     pmnum: payload?.pmnum,
     description: payload?.description,
     supervisor: payload?.supervisor,
   });
-  return Pm.create(payload);
+  return Pm.create(payload, { transaction });
 };
 
 module.exports = {

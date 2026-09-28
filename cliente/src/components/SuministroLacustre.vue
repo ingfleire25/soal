@@ -356,6 +356,7 @@
                     <strong>{{ item.itemnum + " " }}</strong> -
                     {{ item.description + " " }} -
                     <strong class="text-muted">{{ item.stocktype }}</strong>
+                    <span v-if="item.issueunit">({{ item.issueunit }})</span>
                   </button>
                 </div>
               </div>
@@ -459,7 +460,10 @@ import { getCompanies } from "@/services/getCompanies";
 import { getAprobadoresLabor } from "@/services/getAprobadoresLabor";
 import CentroCostoAutocomplete from "@/components/CentroCostoAutocomplete.vue";
 import { toDatetimeLocal, getNivelAprobacion } from "@/utils/dateTime";
-import { notifySuccess, notifyError } from "@/utils/alertService";
+import {
+  notifyError,
+  showSolicitudSummary,
+} from "@/utils/alertService";
 
 export default {
   name: "SuministroLacustre",
@@ -662,6 +666,7 @@ export default {
         material.materialId = "";
         material.renglon = "";
         material.descripcion = "";
+        material.unidadMedida = "";
         material.searchResults = [];
 
         if (query.length < 2) {
@@ -688,6 +693,7 @@ export default {
       material.materialId = item.itemnum;
       material.renglon = item.itemnum;
       material.descripcion = item.description;
+      material.unidadMedida = item.issueunit || "";
       material.searchQuery = `${item.itemnum} - ${item.description}`;
       material.searchResults = [];
     },
@@ -723,6 +729,7 @@ export default {
         materialId: "",
         renglon: "",
         descripcion: "",
+        unidadMedida: "",
         cantidad: 1,
         fechaEntregaMuelle: "",
         observacion: "",
@@ -761,12 +768,16 @@ export default {
         dataToSend.materiales = dataToSend.materiales.map((m) => ({
           renglon: m.renglon,
           descripcion: m.descripcion,
+          unidadMedida: m.unidadMedida,
           cantidad: m.cantidad,
           fechaEntregaMuelle: m.fechaEntregaMuelle,
           observacion: m.observacion,
         }));
-        await postSuministroLacustre(dataToSend);
-        notifySuccess("Solicitud enviada exitosamente");
+        const solicitudCreada = await postSuministroLacustre(dataToSend);
+        await showSolicitudSummary({
+          title: "Solicitud creada exitosamente",
+          solicitud: solicitudCreada,
+        });
         this.resetForm();
       } catch (error) {
         notifyError("Error al enviar solicitud: " + error.statusText);

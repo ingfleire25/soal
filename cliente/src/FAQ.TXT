@@ -96,25 +96,9 @@ LA SOL RECURRENTE NO SE CREAN DIRECTAMENTE CON ODST SINO QUE MES POR MES SE LE C
 hay qeu eliminar el guion en solicituid para probar si se guarda en req de osel
 
 Voy a seguir el valor desde el <select> del componente hasta el modelo y la persistencia. La hipótesis es que el frontend sí envía "", pero el backend lo convierte explícitamente a false mediante parseDiaToBool, por lo que la base termina guardando F; verificaré también el tipo de columna para definir cómo conservar el tercer estado.
-
-
-
-
 Confirmado: el problema está en dos capas. parseDiaToBool convierte el valor vacío en false, y el modelo PostgreSQL declara cada día como BOOLEAN, así que se pierde la diferencia entre “Fijo” y “sin selección”. Voy a conservar los valores como C, F o null y ajustar la normalización hacia Oracle para que el tercer estado siga siendo vacío/nulo.
-
-
-
-
-
-
-
-
-
-
 También encontré una segunda conversión: el parser de Oracle usa return letra || "F", por lo que incluso un valor nulo vuelve a convertirse en F antes de insertar. Corregiré ambas conversiones y cambiaré los campos del modelo de solicitud a texto nullable, porque un booleano no puede representar C, F y “sin selección”.
-
 Generating patch (36 lines) in solicitudes.js
-
 Hay una decisión importante: mientras las columnas sean booleanas, es imposible guardar literalmente C, F y “sin selección” como tres estados. Además, el parser Oracle actualmente convierte null a F, así que corregiré ambos puntos: columnas de días como texto nullable en PostgreSQL y normalización Oracle que devuelva null cuando no hay valor.
 
 SELECT * 

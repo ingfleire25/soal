@@ -213,14 +213,13 @@
 
           <div class="col-md-12 py-2">
             <label class="form-label fw-bold d-block"
-              >Días de la Semana (C = Contratad F = Fijo)</label
+              >Días de la semana (C = Contratado, F = Fijo)</label
             >
             <div class="row gy-2">
-              <!-- <div v-for="dia in diasConfig" :key="dia.model" class="col-6 col-sm-4 col-md-2"> -->
               <div v-for="dia in diasConfig" :key="dia.model" class="col-md-1">
                 <label class="form-label">{{ dia.label }}</label>
-                <select class="form-select-sm" v-model="form[dia.model]">
-                  <option value="">---</option>
+                <select class="form-select form-select-sm" v-model="form[dia.model]">
+                  <option value="">Sin selección</option>
                   <option value="C">Contratado</option>
                   <option value="F">Fijo</option>
                 </select>
@@ -364,7 +363,10 @@ import { getModserv } from "@/services/getModserv";
 import { getAprobadoresLabor } from "@/services/getAprobadoresLabor";
 import CentroCostoAutocomplete from "@/components/CentroCostoAutocomplete.vue";
 import { getNivelAprobacion } from "@/utils/dateTime";
-import { notifySuccess, notifyError } from "@/utils/alertService";
+import {
+  notifyError,
+  showSolicitudSummary,
+} from "@/utils/alertService";
 
 export default {
   name: "TransportePersonal",
@@ -625,8 +627,11 @@ export default {
           nivelAprobacion: Number(this.nivelAprobacionInfo.codigo) || 0,
         };
         console.log("[TransportePersonal] payload enviado", payload);
-        await postSolicitud(payload);
-        notifySuccess("Solicitud enviada exitosamente");
+        const solicitudCreada = await postSolicitud(payload);
+        await showSolicitudSummary({
+          title: "Solicitud creada exitosamente",
+          solicitud: solicitudCreada,
+        });
         this.resetForm();
       } catch (error) {
         notifyError(

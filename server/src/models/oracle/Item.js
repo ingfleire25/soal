@@ -27,6 +27,11 @@ module.exports = (sequelize) => {
       allowNull: false,
       field: 'STOCKTYPE'
     },
+    issueunit: {
+      type: DataTypes.STRING(16),
+      allowNull: true,
+      field: 'ISSUEUNIT'
+    },
     lottype: {
       type: DataTypes.STRING(10),
       allowNull: false,

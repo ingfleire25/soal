@@ -3,7 +3,7 @@ const { Op, fn, col, where } = require('sequelize');
 
 /**
  * Obtiene una lista simplificada de ítems
- * Trae solo: itemnum, description y stocktype
+ * Trae el código, descripción, tipo y unidad de salida para WPMATERIAL.
  */
 const getBasicItems = async (req, res) => {
     try {
@@ -21,7 +21,7 @@ const getBasicItems = async (req, res) => {
 
         const items = await Item.findAll({
             // Seleccionamos solo las columnas requeridas
-            attributes: ['itemnum', 'description', 'stocktype'],
+            attributes: ['itemnum', 'description', 'stocktype', 'issueunit'],
             where: whereClause,
             order: [['itemnum', 'ASC']] 
         });

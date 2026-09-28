@@ -4,7 +4,7 @@ const WorkOrder = db.WorkOrder || db.Workorder;
 
 // Wrapper para la creación de work orders en Oracle.
 // El servicio de propagación solo envía el payload y no necesita conocer el modelo subyacente.
-const createWorkorderRecord = async ({ payload }) => {
+const createWorkorderRecord = async ({ payload, transaction }) => {
   console.log('[Oracle writer] createWorkorderRecord', {
     wonum: payload?.wonum,
     pmnum: payload?.pmnum,
@@ -15,7 +15,7 @@ const createWorkorderRecord = async ({ payload }) => {
     eqnum: payload?.eqnum,
     wo1: payload?.wo1,
   });
-  return WorkOrder.create(payload);
+  return WorkOrder.create(payload, { transaction });
 };
 
 module.exports = {

@@ -210,12 +210,11 @@ const formatDateTime = (value) => {
 };
 
 const normalizeDia = (value) => {
-  const letra = String(value || "")
-    .trim()
-    .toUpperCase()
-    .replace(/[^CF]/g, "")
-    .charAt(0);
-  return letra || "F";
+  if (value === true || value === "true") return "C";
+  if (value === false || value === "false") return "F";
+  if (value === undefined || value === null || value === "") return null;
+  const letra = String(value).trim().toUpperCase();
+  return letra === "C" || letra === "F" ? letra : null;
 };
 
 const getFirstValue = (source = {}, keys = [], fallback = "") => {
@@ -501,6 +500,30 @@ const buildBaseContext = (solicitud = {}) => {
           10,
         )
       : 1,
+    materiales: Array.isArray(solicitud.materiales)
+      ? solicitud.materiales.map((material) => ({
+          itemnum: normalizeText(
+            getFirstValue(material, ["itemnum", "renglon"]),
+            30,
+          ).toUpperCase(),
+          descripcion: normalizeText(material.descripcion, 80),
+          cantidad: Number(material.cantidad ?? material.itemqty),
+          fechaEntregaMuelle: normalizeDate(
+            getFirstValue(material, ["fechaEntregaMuelle", "requiredate"]),
+          ),
+          unidadMedida: normalizeText(
+            getFirstValue(material, ["unidadMedida", "wpm5"]),
+            15,
+          ),
+          observacion: normalizeText(
+            getFirstValue(material, ["observacion", "wpm6"]),
+            50,
+          ),
+          unitcost: material.unitcost,
+          directreq: material.directreq,
+          unitcosthaschanged: material.unitcosthaschanged,
+        }))
+      : [],
     changeby:
       normalizeText(
         getFirstValue(solicitud, [

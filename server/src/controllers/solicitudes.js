@@ -1,4 +1,4 @@
-const { Solicitud, SuministroLacustre, Materiales } = require("../db");
+const { Solicitud, SuministroLacustre, Materiales, conn } = require("../db");
 const { Op } = require("sequelize");
 const { sendSolicitudToOracle } = require("./oracle/solicitudOracle");
 const mailer = require("../../utils/mailer");
@@ -24,16 +24,13 @@ const normalizeOrganizacionCcOi = (body) => {
   );
 };
 
-const parseDiaToBool = (val) => {
-  if (val === true || val === "true") return true;
-  if (val === false || val === "false") return false;
-  const s =
-    val === undefined || val === null ? "" : String(val).trim().toUpperCase();
-  // 'C' -> Contratado -> true, 'F' -> Fijo -> false
-  if (s === "C") return true;
-  if (s === "F") return false;
-  // Fallback: treat empty or unknown as false
-  return false;
+const normalizeDia = (value) => {
+  if (value === true || value === "true") return "C";
+  if (value === false || value === "false") return "F";
+  const dia = value === undefined || value === null
+    ? ""
+    : String(value).trim().toUpperCase();
+  return dia === "C" || dia === "F" ? dia : null;
 };
 
 const getApprovalLevel = (fechaInicio, fechaSolicitud = null) => {
@@ -100,6 +97,7 @@ exports.postSolicitud = async (req, res) => {
     lunes,
     martes,
     miercoles,
+
     jueves,
     viernes,
     sabado,
@@ -196,13 +194,13 @@ exports.postSolicitud = async (req, res) => {
       centroCostoCcOi: organizacionCcOi,
       multiplesCcOi,
       sumatoriaPorcentaje,
-      lunes: parseDiaToBool(lunes),
-      martes: parseDiaToBool(martes),
-      miercoles: parseDiaToBool(miercoles),
-      jueves: parseDiaToBool(jueves),
-      viernes: parseDiaToBool(viernes),
-      sabado: parseDiaToBool(sabado),
-      domingo: parseDiaToBool(domingo),
+      lunes: normalizeDia(lunes),
+      martes: normalizeDia(martes),
+      miercoles: normalizeDia(miercoles),
+      jueves: normalizeDia(jueves),
+      viernes: normalizeDia(viernes),
+      sabado: normalizeDia(sabado),
+      domingo: normalizeDia(domingo),
       cantidadPasajeros,
       tipoServicio,
       aprobador,
@@ -314,13 +312,13 @@ exports.updateSolicitud = async (req, res) => {
       organizacionCcOi,
       centroCostoCcOi: organizacionCcOi,
       multiplesCcOi,
-      lunes: parseDiaToBool(lunes),
-      martes: parseDiaToBool(martes),
-      miercoles: parseDiaToBool(miercoles),
-      jueves: parseDiaToBool(jueves),
-      viernes: parseDiaToBool(viernes),
-      sabado: parseDiaToBool(sabado),
-      domingo: parseDiaToBool(domingo),
+      lunes: normalizeDia(lunes),
+      martes: normalizeDia(martes),
+      miercoles: normalizeDia(miercoles),
+      jueves: normalizeDia(jueves),
+      viernes: normalizeDia(viernes),
+      sabado: normalizeDia(sabado),
+      domingo: normalizeDia(domingo),
       cantidadPasajeros,
       tipoServicio,
       aprobador,
@@ -377,32 +375,47 @@ exports.cambiarEstado = async (req, res) => {
         .json({ statusCode: 404, statusText: "Solicitud no encontrada" });
     }
 
+    const estadoAnterior = solicitud.estado;
+    let oracleIdentifiers = null;
+
     await solicitud.update({
       estado,
       motivoRechazo: estado === "rechazada" ? motivoRechazo || null : null,
     });
 
-    if (estado === "aprobada" && modelo === "Solicitud") {
+    if (estado === "aprobada" && estadoAnterior !== "aprobada") {
       try {
-        await sendSolicitudToOracle(solicitud.dataValues);
-        // Enviar correo de aprobación
-        try {
-          if (solicitud && solicitud.correo) {
-            await mailer
-              .sendSolicitudApproved(solicitud.correo, solicitud.dataValues)
-              .catch((err) =>
-                console.error(
-                  "Error enviando correo de aprobación:",
-                  err.message,
-                ),
-              );
-          }
-        } catch (mailErr) {
-          console.error(
-            "Error iniciando envío de correo de aprobación:",
-            mailErr.message,
-          );
+        const oracleSolicitud = { ...solicitud.dataValues };
+        if (modelo === "SuministroLacustre") {
+          oracleSolicitud.materiales = await Materiales.findAll({
+            where: { suministroLacustreId: solicitud.id },
+            raw: true,
+          });
         }
+        const oracleResult = await sendSolicitudToOracle(oracleSolicitud);
+        if (!oracleResult?.success) {
+          await solicitud.update({ estado: "pendiente" });
+          return res.status(500).json({
+            statusCode: 500,
+            statusText: "No se pudo propagar la solicitud a Oracle",
+            error: oracleResult?.errors?.map((item) => item.message).join("; ") || "Error de propagación",
+          });
+        }
+        const oracleResults = oracleResult.results || {};
+        oracleIdentifiers = {
+          wonum:
+            oracleResults.workorder?.wonum ||
+            oracleResults.workorder?.dataValues?.wonum ||
+            oracleResults.osel?.wonum ||
+            oracleResults.osel?.dataValues?.wonum ||
+            oracleResults.wostatus?.wonum ||
+            oracleResults.wostatus?.dataValues?.wonum ||
+            null,
+          pmnum:
+            oracleResults.pm?.pmnum ||
+            oracleResults.pm?.dataValues?.pmnum ||
+            null,
+        };
       } catch (oracleError) {
         console.error(
           "Error al enviar solicitud aprobada a Oracle:",
@@ -414,6 +427,19 @@ exports.cambiarEstado = async (req, res) => {
           statusText: "Solicitud aprobada pero no pudo enviarse a Oracle",
           error: oracleError.message,
         });
+      }
+    }
+    if (estado === "aprobada") {
+      try {
+        if (solicitud?.correo) {
+          await mailer
+            .sendSolicitudApproved(solicitud.correo, solicitud.dataValues)
+            .catch((err) =>
+              console.error("Error enviando correo de aprobación:", err.message),
+            );
+        }
+      } catch (mailErr) {
+        console.error("Error iniciando envío de correo de aprobación:", mailErr.message);
       }
     }
     if (estado === "rechazada") {
@@ -439,6 +465,7 @@ exports.cambiarEstado = async (req, res) => {
       statusText: "Estado actualizado",
       result: {
         ...solicitud.dataValues,
+        oracle: oracleIdentifiers,
         tipoTabla:
           modelo === "Solicitud" ? "solicitudes" : "suministroLacustre",
       },
@@ -462,6 +489,8 @@ exports.postSuministroLacustre = async (req, res) => {
     descripcionDestino,
     fechaInicio,
     fechaFin,
+    organizacion,
+    codigoOrganizacion,
     organizacionCcOi,
     multiplesCcOi,
     tipoServicio,
@@ -470,7 +499,9 @@ exports.postSuministroLacustre = async (req, res) => {
     personaRecibe,
     descripcionPersonaRecibe,
     aprobador,
+    cedulaAprobador,
     correo,
+    telefono,
     gerencia,
     solicitante,
     cedulaSolicitante,
@@ -519,6 +550,7 @@ exports.postSuministroLacustre = async (req, res) => {
     });
   }
 
+  let transaction;
   try {
     // Calculate sumatoriaPorcentaje
     let sumatoriaPorcentaje = null;
@@ -535,6 +567,7 @@ exports.postSuministroLacustre = async (req, res) => {
       }
     }
 
+    transaction = await conn.transaction();
     const nivelAprobacion = getApprovalLevel(fechaInicio, fecha);
     const id = await getNextSequentialId(SuministroLacustre, "SL");
     const nueva = await SuministroLacustre.create({
@@ -546,6 +579,8 @@ exports.postSuministroLacustre = async (req, res) => {
       descripcionDestino,
       fechaInicio,
       fechaFin,
+      nombreOrganizacion: organizacion,
+      codigoOrganizacion,
       organizacionCcOi,
       multiplesCcOi,
       sumatoriaPorcentaje,
@@ -555,7 +590,9 @@ exports.postSuministroLacustre = async (req, res) => {
       personaRecibe,
       descripcionPersonaRecibe,
       aprobador,
+      cedulaAprobador,
       correo,
+      telefono,
       gerencia,
       solicitante,
       cedulaSolicitante,
@@ -565,19 +602,22 @@ exports.postSuministroLacustre = async (req, res) => {
       nivelAprobacion,
       estado: "pendiente",
       motivoRechazo: null,
-    });
+    }, { transaction });
 
     // Crear materiales asociados
     for (const mat of materiales) {
       await Materiales.create({
         renglon: mat.renglon,
         descripcion: mat.descripcion,
+        unidadMedida: mat.unidadMedida || null,
         cantidad: mat.cantidad,
         fechaEntregaMuelle: mat.fechaEntregaMuelle,
         observacion: mat.observacion,
         suministroLacustreId: nueva.id,
-      });
+      }, { transaction });
     }
+
+    await transaction.commit();
 
     res.status(201).json({
       statusCode: 201,
@@ -585,6 +625,7 @@ exports.postSuministroLacustre = async (req, res) => {
       result: nueva,
     });
   } catch (err) {
+    if (transaction && !transaction.finished) await transaction.rollback();
     console.error(err);
     res.status(500).json({
       statusCode: 500,

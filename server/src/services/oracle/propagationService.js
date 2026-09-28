@@ -5,9 +5,14 @@ const { createPmRecord } = require('./writers/pmWriter');
 const { createOselRecord } = require('./writers/oselWriter');
 const { createWoStatusRecord } = require('./writers/wostatusWriter');
 const { createWorkorderRecord } = require('./writers/workorderWriter');
+const { createWpmaterialRecords } = require('./writers/wpmaterialWriter');
 
 const AutoKey = db.AutoKey || db.Autokey;
 const connOracle = db.connOracle || db.sequelize;
+
+const isRecurringTransport = (context) =>
+  context.tipoSolicitud === 'Transporte de Personal' &&
+  String(context.subtipo || '').trim().toLowerCase() === 'recurrente';
 
 /**
  * Obtiene e incrementa el siguiente código desde la tabla AUTOKEY de forma atómica.
@@ -43,20 +48,27 @@ const getNextSequenceFromAutoKey = async (tbname, transaction) => {
 };
 
 const propagateSolicitudToOracle = async (solicitud) => {
+  const context = buildBaseContext(solicitud);
+  const tipoSolicitud = context.tipoSolicitud;
+
   console.log('[Oracle service] propagateSolicitudToOracle start', {
     solicitudId: solicitud?.id || solicitud?.solicitudId || null,
-    tipoSolicitud: solicitud?.tipoSolicitud || solicitud?.tipoServicio || null,
+    tipoSolicitud,
+    subtipo: context.subtipo,
   });
+
+  const esTransporteRecurrente = isRecurringTransport(context);
+
+  // TP (ocasional y recurrente) crea PM; MUM y SL no.
+  const creaPm = tipoSolicitud === 'Transporte de Personal';
 
   const transaction = await connOracle.transaction();
 
   try {
-    // MUM no crea PM; por eso tampoco debe consumir un número de AUTOKEY.PM.
-    const tipoSolicitud = buildBaseContext(solicitud).tipoSolicitud;
-    const esMovimientoUnidadesMayores = tipoSolicitud === 'Movimiento Unidades Mayores';
-    const pmnum = esMovimientoUnidadesMayores
-      ? null
-      : await getNextSequenceFromAutoKey('PM', transaction);
+    // MUM y SL no generan PM ni consumen un número de AUTOKEY.PM.
+    const pmnum = creaPm
+      ? await getNextSequenceFromAutoKey('PM', transaction)
+      : null;
     const wonum = await getNextSequenceFromAutoKey('WORKORDER', transaction);
 
     console.log('[Oracle service] generated identifiers from AUTOKEY', { pmnum, wonum });
@@ -66,8 +78,8 @@ const propagateSolicitudToOracle = async (solicitud) => {
 
     const results = {};
     
-    // 3. Crear PM solo para TP y SL.
-    if (pmPayload) {
+    // 3. Crear PM para Transporte Personal, ocasional o recurrente.
+    if (creaPm && pmPayload) {
       const pmData = { ...pmPayload, pmnum };
       results.pm = await createPmRecord({
         payload: pmData,
@@ -97,17 +109,29 @@ const propagateSolicitudToOracle = async (solicitud) => {
       transaction 
     });
 
-    // 6. Crear WORKORDER con wonum y pmnum solo cuando existe PM.
-    const workorderData = {
-      ...workorderPayload,
-      wonum: results.wostatus?.wonum || wonum,
-    };
-    if (pmReference) workorderData.pmnum = pmReference;
-    else delete workorderData.pmnum;
-    results.workorder = await createWorkorderRecord({
-      payload: workorderData,
-      transaction,
-    });
+    // TP recurrente crea PM, OSEL y WOSTATUS, pero no una orden WORKORDER.
+    if (!esTransporteRecurrente) {
+      const workorderData = {
+        ...workorderPayload,
+        wonum: results.wostatus?.wonum || wonum,
+      };
+      if (pmReference) workorderData.pmnum = pmReference;
+      else delete workorderData.pmnum;
+      results.workorder = await createWorkorderRecord({
+        payload: workorderData,
+        transaction,
+      });
+    }
+
+    // Cada material de SL se guarda como una fila WPMATERIAL asociada al mismo WONUM.
+    if (tipoSolicitud === 'Suministro Lacustre') {
+      results.materiales = await createWpmaterialRecords({
+        materials: context.materiales,
+        wonum,
+        solicitud: context,
+        transaction,
+      });
+    }
 
     await transaction.commit();
 

@@ -371,7 +371,10 @@ import { getAprobadoresLabor } from "@/services/getAprobadoresLabor";
 import { getEquipment } from "@/services/getEquipment";
 import CentroCostoAutocomplete from "@/components/CentroCostoAutocomplete.vue";
 import { toDatetimeLocal, getNivelAprobacion } from "@/utils/dateTime";
-import { notifySuccess, notifyError } from '@/utils/alertService';
+import {
+  notifyError,
+  showSolicitudSummary,
+} from '@/utils/alertService';
 
 export default {
   name: "MovimientoUnidadesMayores",
@@ -659,8 +662,11 @@ export default {
           nivelAprobacion: Number(this.nivelAprobacionInfo.codigo) || 0,
         };
         delete dataToSend.id;
-        await postSolicitud(dataToSend);
-        notifySuccess("Solicitud enviada exitosamente");
+        const solicitudCreada = await postSolicitud(dataToSend);
+        await showSolicitudSummary({
+          title: "Solicitud creada exitosamente",
+          solicitud: solicitudCreada,
+        });
         this.resetForm();
       } catch (error) {
         notifyError(

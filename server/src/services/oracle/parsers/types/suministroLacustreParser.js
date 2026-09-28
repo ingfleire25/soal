@@ -14,6 +14,9 @@ const buildSuministroLacustrePayloads = (solicitud, pmnum, wonum) => {
   const descripcionPersonaRecibe = solicitud.descripcionPersonaRecibe || "";
 
   return {
+    // SL no debe crear PM. Se conserva el resto del payload operativo igual que MUM.
+    pmPayload: null,
+    /*
     pmPayload: {
       pmnum,
       rowstamp: String(Date.now()),
@@ -76,15 +79,16 @@ const buildSuministroLacustrePayloads = (solicitud, pmnum, wonum) => {
       updextdate: "S",
       updseasonaldates: "S",
     },
+    */
     oselPayload: {
       wonum,
       description: context.descripcion,
       worktype: "SL",
       status: "PENDPROG",
       glaccount: context.centroCostoCcOi,
-      worts1: context.origen,
+      worts1: context.organizacionNombre,
       wol3: context.destino,
-      req: "N",
+      req: context.solicitudId,
       bandera: "N",
       correo: context.correo,
       pmnum,
@@ -131,8 +135,12 @@ const buildSuministroLacustrePayloads = (solicitud, pmnum, wonum) => {
       wopm3: context.destino,
       wopm4: context.descripcionDestino,
       wopm5: codigoTipoServicio,
-      wol1: context.descripcion,
+      wol1: context.organizacionNombre,
+      wol2: "SOT",
+      wol3: context.solicitante,
+      wo10: context.aprobador,
       wo1: formatOracleTimestampTz(context.fechaFin),
+      worts1: context.organizacionNombre,
       wolablnk: context.cedulaSolicitante,
       chargestore: "N",
       estservcost: 0,

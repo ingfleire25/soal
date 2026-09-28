@@ -10,6 +10,7 @@ module.exports = (sequelize) => {
     },
     renglon: { type: DataTypes.STRING, allowNull: false },
     descripcion: { type: DataTypes.TEXT, allowNull: false },
+    unidadMedida: { type: DataTypes.STRING(15), allowNull: true },
     cantidad: { type: DataTypes.INTEGER, allowNull: false },
     fechaEntregaMuelle: { type: DataTypes.DATE, allowNull: false },
     observacion: { type: DataTypes.TEXT, allowNull: true },

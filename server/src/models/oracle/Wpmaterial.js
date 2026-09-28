@@ -5,12 +5,12 @@ module.exports = (sequelize) => {
     rowstamp: {
       type: DataTypes.STRING(40),
       allowNull: false,
+      primaryKey: true,
       field: 'ROWSTAMP'
     },
     wonum: {
       type: DataTypes.STRING(10),
       allowNull: false,
-      primaryKey: true,
       field: 'WONUM'
     },
     wpoperation: {

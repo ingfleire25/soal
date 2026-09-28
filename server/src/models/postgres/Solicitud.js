@@ -22,13 +22,13 @@ module.exports = (sequelize) => {
       centroCostoCcOi: { type: DataTypes.STRING, allowNull: true },
       multiplesCcOi: { type: DataTypes.JSON, allowNull: true }, // Array of {ccOi, porcentaje}
       sumatoriaPorcentaje: { type: DataTypes.DECIMAL(5, 2), allowNull: true }, // Calculated
-      lunes: { type: DataTypes.BOOLEAN, defaultValue: false },
-      martes: { type: DataTypes.BOOLEAN, defaultValue: false },
-      miercoles: { type: DataTypes.BOOLEAN, defaultValue: false },
-      jueves: { type: DataTypes.BOOLEAN, defaultValue: false },
-      viernes: { type: DataTypes.BOOLEAN, defaultValue: false },
-      sabado: { type: DataTypes.BOOLEAN, defaultValue: false },
-      domingo: { type: DataTypes.BOOLEAN, defaultValue: false },
+      lunes: { type: DataTypes.STRING(1), allowNull: true },
+      martes: { type: DataTypes.STRING(1), allowNull: true },
+      miercoles: { type: DataTypes.STRING(1), allowNull: true },
+      jueves: { type: DataTypes.STRING(1), allowNull: true },
+      viernes: { type: DataTypes.STRING(1), allowNull: true },
+      sabado: { type: DataTypes.STRING(1), allowNull: true },
+      domingo: { type: DataTypes.STRING(1), allowNull: true },
       cantidadPasajeros: { type: DataTypes.INTEGER, allowNull: true },
       tipoServicio: { type: DataTypes.STRING, allowNull: false }, // Subtipo
       gerencia: { type: DataTypes.STRING, allowNull: true },

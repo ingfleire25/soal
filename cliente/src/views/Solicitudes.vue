@@ -12,7 +12,12 @@ import { getModserv } from "@/services/getModserv";
 import { getBasicItems } from "@/services/getBasicItems";
 import { getAprobadoresLabor } from "@/services/getAprobadoresLabor";
 import CentroCostoAutocomplete from "@/components/CentroCostoAutocomplete.vue";
-import { notifyError, confirmAction, promptAction } from "@/utils/alertService";
+import {
+  notifyError,
+  confirmAction,
+  promptAction,
+  showSolicitudSummary,
+} from "@/utils/alertService";
 import {
   toDatetimeLocalFromISOString,
   getNivelAprobacion,
@@ -417,7 +422,12 @@ const aprobar = async (s) => {
   if (!resultado.isConfirmed) return;
 
   try {
-    await cambiarEstado(s.id, { estado: "aprobada" });
+    const solicitudAprobada = await cambiarEstado(s.id, { estado: "aprobada" });
+    await showSolicitudSummary({
+      title: "Solicitud aprobada exitosamente",
+      solicitud: solicitudAprobada,
+      oracle: solicitudAprobada.oracle,
+    });
     await cargarSolicitudes();
   } catch (e) {
     notifyError("Error al aprobar: " + e.statusText);

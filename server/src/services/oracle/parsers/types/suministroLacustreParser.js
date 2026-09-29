@@ -8,14 +8,53 @@ const {
 const buildSuministroLacustrePayloads = (solicitud, pmnum, wonum) => {
   const context = buildBaseContext(solicitud);
   const codigoTipoServicio = context.tipoServicio || "";
-  const personaEnvia = solicitud.personaEnvia || "";
-  const descripcionPersonaEnvia = solicitud.descripcionPersonaEnvia || "";
-  const personaRecibe = solicitud.personaRecibe || "";
-  const descripcionPersonaRecibe = solicitud.descripcionPersonaRecibe || "";
+
+console.log("[Oracle parser][TP] Context estructurado:", {
+  IDENTIFICADORES:{
+    PMNUM: pmnum,
+    WONUM: wonum
+  },
+  solicitud: {
+    id: context.solicitudId,
+    descripcion: context.descripcion,
+    tipoServicio: context.tipoServicio,
+    tipoSolicitud: context.tipoSolicitud,
+    modserv: context.modserv,
+    glaccount: context.centroCostoCcOi,
+    nivelAprobacion: context.nivelAprobacion,
+    unidadMovilizar: context.unidadMovilizar,
+    
+  },
+  personas: {
+    solicitante: context.solicitante,
+    cedulaSolicitante: context.cedulaSolicitante,
+    aprobador: context.aprobador,
+    cedulaAprobador: context.cedulaAprobador,
+    gerencia: context.gerencia,
+    organizacion: context.organizacionNombre,
+    telefono: context.telefono,
+    correo: context.correo,
+    changeby: context.changeby,
+  },
+  ubicacion: {
+    origen: context.origen,
+    descripcionOrigen: context.descripcionOrigen,
+    destino: context.destino,
+    descripcionDestino: context.descripcionDestino,
+    cantidadPasajeros: context.cantidadPasajeros,
+  },
+  fechas: {
+    today: context.today,
+    fechaInicio: context.fechaInicio,
+    fechaFin: context.fechaFin,
+    dias: context.dias,
+  },
+});
+
 
   return {
     // SL no debe crear PM. Se conserva el resto del payload operativo igual que MUM.
-    pmPayload: null,
+    // pmPayload: null,
     /*
     pmPayload: {
       pmnum,
@@ -110,7 +149,7 @@ const buildSuministroLacustrePayloads = (solicitud, pmnum, wonum) => {
       statusdate: formatOracleTimestampTz(context.today),
       worktype: "SL",
       description: context.descripcion,
-      location: context.destino,
+      // location: context.destino,
       pmnum,
       changedate: formatOracleTimestampTz(context.today),
       estdur: 1,
@@ -127,9 +166,9 @@ const buildSuministroLacustrePayloads = (solicitud, pmnum, wonum) => {
       outmatcost: 0,
       outtoolcost: 0,
       historyflag: "N",
-      wopriority: context.nivelAprobacion,
+      wopriority: parseInt(context.nivelAprobacion, 10),
       targstartdate: formatOracleTimestampTz(context.fechaInicio),
-      targcompdate: formatOracleTimestampTz(context.fechaFin),
+      //targcompdate: formatOracleTimestampTz(context.fechaFin),
       wopm1: context.origen,
       wopm2: context.descripcionOrigen,
       wopm3: context.destino,
@@ -139,7 +178,7 @@ const buildSuministroLacustrePayloads = (solicitud, pmnum, wonum) => {
       wol2: "SOT",
       wol3: context.solicitante,
       wo10: context.aprobador,
-      wo1: formatOracleTimestampTz(context.fechaFin),
+      wo1: formatOracleTimestampTz(context.fechaInicio),
       worts1: context.organizacionNombre,
       wolablnk: context.cedulaSolicitante,
       chargestore: "N",
@@ -153,16 +192,15 @@ const buildSuministroLacustrePayloads = (solicitud, pmnum, wonum) => {
       hasfollowupwork: "N",
       wfactive: "N",
       viewwoasoper: "N",
-      worklocation: context.destino,
+      // worklocation: context.destino,
       woeq13: codigoTipoServicio,
       glaccount: context.centroCostoCcOi,
       supervisor: context.cedulaAprobador,
       reportedby: context.correo,
       phone: context.telefono,
-      wopm6: personaEnvia,
-      wopm7: descripcionPersonaEnvia,
-      wopm8: personaRecibe,
-      wopm9: descripcionPersonaRecibe,
+      // No mapear aquí personaEnvia/Recibe: WOPM7 es DATE, WOPM6 solo admite 5 chars,
+      // y WOPM8/WOPM9 no están definidos en el modelo Oracle.
+      reportdate: formatOracleTimestampTz(context.today)
     },
   };
 };

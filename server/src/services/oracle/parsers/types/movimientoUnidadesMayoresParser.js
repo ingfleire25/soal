@@ -127,6 +127,7 @@ const buildMovimientoUnidadesMayoresPayloads = (solicitud, pmnum, wonum) => {
       req: context.solicitudId,
       bandera: "1",
       correo: context.correo,
+      pmnum,
     },
     wostatusPayload: {
       rowstamp: String(Date.now()),
@@ -173,14 +174,6 @@ const buildMovimientoUnidadesMayoresPayloads = (solicitud, pmnum, wonum) => {
       wol1: context.organizacionNombre,
       wol2: "SOT", // PRUEBA A VER QUE HACE NO TODOS LO LLEVAN
       wo1: formatOracleTimestampTz(context.fechaInicio),
-      // wolo1: context.dias.lunes,
-      // wolo2: context.dias.martes,
-      // wolo3: context.dias.miercoles,
-      // wolo4: context.dias.jueves,
-      // wolo5: context.dias.viernes,
-      // wolo6: context.dias.sabado,
-      // wolo7: context.dias.domingo,
-      // wolo8: context.nivelAprobacion,
       wo10: context.aprobador,
       wolablnk: context.cedulaSolicitante,
       chargestore: "N",

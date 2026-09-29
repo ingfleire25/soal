@@ -212,9 +212,9 @@
                   class="dropdown-item"
                   @mousedown.prevent="seleccionarEquipo(equipo)"
                 >
-                  <strong>{{ equipo.eqnum }}</strong
+                  <strong>{{equipo.eqnum+}}</strong
                   ><br />
-                  <small>{{ equipo.description }}</small>
+                  <small> {{equipo.description }}</small>
                 </button>
               </div>
               <div
@@ -234,11 +234,11 @@
 
           <div class="col-md-6">
             <label class="form-label">Descripción de la Unidad</label>
-            <textarea
+            <input
               v-model="form.descripcionUnidad"
               class="form-control form-control-sm"
               rows="2"
-            ></textarea>
+            ></input>
           </div>
 
           <div class="col-md-6">

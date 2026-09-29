@@ -21,7 +21,7 @@ const getBasicItems = async (req, res) => {
 
         const items = await Item.findAll({
             // Seleccionamos solo las columnas requeridas
-            attributes: ['itemnum', 'description', 'stocktype', 'issueunit'],
+            attributes: ['itemnum', 'description', 'stocktype'],
             where: whereClause,
             order: [['itemnum', 'ASC']] 
         });

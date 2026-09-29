@@ -356,7 +356,7 @@
                     <strong>{{ item.itemnum + " " }}</strong> -
                     {{ item.description + " " }} -
                     <strong class="text-muted">{{ item.stocktype }}</strong>
-                    <span v-if="item.issueunit">({{ item.issueunit }})</span>
+                    <!-- <span v-if="item.issueunit">({{ item.issueunit }})</span> -->
                   </button>
                 </div>
               </div>
@@ -693,7 +693,7 @@ export default {
       material.materialId = item.itemnum;
       material.renglon = item.itemnum;
       material.descripcion = item.description;
-      material.unidadMedida = item.issueunit || "";
+      // material.unidadMedida = item.issueunit || "";
       material.searchQuery = `${item.itemnum} - ${item.description}`;
       material.searchResults = [];
     },

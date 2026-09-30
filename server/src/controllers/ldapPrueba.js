@@ -1,20 +1,8 @@
 // npm i ldapts
 const { Client } = require('ldapts');
 
-/**
- * Controlador para validar login mediante LDAP
- */
-const loginLdap = async (req, res) => {
-  const { username, password } = req.body;
-
-  // Validar que se reciban las credenciales necesarias
-  if (!username || !password) {
-    return res.status(400).json({
-      success: false,
-      message: 'Debe proporcionar el indicador de usuario (username) y la contraseña.'
-    });
-  }
-
+// Reutilizado por la ruta de prueba y por el login real; la clave solo se usa para el bind LDAP.
+const validarCredencialesLdap = async (username, password) => {
   // Configuración del servidor LDAP
   const ldapHost = 'ldaps://pdvsa.com';
   const ldapPort = 636;
@@ -33,40 +21,48 @@ const loginLdap = async (req, res) => {
   });
 
   try {
-    // 1. Intentar autenticación (Bind)
     await client.bind(userPrincipalName, password);
 
-    // 2. Buscar datos del usuario en el directorio
     const searchOptions = {
       scope: 'sub',
       filter: `(sAMAccountName=${username})`
     };
-
     const { searchEntries } = await client.search(dnBase, searchOptions);
 
-    // 3. Respuesta exitosa
-    return res.status(200).json({
+    return {
       success: true,
       message: 'Conexión y autenticación exitosa a través del túnel.',
       user: searchEntries.length > 0 ? searchEntries[0] : null
-    });
-
-  } catch (error) {
-    // Error en la autenticación o conexión
-    console.error('Error LDAP:', error.message);
-
-    return res.status(401).json({
-      success: false,
-      message: 'Error de autenticación o fallo de conexión LDAP',
-      error: error.message
-    });
-
+    };
   } finally {
-    // Cerrar la conexión
     await client.unbind().catch(() => {});
   }
 };
 
+/** Controlador de prueba para validar las credenciales directamente contra LDAP. */
+const loginLdap = async (req, res) => {
+  const { username, password } = req.body;
+
+  if (!username || !password) {
+    return res.status(400).json({
+      success: false,
+      message: 'Debe proporcionar el indicador de usuario (username) y la contraseña.'
+    });
+  }
+
+  try {
+    const result = await validarCredencialesLdap(username, password);
+    return res.status(200).json(result);
+  } catch (error) {
+    console.error('Error LDAP:', error.message);
+    return res.status(401).json({
+      success: false,
+      message: 'Usuario o contraseña vencido o sin acceso.'
+    });
+  }
+};
+
 module.exports = {
-  loginLdap
+  loginLdap,
+  validarCredencialesLdap
 };

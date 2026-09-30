@@ -197,7 +197,7 @@ async function handleLogin() {
     router.push('/solicitudes')
   } catch (error) {
     console.error('Error en login:', error)
-    errorMessage.value = 'Error al iniciar sesión. Intente nuevamente.'
+    errorMessage.value = error.response?.data?.statusText || 'Error al iniciar sesión. Intente nuevamente.'
   } finally {
     loading.value = false
   }

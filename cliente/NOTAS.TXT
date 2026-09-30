@@ -9,7 +9,7 @@
 
  manejar codificacion en el numero de requisicion que sea auto incremental.
 
- elimiminar opcion del sidebar de ayuda.
+ elimiminar opcion del sidebar de ayuda. 
 
  ingresar los niveles de prioridad para asignar quien debe aprobarla.
 

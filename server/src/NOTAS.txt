@@ -355,3 +355,32 @@ respuesta del DIRECTORIO ACTIVO DE LDAP:
     "pdvsacom-AD-hireDate": "25/09/2019"
   }
 }
+
+
+FALTAN TRES PUNTOS IMPORTANTES:
+
+TABLA DE SESION: debe registrar los inicios de sesion y los cierre de manera tal que si 
+un usuario tiene una sesion activa no puede iniciarsesion en otra ip, debe reghistrar quien se logueo con fecha completa
+
+BLOQUEO DE USUARIO:  en la tabla usuario debe haber una campo de cuanta de intentos fallidos
+al tercer intento fallido debe cambiar el estado del usuario de activo a inactivo o false.
+ si el usuario tiene una sesion iniciada e intenta abrir otra tambien cuenta como intento fallido
+ al pasar el usuario a inactivo se resetea el numero de intentos a cero y el estatus a false
+
+ Se debe mantener limpio la tabla de usuarios no se va a pasr los solicitantes y aprobadores viejos a la nueva badPasswordTime
+
+ {
+  "success": true,
+  "message": "Conexión y autenticación exitosa a través del túnel.",
+  "user": {
+    "dn": "CN=FLEIRE LEONARDO JAVIER [FLEIREL],OU=MboCpe,OU=All Users OCC,OU=Nueva Pdvsa,OU=Usuarios,DC=pdvsa,DC=com",
+    "cn": "FLEIRE LEONARDO JAVIER [FLEIREL]",
+    "displayName": "FLEIRE LEONARDO JAVIER",
+    "memberOf": [
+      "CN=G_mbocpe_user_Replicacion,OU=Mbocpe,OU=Grupos Globales,OU=Occ,OU=Data Access,OU=Groups,DC=pdvsa,DC=com",
+      "CN=gm-galba_iyd-c,OU=CcsCam,OU=Grupos Globales,OU=Met,OU=Data Access,OU=Groups,DC=pdvsa,DC=com"
+    ],
+    "sAMAccountName": "FLEIREL",
+    "mail": "FLEIREL@PDVSA.COM"
+  }
+}

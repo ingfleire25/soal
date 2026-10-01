@@ -8,8 +8,8 @@ Todo el flujo de sesión se maneja desde auth.js (store + localStorage).
 Usuario entra a la app (ruta /iniciar-sesion)
 Login muestra Login.vue (ningún componente protegido visible)
 Usuario escribe indicador + clave:
-handleLogin() valida campos.
-Llama loginApi(indicador, clave) (POST a http://localhost:3001/api/auth/login)
+manejarInicioSesion() valida campos.
+Llama iniciarSesionApi(indicador, clave) (POST a http://localhost:3001/api/auth/login)
 Backend (src/controllers/auth.js) verifica:
 Usuario.findOne({ where: { username } })
 valida password
@@ -18,8 +18,8 @@ devuelve JSON:
 result.user (datos + rol, roles)
 result.token
 Front recibe respuesta en Login.vue y hace:
-authStore.login({ user, token, recordar })
-En useAuthStore:
+authStore.iniciarSesion({ user, token, recordar })
+En usarEstadoAutenticacion:
 state.user = user
 state.token = token
 state.isAuthenticated = true
@@ -28,7 +28,7 @@ saveAuth() guarda/localiza si remember true
 🗄️ Dónde se guarda la sesión
 localStorage clave: auth (STORAGE_KEY en src/stores/auth.js)
 Contenido JSON (si remember true):
-checkAuth() lee localStorage.auth en App.vue / onMounted para mantener sesión entre recargas.
+verificarAutenticacion() lee localStorage.auth en App.vue / onMounted para mantener sesión entre recargas.
 🔐 Ruta protegidas y visualización
 En router/index.js:
 Si no auth -> redirije a login
@@ -36,13 +36,13 @@ Si auth -> permite dashboard, crear, tabla
 Rol insuficiente -> no-autorizado
 App.vue muestra Header/Sidebar solo si authStore.isAuthenticated.value === true.
 🔁 Logout
-authStore.logout():
+authStore.cerrarSesion():
 limpia state.user, token, isAuthenticated, remember
 saveAuth() elimina localStorage.auth
 redirige a /iniciar-sesion
 📌 Nota final
 localStorage no se escribe si no se marca Recordar en login, pero estado en memoria sigue activo hasta cerrar pestaña.
-Para mantener entre refresh: usar Recordar (true) y checkAuth() rehidrata.
+Para mantener entre refresh: usar Recordar (true) y verificarAutenticacion() rehidrata.
 
 
 Últimos cambios
@@ -360,7 +360,7 @@ respuesta del DIRECTORIO ACTIVO DE LDAP:
 FALTAN TRES PUNTOS IMPORTANTES:
 
 TABLA DE SESION: debe registrar los inicios de sesion y los cierre de manera tal que si 
-un usuario tiene una sesion activa no puede iniciarsesion en otra ip, debe reghistrar quien se logueo con fecha completa
+un usuario tiene una sesion activa no puede iniciarsesion en otra ip, debe registrar quien se logueo con fecha completa, hora, indicador y de ser posible lo que hizo dentro de la app.
 
 BLOQUEO DE USUARIO:  en la tabla usuario debe haber una campo de cuanta de intentos fallidos
 al tercer intento fallido debe cambiar el estado del usuario de activo a inactivo o false.

@@ -169,6 +169,15 @@
           </div>
         </a>
       </li>
+      <li v-if="canManageAdmin" class="sidebar-item">
+        <a href="#" class="sidebar-link d-flex align-items-center justify-content-between px-3"
+           @click.prevent="navigateTo('sesiones')">
+          <div class="d-flex align-items-center">
+            <i class="material-icons">manage_history</i>
+            <span v-if="isExpanded" class="link-text ms-2">Sesiones</span>
+          </div>
+        </a>
+      </li>
       <!-- LI para ayuda -->
       <!-- <li class="sidebar-item">
         <a href="#" class="sidebar-link d-flex align-items-center justify-content-between px-3" 
@@ -183,7 +192,7 @@
 
       <!-- Logout -->
       <li class="sidebar-item">
-        <a href="#" class="sidebar-link d-flex align-items-center justify-content-between px-3" @click.prevent="auth.logout()">
+        <a href="#" class="sidebar-link d-flex align-items-center justify-content-between px-3" @click.prevent="auth.cerrarSesion()">
           <div class="d-flex align-items-center">
             <i class="material-icons">logout</i>
             <span v-if="isExpanded" class="link-text ms-2">Cerrar sesión</span>
@@ -198,20 +207,20 @@
 <script setup>
 import { ref, reactive, onMounted, onBeforeUnmount, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { useAuthStore } from '@/stores/auth'
+import { usarEstadoAutenticacion } from '@/stores/auth'
 
 const router = useRouter()
-const auth = useAuthStore()
+const auth = usarEstadoAutenticacion()
 const isExpanded = ref(true)
 
-const isSolicitante = computed(() => auth.hasRole('Solicitante'))
-const isAprobador = computed(() => auth.hasRole('Aprobador'))
-const isAdministrador = computed(() => auth.hasRole('Administrador'))
+const isSolicitante = computed(() => auth.tieneRol('Solicitante'))
+const isAprobador = computed(() => auth.tieneRol('Aprobador'))
+const isAdministrador = computed(() => auth.tieneRol('Administrador'))
 const canCreate = computed(() => isSolicitante.value || isAdministrador.value)
 const canManageAdmin = computed(() => isAdministrador.value)
-const canUsePlan = computed(() => auth.hasAnyRole(['Solicitante', 'Aprobador', 'Administrador']))
-const canUseEvaluacion = computed(() => auth.hasAnyRole(['Solicitante', 'Aprobador', 'Administrador']))
-const canUseEstadisticas = computed(() => auth.hasAnyRole(['Aprobador', 'Administrador']))
+const canUsePlan = computed(() => auth.tieneAlgunoDeLosRoles(['Solicitante', 'Aprobador', 'Administrador']))
+const canUseEvaluacion = computed(() => auth.tieneAlgunoDeLosRoles(['Solicitante', 'Aprobador', 'Administrador']))
+const canUseEstadisticas = computed(() => auth.tieneAlgunoDeLosRoles(['Aprobador', 'Administrador']))
 
 const username = computed(() => (auth.user?.value?.username) || 'Invitado')
 

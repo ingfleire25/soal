@@ -70,7 +70,7 @@
 </template>
 
 <script>
-import { useAuthStore } from '@/stores/auth';
+import { usarEstadoAutenticacion } from '@/stores/auth';
 import { postEvaluacion } from '@/services/postEvaluacion';
 import { getSolicitudes } from '@/services/getSolicitudes';
 
@@ -105,7 +105,7 @@ export default {
     };
   },
   mounted() {
-    const authStore = useAuthStore();
+    const authStore = usarEstadoAutenticacion();
     const user = authStore.user?.value;
     if (user) {
       this.form.evaluadorNombre = `${user.nombres || user.username || ''} ${user.apellidos || ''}`.trim();

@@ -1,7 +1,11 @@
 const { Router } = require('express');
-const { login } = require('../controllers/auth');
+const { iniciarSesion, cerrarSesion, registrarActividad, obtenerSesiones } = require('../controllers/auth');
+const exigirSesion = require('../middleware/requireSession');
 const router = Router();
 
-router.post('/login', login);
+router.post('/login', iniciarSesion);
+router.post('/logout', exigirSesion, cerrarSesion);
+router.post('/activity', exigirSesion, registrarActividad);
+router.get('/sesiones', exigirSesion, obtenerSesiones);
 
 module.exports = router;

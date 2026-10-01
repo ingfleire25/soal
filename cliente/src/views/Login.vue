@@ -22,7 +22,7 @@
               <div class="row mx-auto p-2">
                 <div class="col-12">
                   <h6 class="mt-3" style="font-weight: 900; color: #444444;">Iniciar Sesión</h6>
-                  <form @submit.prevent="handleLogin">
+                  <form @submit.prevent="manejarInicioSesion">
                     <!-- Indicador Input -->
                     <div class="row">
                       <div class="col-12 p-2 position-relative">
@@ -76,7 +76,7 @@
                         <label for="Recordar" class="login-footer">Recordar</label>
                       </div>
                       <div class="col-6 text-end">
-                        <a href="#" class="login-footer" @click.prevent="handleForgotPassword">
+                        <a href="#" class="login-footer" @click.prevent="manejarRecuperacionClave">
                           Olvidé mi Contraseña
                         </a>
                       </div>
@@ -118,8 +118,8 @@
 <script setup>
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
-import { useAuthStore } from '@/stores/auth'
-import { loginApi } from '@/services/auth'
+import { usarEstadoAutenticacion } from '@/stores/auth'
+import { iniciarSesionApi } from '@/services/auth'
 
 // Importar imágenes estáticamente (igual que en Sidebar.vue')
 
@@ -128,7 +128,7 @@ import fondoMainImg from '@/assets/img/fondo-main.png'
 import bgMenuLateralImg from '@/assets/img/bg-menu-lateral.png'
 
 const router = useRouter()
-const authStore = useAuthStore()
+const authStore = usarEstadoAutenticacion()
 
 // Data
 const loading = ref(false)
@@ -146,7 +146,7 @@ const errors = reactive({
 })
 
 // Validation
-function validateForm() {
+function validarFormulario() {
   let isValid = true
   
   // Clear previous errors
@@ -172,13 +172,13 @@ function validateForm() {
 }
 
 // Login Handler
-async function handleLogin() {
-  if (!validateForm()) return
+async function manejarInicioSesion() {
+  if (!validarFormulario()) return
 
   loading.value = true
 
   try {
-    const response = await loginApi(loginData.indicador, loginData.clave)
+    const response = await iniciarSesionApi(loginData.indicador, loginData.clave)
 
     if (!response || response.statusCode !== 200 || !response.result) {
       errorMessage.value = response?.statusText || 'Error en autenticación'
@@ -187,7 +187,7 @@ async function handleLogin() {
 
     const { user, token } = response.result
 
-    await authStore.login({
+    await authStore.iniciarSesion({
       user,
       token,
       recordar: loginData.recordar
@@ -203,7 +203,7 @@ async function handleLogin() {
   }
 }
 
-function handleForgotPassword() {
+function manejarRecuperacionClave() {
   notifyInfo('Funcionalidad de recuperación de contraseña no implementada')
 }
 </script>

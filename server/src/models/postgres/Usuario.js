@@ -13,7 +13,8 @@ module.exports = (sequelize) => {
     departamento: { type: DataTypes.STRING, allowNull: true },
     rol: { type: DataTypes.ENUM('Solicitante', 'Aprobador', 'Administrador'), allowNull: false },
     nivelAprobacion: { type: DataTypes.ENUM('1', '2', '3'), allowNull: true },
-    activo: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: true }
+    activo: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: true },
+    intentosFallidos: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 }
   }, {
     timestamps: true,
     freezeTableName: true

@@ -355,7 +355,7 @@
 
 <script>
 import { postSolicitud } from "@/services/postSolicitud";
-import { useAuthStore } from "@/stores/auth";
+import { usarEstadoAutenticacion } from "@/stores/auth";
 import { getLocations } from "@/services/getLocations";
 import { getServiceTypes } from "@/services/getServiceTypes";
 import { getCompanies } from "@/services/getCompanies";
@@ -502,7 +502,7 @@ export default {
     }
 
     // 2. Cargar datos del usuario
-    const authStore = useAuthStore();
+    const authStore = usarEstadoAutenticacion();
     const user = authStore.user?.value;
     if (user) {
       this.form.solicitante = `${user.nombres} ${user.apellidos}`;

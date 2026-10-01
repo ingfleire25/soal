@@ -13,14 +13,14 @@
 
 <script setup>
 import { onMounted } from 'vue'
-import { useAuthStore } from '@/stores/auth'
+import { usarEstadoAutenticacion } from '@/stores/auth'
 import Sidebar from '@/components/Sidebar.vue'
 import Header from '@/components/Header.vue'
 
-const authStore = useAuthStore()
+const authStore = usarEstadoAutenticacion()
 
 onMounted(() => {
-  if (authStore.checkAuth) authStore.checkAuth()
+  if (authStore.verificarAutenticacion) authStore.verificarAutenticacion()
 })
 </script>
 

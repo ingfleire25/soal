@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted, computed, watch } from "vue";
 import { useRoute } from "vue-router";
-import { useAuthStore } from "@/stores/auth";
+import { usarEstadoAutenticacion } from "@/stores/auth";
 import { getSolicitudes } from "@/services/getSolicitudes";
 import { updateSolicitud } from "@/services/updateSolicitud";
 import { cambiarEstado } from "@/services/cambiarEstado";
@@ -24,7 +24,7 @@ import {
 } from "@/utils/dateTime";
 
 const route = useRoute();
-const auth = useAuthStore();
+const auth = usarEstadoAutenticacion();
 const lista = ref([]);
 const error = ref("");
 const loading = ref(false);

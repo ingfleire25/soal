@@ -1,5 +1,6 @@
 import { reactive, computed, watch } from 'vue'
 import router from '@/router'
+import { registrarActividadApi, cerrarSesionApi, notificarCierreSesion } from '@/services/auth'
 
 const STORAGE_KEY = 'auth'
 const EXPIRATION_MS = 20 * 60 * 1000
@@ -14,8 +15,9 @@ const state = reactive({
 
 let inactivityTimer = null
 let activityWatcherAttached = false
+let lastServerActivitySent = 0
 
-function loadAuth() {
+function cargarAutenticacion() {
   const saved = localStorage.getItem(STORAGE_KEY)
   if (saved) {
     try {
@@ -38,8 +40,8 @@ function loadAuth() {
       state.isAuthenticated = true
       state.remember = true
       state.lastActivity = lastActivity || Date.now()
-      attachActivityWatchers()
-      resetInactivityTimer()
+      conectarObservadoresActividad()
+      reiniciarTemporizadorInactividad()
     } catch (error) {
       console.error('[auth] no se pudo parsear auth en localStorage', error)
       state.user = null
@@ -52,7 +54,7 @@ function loadAuth() {
   }
 }
 
-function saveAuth() {
+function guardarAutenticacion() {
   if (state.isAuthenticated && state.user && state.token) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({
       user: state.user,
@@ -65,85 +67,114 @@ function saveAuth() {
   }
 }
 
-function updateLastActivity() {
+function actualizarUltimaActividad() {
   if (!state.isAuthenticated) return
-  state.lastActivity = Date.now()
-  saveAuth()
-  resetInactivityTimer()
+  const now = Date.now()
+  state.lastActivity = now
+  guardarAutenticacion()
+  reiniciarTemporizadorInactividad()
+  // El temporizador local responde de inmediato; el pulso mantiene alineado el vencimiento autoritativo del servidor.
+  if (now - lastServerActivitySent >= 60 * 1000) {
+    lastServerActivitySent = now
+    registrarActividadApi().catch((error) => {
+      if (error.response?.status === 401) cerrarSesion(false, false)
+    })
+  }
 }
 
-function resetInactivityTimer() {
+function reiniciarTemporizadorInactividad() {
   if (inactivityTimer) {
     clearTimeout(inactivityTimer)
     inactivityTimer = null
   }
   if (!state.isAuthenticated) return
+  // Si no hay interacción durante 20 minutos, se solicita el cierre también al servidor.
   inactivityTimer = window.setTimeout(() => {
-    logout(true)
+    cerrarSesion(true)
   }, EXPIRATION_MS)
 }
 
-function attachActivityWatchers() {
+function conectarObservadoresActividad() {
   if (activityWatcherAttached) return
   const events = ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll']
   events.forEach((eventName) => {
-    window.addEventListener(eventName, updateLastActivity)
+    window.addEventListener(eventName, actualizarUltimaActividad)
   })
+  window.addEventListener('pagehide', manejarOcultamientoPagina)
   activityWatcherAttached = true
 }
 
-function detachActivityWatchers() {
+function manejarOcultamientoPagina() {
+  if (!state.token) return
+  // keepalive permite registrar el cierre aunque el navegador esté descargando la página.
+  notificarCierreSesion(state.token).catch((error) => {
+    console.warn('[auth] no se pudo notificar el cierre de la pestaña', error)
+  })
+}
+
+function desconectarObservadoresActividad() {
   if (!activityWatcherAttached) return
   const events = ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll']
   events.forEach((eventName) => {
-    window.removeEventListener(eventName, updateLastActivity)
+    window.removeEventListener(eventName, actualizarUltimaActividad)
   })
+  window.removeEventListener('pagehide', manejarOcultamientoPagina)
   activityWatcherAttached = false
 }
 
 // Cuando cambia cualquier campo, persistir
-watch(state, saveAuth, { deep: true })
+watch(state, guardarAutenticacion, { deep: true })
 
-loadAuth()
+cargarAutenticacion()
 
-export function useAuthStore() {
+export function usarEstadoAutenticacion() {
   const roles = computed(() => (state.user?.roles ? [...state.user.roles] : []))
 
-  function hasRole(requiredRole) {
+  function tieneRol(requiredRole) {
     if (!state.isAuthenticated) return false
     if (!requiredRole) return true
     return roles.value.includes(requiredRole)
   }
 
-  function hasAnyRole(requiredRoles = []) {
+  function tieneAlgunoDeLosRoles(requiredRoles = []) {
     if (!state.isAuthenticated) return false
     if (!Array.isArray(requiredRoles) || requiredRoles.length === 0) return true
     return requiredRoles.some(role => roles.value.includes(role))
   }
 
-  async function login({ user, token, recordar = false }) {
+  async function iniciarSesion({ user, token, recordar = false }) {
     state.user = user
     state.token = token
     state.isAuthenticated = true
     state.remember = !!recordar
     state.lastActivity = Date.now()
-    attachActivityWatchers()
-    resetInactivityTimer()
-    saveAuth()
+    lastServerActivitySent = state.lastActivity
+    conectarObservadoresActividad()
+    reiniciarTemporizadorInactividad()
+    guardarAutenticacion()
   }
 
-  async function logout(isExpired = false) {
+  async function cerrarSesion(isExpired = false, cerrarSesionEnServidor = true) {
+    // Primero se invalida la sesión persistida; luego se limpia el estado local y se vuelve al login.
+    if (cerrarSesionEnServidor && state.token) {
+      try {
+        await cerrarSesionApi()
+      } catch (error) {
+        console.warn('[auth] no se pudo cerrar la sesión en el servidor', error)
+      }
+    }
     state.user = null
     state.token = null
     state.isAuthenticated = false
     state.remember = false
     state.lastActivity = null
-    detachActivityWatchers()
+    lastServerActivitySent = 0
+    desconectarObservadoresActividad()
     if (inactivityTimer) {
       clearTimeout(inactivityTimer)
       inactivityTimer = null
     }
-    saveAuth()
+    guardarAutenticacion()
     // Navegar sin recargar la página para evitar remounts innecesarios
     try {
       router.replace({ name: 'login' })
@@ -153,7 +184,7 @@ export function useAuthStore() {
     }
   }
 
-  function checkAuth() {
+  function verificarAutenticacion() {
     // Si ya hay token/usuario en localStorage, asigna el estado
     const saved = localStorage.getItem(STORAGE_KEY)
     if (!saved) return false
@@ -167,13 +198,13 @@ export function useAuthStore() {
         state.isAuthenticated = true
         state.remember = true
         state.lastActivity = typeof parsed.lastActivity === 'number' ? parsed.lastActivity : Date.now()
-        attachActivityWatchers()
-        resetInactivityTimer()
+        conectarObservadoresActividad()
+        reiniciarTemporizadorInactividad()
         return true
       }
       return false
     } catch (error) {
-      console.error('[auth] checkAuth parse error', error)
+      console.error('[auth] error al verificar la autenticación', error)
       return false
     }
   }
@@ -183,9 +214,10 @@ export function useAuthStore() {
     token: computed(() => state.token),
     isAuthenticated: computed(() => state.isAuthenticated),
     roles,
-    hasRole,
-    hasAnyRole,
-    login,
-    logout
+    tieneRol,
+    tieneAlgunoDeLosRoles,
+    iniciarSesion,
+    cerrarSesion,
+    verificarAutenticacion
   }
 }

@@ -212,7 +212,7 @@
                   class="dropdown-item"
                   @mousedown.prevent="seleccionarEquipo(equipo)"
                 >
-                  <strong>{{equipo.eqnum+}}</strong
+                  <strong>{{ equipo.eqnum }}</strong
                   ><br />
                   <small> {{equipo.description }}</small>
                 </button>
@@ -363,7 +363,7 @@
 
 <script>
 import { postSolicitud } from "@/services/postSolicitud";
-import { useAuthStore } from "@/stores/auth";
+import { usarEstadoAutenticacion } from "@/stores/auth";
 import { getLocations } from "@/services/getLocations";
 import { getServiceTypes } from "@/services/getServiceTypes";
 import { getCompanies } from "@/services/getCompanies";
@@ -429,7 +429,7 @@ export default {
       this.form.subtipo = this.$route.query.subtipo;
     }
     this.form.fecha = toDatetimeLocal();
-    const authStore = useAuthStore();
+    const authStore = usarEstadoAutenticacion();
     const user = authStore.user?.value;
     if (user) {
       this.form.solicitante = `${user.nombres} ${user.apellidos}`;

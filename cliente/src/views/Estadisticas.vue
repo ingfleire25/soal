@@ -37,7 +37,7 @@
 
 <script>
 import { ref, onMounted, computed } from 'vue';
-import { useAuthStore } from '@/stores/auth';
+import { usarEstadoAutenticacion } from '@/stores/auth';
 import { getEvaluaciones } from '@/services/getEvaluaciones';
 import Chart from 'chart.js/auto';
 import * as XLSX from 'xlsx';
@@ -47,7 +47,7 @@ import autoTable from 'jspdf-autotable'; // Importación necesaria para tablas l
 export default {
   name: 'Estadisticas',
   setup() {
-    const auth = useAuthStore();
+    const auth = usarEstadoAutenticacion();
     const evaluaciones = ref([]);
     const loading = ref(false);
     const error = ref('');

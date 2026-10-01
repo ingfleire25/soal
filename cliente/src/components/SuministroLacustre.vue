@@ -453,7 +453,7 @@
 import { postSuministroLacustre } from "@/services/postSuministroLacustre";
 // import { getMateriales } from '@/services/getMateriales';
 import { getBasicItems } from "@/services/getBasicItems";
-import { useAuthStore } from "@/stores/auth";
+import { usarEstadoAutenticacion } from "@/stores/auth";
 import { getLocations } from "@/services/getLocations";
 import { getServiceTypes } from "@/services/getServiceTypes";
 import { getCompanies } from "@/services/getCompanies";
@@ -530,7 +530,7 @@ export default {
     }
     // this.form.fecha = new Date().toISOString().split('T')[0];
     this.form.fecha = toDatetimeLocal();
-    const authStore = useAuthStore();
+    const authStore = usarEstadoAutenticacion();
     const user = authStore.user?.value;
     if (user) {
       this.form.solicitante = `${user.nombres} ${user.apellidos}`;

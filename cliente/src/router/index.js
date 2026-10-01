@@ -1,11 +1,12 @@
 import { createRouter, createWebHistory } from "vue-router";
-import { useAuthStore } from "@/stores/auth";
+import { usarEstadoAutenticacion } from "@/stores/auth";
 
 // two simple views: create request and see list
 const Login = () => import("@/views/Login.vue");
 const Tabla = () => import("@/views/Solicitudes.vue");
 const PlanDashboard = () => import("@/views/PlanDashboard.vue");
 const Administracion = () => import("@/views/Administracion.vue");
+const Sesiones = () => import("@/views/Sesiones.vue");
 const Historico = () => import("@/views/Historico.vue");
 const NoAutorizado = () => import("@/views/NoAutorizado.vue");
 const TransportePersonal = () => import("@/components/TransportePersonal.vue");
@@ -27,6 +28,12 @@ const routes = [
     path: "/administracion",
     name: "administracion",
     component: Administracion,
+    meta: { roles: ["Administrador"] },
+  },
+  {
+    path: "/administracion/sesiones",
+    name: "sesiones",
+    component: Sesiones,
     meta: { roles: ["Administrador"] },
   },
   {
@@ -88,7 +95,7 @@ const router = createRouter({
 });
 
 router.beforeEach((to, from) => {
-  const auth = useAuthStore();
+  const auth = usarEstadoAutenticacion();
 
   if (to.name === "login") {
     if (auth.isAuthenticated.value) {
@@ -105,7 +112,7 @@ router.beforeEach((to, from) => {
   if (
     requiredRoles &&
     requiredRoles.length > 0 &&
-    !auth.hasAnyRole(requiredRoles)
+    !auth.tieneAlgunoDeLosRoles(requiredRoles)
   ) {
     return { name: "no-autorizado" };
   }

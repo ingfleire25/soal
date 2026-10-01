@@ -1,6 +1,6 @@
 import { reactive, computed, watch } from 'vue'
 import router from '@/router'
-import { registrarActividadApi, cerrarSesionApi, notificarCierreSesion } from '@/services/auth'
+import { registrarActividadApi, cerrarSesionApi } from '@/services/auth'
 
 const STORAGE_KEY = 'auth'
 const EXPIRATION_MS = 20 * 60 * 1000
@@ -82,6 +82,32 @@ function actualizarUltimaActividad() {
   }
 }
 
+function limpiarEstadoAutenticacion() {
+  state.user = null
+  state.token = null
+  state.isAuthenticated = false
+  state.remember = false
+  state.lastActivity = null
+  lastServerActivitySent = 0
+  desconectarObservadoresActividad()
+  if (inactivityTimer) {
+    clearTimeout(inactivityTimer)
+    inactivityTimer = null
+  }
+  guardarAutenticacion()
+}
+
+function navegarAlLogin() {
+  router.replace({ name: 'login' }).catch(() => {
+    window.location.href = '/iniciar-sesion'
+  })
+}
+
+function manejarSesionNoValida() {
+  limpiarEstadoAutenticacion()
+  navegarAlLogin()
+}
+
 function reiniciarTemporizadorInactividad() {
   if (inactivityTimer) {
     clearTimeout(inactivityTimer)
@@ -100,16 +126,7 @@ function conectarObservadoresActividad() {
   events.forEach((eventName) => {
     window.addEventListener(eventName, actualizarUltimaActividad)
   })
-  window.addEventListener('pagehide', manejarOcultamientoPagina)
   activityWatcherAttached = true
-}
-
-function manejarOcultamientoPagina() {
-  if (!state.token) return
-  // keepalive permite registrar el cierre aunque el navegador esté descargando la página.
-  notificarCierreSesion(state.token).catch((error) => {
-    console.warn('[auth] no se pudo notificar el cierre de la pestaña', error)
-  })
 }
 
 function desconectarObservadoresActividad() {
@@ -118,7 +135,6 @@ function desconectarObservadoresActividad() {
   events.forEach((eventName) => {
     window.removeEventListener(eventName, actualizarUltimaActividad)
   })
-  window.removeEventListener('pagehide', manejarOcultamientoPagina)
   activityWatcherAttached = false
 }
 
@@ -126,6 +142,7 @@ function desconectarObservadoresActividad() {
 watch(state, guardarAutenticacion, { deep: true })
 
 cargarAutenticacion()
+window.addEventListener('auth:unauthorized', manejarSesionNoValida)
 
 export function usarEstadoAutenticacion() {
   const roles = computed(() => (state.user?.roles ? [...state.user.roles] : []))
@@ -163,25 +180,9 @@ export function usarEstadoAutenticacion() {
         console.warn('[auth] no se pudo cerrar la sesión en el servidor', error)
       }
     }
-    state.user = null
-    state.token = null
-    state.isAuthenticated = false
-    state.remember = false
-    state.lastActivity = null
-    lastServerActivitySent = 0
-    desconectarObservadoresActividad()
-    if (inactivityTimer) {
-      clearTimeout(inactivityTimer)
-      inactivityTimer = null
-    }
-    guardarAutenticacion()
+    limpiarEstadoAutenticacion()
     // Navegar sin recargar la página para evitar remounts innecesarios
-    try {
-      router.replace({ name: 'login' })
-    } catch (e) {
-      // Fallback a location por si algo falla
-      window.location.href = '/iniciar-sesion'
-    }
+    navegarAlLogin()
   }
 
   function verificarAutenticacion() {

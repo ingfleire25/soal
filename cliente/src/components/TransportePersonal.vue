@@ -300,6 +300,15 @@
             />
           </div>
           <div class="col-md-6">
+            <label class="form-label fw-bold">Teléfono</label>
+            <input
+              v-model="form.telefono"
+              type="text"
+              class="form-control form-control-sm bg-light"
+              readonly
+            />
+          </div>
+          <div class="col-md-6">
             <label class="form-label fw-bold">Gerencia</label>
             <input
               v-model="form.gerencia"
@@ -362,7 +371,7 @@ import { getCompanies } from "@/services/getCompanies";
 import { getModserv } from "@/services/getModserv";
 import { getAprobadoresLabor } from "@/services/getAprobadoresLabor";
 import CentroCostoAutocomplete from "@/components/CentroCostoAutocomplete.vue";
-import { getNivelAprobacion } from "@/utils/dateTime";
+import { getNivelAprobacion, toDatetimeLocal } from "@/utils/dateTime";
 import {
   notifyError,
   showSolicitudSummary,
@@ -383,6 +392,7 @@ export default {
         descripcionDestino: "",
         fechaInicio: "",
         fechaFin: "",
+        fecha: "",
         organizacionCcOi: "",
         organizacion: "",
         codigoOrganizacion: "",
@@ -481,7 +491,7 @@ export default {
         .slice(0, 50);
     },
     nivelAprobacionInfo() {
-      return getNivelAprobacion(this.form.fechaInicio);
+      return getNivelAprobacion(this.form.fechaInicio, this.form.fecha);
     },
     nivelAprobacionTexto() {
       return this.nivelAprobacionInfo.texto;
@@ -500,6 +510,7 @@ export default {
     if (this.$route.query.subtipo) {
       this.form.subtipo = this.$route.query.subtipo;
     }
+    this.form.fecha = toDatetimeLocal();
 
     // 2. Cargar datos del usuario
     const authStore = usarEstadoAutenticacion();
@@ -644,14 +655,22 @@ export default {
     },
 
     resetForm() {
-      const { solicitante, cedulaSolicitante, subtipo, gerencia, correo } =
-        this.form;
+      const {
+        solicitante,
+        cedulaSolicitante,
+        subtipo,
+        gerencia,
+        correo,
+        telefono,
+      } = this.form;
       Object.assign(this.$data.form, this.$options.data().form);
+      this.form.fecha = toDatetimeLocal();
       this.form.solicitante = solicitante;
       this.form.cedulaSolicitante = cedulaSolicitante;
       this.form.subtipo = subtipo;
       this.form.gerencia = gerencia;
       this.form.correo = correo;
+      this.form.telefono = telefono;
 
       this.searchOrigen = "";
       this.searchDestino = "";

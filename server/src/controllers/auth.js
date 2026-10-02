@@ -166,23 +166,19 @@ exports.iniciarSesion = async (req, res) => {
     // Postgres determina si el usuario existe, está habilitado y valida la contraseña local.
     const user = await Usuario.findOne({ where: { username } });
     if (!user || !user.activo) {
-      return res
-        .status(403)
-        .json({
-          statusCode: 403,
-          statusText: "Usuario o contraseña vencido o sin acceso.",
-        });
+      return res.status(403).json({
+        statusCode: 403,
+        statusText: "Usuario o contraseña vencido o sin acceso.",
+      });
     }
 
     // Login temporal contra PostgreSQL. La columna usuario.password actualmente guarda la clave local.
     if (user.password !== password) {
       await registrarIntentoFallido(user.id, req);
-      return res
-        .status(401)
-        .json({
-          statusCode: 401,
-          statusText: "Usuario o contraseña vencido o sin acceso.",
-        });
+      return res.status(401).json({
+        statusCode: 401,
+        statusText: "Usuario o contraseña vencido o sin acceso.",
+      });
     }
 
     /* Validación LDAP conservada para reactivarla cuando el túnel esté disponible.
@@ -206,29 +202,23 @@ exports.iniciarSesion = async (req, res) => {
     // La validación de clave correcta no basta: crearSesion impone una sesión activa por usuario.
     const sessionResult = await crearSesion(user.id, req);
     if (sessionResult.duplicate) {
-      return res
-        .status(409)
-        .json({
-          statusCode: 409,
-          statusText: "El usuario ya tiene una sesión activa en otro equipo.",
-        });
+      return res.status(409).json({
+        statusCode: 409,
+        statusText: "El usuario ya tiene una sesión activa en otro equipo.",
+      });
     }
     if (sessionResult.locked) {
-      return res
-        .status(403)
-        .json({
-          statusCode: 403,
-          statusText: "Usuario o contraseña vencido o sin acceso.",
-        });
+      return res.status(403).json({
+        statusCode: 403,
+        statusText: "Usuario o contraseña vencido o sin acceso.",
+      });
     }
 
     if (!user.activo) {
-      return res
-        .status(403)
-        .json({
-          statusCode: 403,
-          statusText: "Usuario o contraseña vencido o sin acceso.",
-        });
+      return res.status(403).json({
+        statusCode: 403,
+        statusText: "Usuario o contraseña vencido o sin acceso.",
+      });
     }
 
     const responseUser = {
@@ -237,6 +227,7 @@ exports.iniciarSesion = async (req, res) => {
       nombres: user.nombres,
       apellidos: user.apellidos,
       cedula: user.cedula,
+      correo: user.correo,
       telefono: user.telefono,
       gerencia: user.gerencia,
       departamento: user.departamento,
@@ -251,13 +242,11 @@ exports.iniciarSesion = async (req, res) => {
     });
   } catch (error) {
     console.error("Error al iniciar sesión:", error);
-    return res
-      .status(500)
-      .json({
-        statusCode: 500,
-        statusText: "Error interno",
-        error: error.message,
-      });
+    return res.status(500).json({
+      statusCode: 500,
+      statusText: "Error interno",
+      error: error.message,
+    });
   }
 };
 
@@ -276,12 +265,10 @@ exports.cerrarSesion = async (req, res) => {
       .json({ statusCode: 200, statusText: "Sesión cerrada." });
   } catch (error) {
     console.error("Error al cerrar sesión:", error);
-    return res
-      .status(500)
-      .json({
-        statusCode: 500,
-        statusText: "No fue posible cerrar la sesión.",
-      });
+    return res.status(500).json({
+      statusCode: 500,
+      statusText: "No fue posible cerrar la sesión.",
+    });
   }
 };
 
@@ -290,12 +277,10 @@ exports.registrarActividad = (req, res) => res.status(204).end();
 
 exports.obtenerSesiones = async (req, res) => {
   if (req.authUser?.rol !== "Administrador") {
-    return res
-      .status(403)
-      .json({
-        statusCode: 403,
-        statusText: "Acceso reservado para administradores.",
-      });
+    return res.status(403).json({
+      statusCode: 403,
+      statusText: "Acceso reservado para administradores.",
+    });
   }
 
   const paginaSolicitada = Number.parseInt(req.query.pagina, 10) || 1;
@@ -347,11 +332,9 @@ exports.obtenerSesiones = async (req, res) => {
     });
   } catch (error) {
     console.error("Error al consultar sesiones:", error);
-    return res
-      .status(500)
-      .json({
-        statusCode: 500,
-        statusText: "No fue posible consultar las sesiones.",
-      });
+    return res.status(500).json({
+      statusCode: 500,
+      statusText: "No fue posible consultar las sesiones.",
+    });
   }
 };

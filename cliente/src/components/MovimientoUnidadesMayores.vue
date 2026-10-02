@@ -684,7 +684,7 @@ export default {
       const currentTelefono = this.form.telefono;
       const currentGerencia = this.form.gerencia;
       const currentSubtipo = this.form.subtipo;
-      const currentFecha = this.form.fecha;
+      const currentFecha = toDatetimeLocal();
 
       Object.assign(this.form, {
         descripcion: "",

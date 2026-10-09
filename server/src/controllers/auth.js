@@ -5,8 +5,9 @@ const { Op, QueryTypes } = require("sequelize");
 const { Usuario, UsuarioSesion, conn } = require("../db");
 // const { validarCredencialesLdap } = require('./ldapPrueba');
 const exigirSesion = require("../middleware/requireSession");
+const MAX_INTENTOS_FALLIDOS = 3;
 
-// Clave incorrecta y segundo inicio comparten el contador; en el tercer fallo se bloquea al usuario y se reinicia a cero.
+// En el tercer fallo se bloquean nuevos inicios; una sesión ya autenticada conserva su vigencia.
 async function registrarIntentoFallido(userId, req) {
   return conn.transaction(async (transaction) => {
     const user = await Usuario.findByPk(userId, {
@@ -16,7 +17,7 @@ async function registrarIntentoFallido(userId, req) {
     if (!user || !user.activo) return { locked: !user?.activo };
 
     const failedAttempts = Number(user.intentosFallidos || 0) + 1;
-    if (failedAttempts < 3) {
+    if (failedAttempts < MAX_INTENTOS_FALLIDOS) {
       await user.update({ intentosFallidos: failedAttempts }, { transaction });
       await exigirSesion.registrarEvento({
         userId,
@@ -24,21 +25,25 @@ async function registrarIntentoFallido(userId, req) {
         req,
         transaction,
       });
-      return { locked: false };
+      return {
+        locked: false,
+        intentosRestantes: MAX_INTENTOS_FALLIDOS - failedAttempts,
+      };
     }
 
-    await user.update({ activo: false, intentosFallidos: 0 }, { transaction });
     const activeSession = await UsuarioSesion.findOne({
       where: { usuarioId: userId, endedAt: null },
       transaction,
       lock: transaction.LOCK.UPDATE,
     });
-    if (activeSession) {
-      await activeSession.update(
-        { endedAt: new Date(), endReason: "account_locked" },
-        { transaction },
-      );
-    }
+    // Mantener vigente la sesión actual evita que intentos desde otro equipo expulsen al usuario.
+    await user.update(
+      {
+        activo: activeSession ? user.activo : false,
+        intentosFallidos: MAX_INTENTOS_FALLIDOS,
+      },
+      { transaction },
+    );
     await exigirSesion.registrarEvento({
       userId,
       sessionId: activeSession?.id || null,
@@ -46,7 +51,7 @@ async function registrarIntentoFallido(userId, req) {
       req,
       transaction,
     });
-    return { locked: true };
+    return { locked: true, intentosRestantes: 0 };
   });
 }
 
@@ -88,39 +93,24 @@ async function crearSesion(userId, req) {
       lock: transaction.LOCK.UPDATE,
     });
     if (activeSession) {
-      // Intentar entrar desde otro equipo cuenta como fallo y, al tercero, también bloquea al usuario.
-      const failedAttempts = Number(user.intentosFallidos || 0) + 1;
-      if (failedAttempts < 3) {
-        await user.update(
-          { intentosFallidos: failedAttempts },
-          { transaction },
-        );
-        await exigirSesion.registrarEvento({
-          userId,
-          sessionId: activeSession.id,
-          type: "DUPLICATE_LOGIN",
-          req,
-          transaction,
-        });
-        return { duplicate: true };
-      }
-
-      await user.update(
-        { activo: false, intentosFallidos: 0 },
-        { transaction },
+      // Incluso credenciales correctas no abren una sesión paralela: el intento se cuenta y audita.
+      const failedAttempts = Math.min(
+        Number(user.intentosFallidos || 0) + 1,
+        MAX_INTENTOS_FALLIDOS,
       );
-      await activeSession.update(
-        { endedAt: now, endReason: "account_locked" },
-        { transaction },
-      );
+      await user.update({ intentosFallidos: failedAttempts }, { transaction });
       await exigirSesion.registrarEvento({
         userId,
         sessionId: activeSession.id,
-        type: "ACCOUNT_LOCKED",
+        type: "DUPLICATE_LOGIN",
         req,
         transaction,
       });
-      return { locked: true };
+      return {
+        duplicate: true,
+        locked: failedAttempts >= MAX_INTENTOS_FALLIDOS,
+        intentosRestantes: Math.max(0, MAX_INTENTOS_FALLIDOS - failedAttempts),
+      };
     }
 
     // Se guarda el hash del token, no el token utilizable; IP y navegador identifican el origen de la sesión.
@@ -165,19 +155,40 @@ exports.iniciarSesion = async (req, res) => {
   try {
     // Postgres determina si el usuario existe, está habilitado y valida la contraseña local.
     const user = await Usuario.findOne({ where: { username } });
-    if (!user || !user.activo) {
+    if (!user) {
       return res.status(403).json({
         statusCode: 403,
         statusText: "Usuario o contraseña vencido o sin acceso.",
       });
     }
 
+    if (!user.activo) {
+      const bloqueadoPorIntentos =
+        Number(user.intentosFallidos || 0) >= MAX_INTENTOS_FALLIDOS;
+      return res.status(403).json({
+        statusCode: 403,
+        statusText: bloqueadoPorIntentos
+          ? "Usuario bloqueado por alcanzar 3 intentos fallidos. Contacte al administrador."
+          : "Usuario o contraseña vencido o sin acceso.",
+      });
+    }
+
+    if (Number(user.intentosFallidos || 0) >= MAX_INTENTOS_FALLIDOS) {
+      return res.status(423).json({
+        statusCode: 423,
+        statusText:
+          "Inicio bloqueado por alcanzar 3 intentos fallidos. Contacte al administrador para reactivar el acceso.",
+      });
+    }
+
     // Login temporal contra PostgreSQL. La columna usuario.password actualmente guarda la clave local.
     if (user.password !== password) {
-      await registrarIntentoFallido(user.id, req);
-      return res.status(401).json({
-        statusCode: 401,
-        statusText: "Usuario o contraseña vencido o sin acceso.",
+      const intento = await registrarIntentoFallido(user.id, req);
+      return res.status(intento.locked ? 423 : 401).json({
+        statusCode: intento.locked ? 423 : 401,
+        statusText: intento.locked
+          ? "Usuario bloqueado por alcanzar 3 intentos fallidos. Contacte al administrador."
+          : `Usuario o contraseña incorrectos. Intentos restantes: ${intento.intentosRestantes}.`,
       });
     }
 
@@ -185,13 +196,13 @@ exports.iniciarSesion = async (req, res) => {
     try {
       const ldapResult = await validarCredencialesLdap(username, password);
       if (!ldapResult.success) {
-        await registrarIntentoFallido(user.id, req);
-        return res.status(401).json({ statusCode: 401, statusText: 'Usuario o contraseña vencido o sin acceso.' });
+        const intento = await registrarIntentoFallido(user.id, req);
+        return res.status(intento.locked ? 423 : 401).json({ statusCode: intento.locked ? 423 : 401, statusText: intento.locked ? 'Usuario bloqueado por alcanzar 3 intentos fallidos. Contacte al administrador.' : `Usuario o contraseña incorrectos. Intentos restantes: ${intento.intentosRestantes}.` });
       }
     } catch (error) {
       if (error instanceof InvalidCredentialsError || error.name === 'InvalidCredentialsError') {
-        await registrarIntentoFallido(user.id, req);
-        return res.status(401).json({ statusCode: 401, statusText: 'Usuario o contraseña vencido o sin acceso.' });
+        const intento = await registrarIntentoFallido(user.id, req);
+        return res.status(intento.locked ? 423 : 401).json({ statusCode: intento.locked ? 423 : 401, statusText: intento.locked ? 'Usuario bloqueado por alcanzar 3 intentos fallidos. Contacte al administrador.' : `Usuario o contraseña incorrectos. Intentos restantes: ${intento.intentosRestantes}.` });
       }
       // Una caída de LDAP no es un fallo de clave y no debe acercar al usuario al bloqueo.
       console.error('Error de autenticación LDAP:', error.message);
@@ -202,15 +213,18 @@ exports.iniciarSesion = async (req, res) => {
     // La validación de clave correcta no basta: crearSesion impone una sesión activa por usuario.
     const sessionResult = await crearSesion(user.id, req);
     if (sessionResult.duplicate) {
-      return res.status(409).json({
-        statusCode: 409,
-        statusText: "El usuario ya tiene una sesión activa en otro equipo.",
+      return res.status(sessionResult.locked ? 423 : 409).json({
+        statusCode: sessionResult.locked ? 423 : 409,
+        statusText: sessionResult.locked
+          ? "Intento de sesión simultánea bloqueado por seguridad. Contacte al administrador para reactivar el acceso."
+          : `El usuario ya tiene una sesión activa. No se permiten sesiones simultáneas. Intentos restantes antes del bloqueo: ${sessionResult.intentosRestantes}.`,
       });
     }
     if (sessionResult.locked) {
-      return res.status(403).json({
-        statusCode: 403,
-        statusText: "Usuario o contraseña vencido o sin acceso.",
+      return res.status(423).json({
+        statusCode: 423,
+        statusText:
+          "Usuario bloqueado por alcanzar 3 intentos fallidos. Contacte al administrador.",
       });
     }
 
@@ -287,6 +301,51 @@ exports.obtenerSesiones = async (req, res) => {
   const pagina = Math.max(1, paginaSolicitada);
   const limite = 50;
   const desplazamiento = (pagina - 1) * limite;
+  const filtros = [];
+  const replacements = {};
+
+  if (req.query.q) {
+    filtros.push(`(
+      u."username" ILIKE :busqueda OR
+      u."nombres" ILIKE :busqueda OR
+      u."apellidos" ILIKE :busqueda OR
+      s."ip_address" ILIKE :busqueda OR
+      s."user_agent" ILIKE :busqueda
+    )`);
+    replacements.busqueda = `%${String(req.query.q).trim()}%`;
+  }
+
+  if (req.query.estado === "Activa") {
+    filtros.push('s."ended_at" IS NULL AND s."expires_at" > NOW()');
+  } else if (req.query.estado === "Vencida") {
+    filtros.push('s."ended_at" IS NULL AND s."expires_at" <= NOW()');
+  } else if (req.query.estado === "Cerrada") {
+    filtros.push('s."ended_at" IS NOT NULL');
+  }
+
+  for (const campo of ["desde", "hasta"]) {
+    const valor = req.query[campo];
+    if (!valor) continue;
+    const fechaValida =
+      /^\d{4}-\d{2}-\d{2}$/.test(valor) &&
+      !Number.isNaN(Date.parse(`${valor}T00:00:00Z`));
+    if (!fechaValida) {
+      return res
+        .status(400)
+        .json({
+          statusCode: 400,
+          statusText: `El filtro ${campo} no es una fecha válida.`,
+        });
+    }
+    replacements[campo] = valor;
+    filtros.push(
+      campo === "desde"
+        ? 's."started_at" >= CAST(:desde AS DATE)'
+        : "s.\"started_at\" < CAST(:hasta AS DATE) + INTERVAL '1 day'",
+    );
+  }
+
+  const where = filtros.length ? `WHERE ${filtros.join(" AND ")}` : "";
 
   try {
     // No se consulta token_hash: la vista administrativa solo requiere metadatos de la sesión.
@@ -306,17 +365,21 @@ exports.obtenerSesiones = async (req, res) => {
         s."end_reason" AS "endReason"
       FROM "usuario_sesion" s
       INNER JOIN "usuario" u ON u."id" = s."usuario_id"
-      ORDER BY s."started_at" ASC, s."id" ASC
+      ${where}
+      ORDER BY s."started_at" DESC, s."id" DESC
       LIMIT :limite OFFSET :desplazamiento
     `,
       {
-        replacements: { limite, desplazamiento },
+        replacements: { ...replacements, limite, desplazamiento },
         type: QueryTypes.SELECT,
       },
     );
     const [conteo] = await conn.query(
-      'SELECT COUNT(*)::INTEGER AS total FROM "usuario_sesion"',
-      { type: QueryTypes.SELECT },
+      `SELECT COUNT(*)::INTEGER AS total
+       FROM "usuario_sesion" s
+       INNER JOIN "usuario" u ON u."id" = s."usuario_id"
+       ${where}`,
+      { replacements, type: QueryTypes.SELECT },
     );
     const total = Number(conteo?.total || 0);
 

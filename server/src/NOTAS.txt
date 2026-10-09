@@ -1,50 +1,3 @@
-LOGIN: Excelente, todo funcionando bien: proceso de login completo
-¡Muy buena noticia! Ya está funcionando de manera estable. 2 cosas claves:
-
-Se protege correctamente con roles.
-Se muestra Login primero, y luego Sidebar/Header según auth.
-Todo el flujo de sesión se maneja desde auth.js (store + localStorage).
-🧩 Flujo de login (paso a paso)
-Usuario entra a la app (ruta /iniciar-sesion)
-Login muestra Login.vue (ningún componente protegido visible)
-Usuario escribe indicador + clave:
-manejarInicioSesion() valida campos.
-Llama iniciarSesionApi(indicador, clave) (POST a http://localhost:3001/api/auth/login)
-Backend (src/controllers/auth.js) verifica:
-Usuario.findOne({ where: { username } })
-valida password
-genera token (fake JWT aquí)
-devuelve JSON:
-result.user (datos + rol, roles)
-result.token
-Front recibe respuesta en Login.vue y hace:
-authStore.iniciarSesion({ user, token, recordar })
-En usarEstadoAutenticacion:
-state.user = user
-state.token = token
-state.isAuthenticated = true
-state.remember = recordar
-saveAuth() guarda/localiza si remember true
-🗄️ Dónde se guarda la sesión
-localStorage clave: auth (STORAGE_KEY en src/stores/auth.js)
-Contenido JSON (si remember true):
-verificarAutenticacion() lee localStorage.auth en App.vue / onMounted para mantener sesión entre recargas.
-🔐 Ruta protegidas y visualización
-En router/index.js:
-Si no auth -> redirije a login
-Si auth -> permite dashboard, crear, tabla
-Rol insuficiente -> no-autorizado
-App.vue muestra Header/Sidebar solo si authStore.isAuthenticated.value === true.
-🔁 Logout
-authStore.cerrarSesion():
-limpia state.user, token, isAuthenticated, remember
-saveAuth() elimina localStorage.auth
-redirige a /iniciar-sesion
-📌 Nota final
-localStorage no se escribe si no se marca Recordar en login, pero estado en memoria sigue activo hasta cerrar pestaña.
-Para mantener entre refresh: usar Recordar (true) y verificarAutenticacion() rehidrata.
-
-
 Últimos cambios
 baseParser.js
 
@@ -62,11 +15,6 @@ Ese script crea un objeto values con new Date(...), lo que produce bindings tipo
 Por eso el output muestra fechas como "2026-07-15T04:00:00.000Z".
 En resumen: el script actual no está usando formatOracleDate() ni formatOracleTimestampTz().
 
-Cómo probarlo tú mismo
-Cambia tmp_inspect_oracle_date.js para usar el parser real y generar el payload Oracle, por ejemplo:
-const db = require("./src/db");
-const { buildTransportePersonalPayloads } = require("./src/services/oracle/parsers/types/transportePersonalParser");
-const WorkOrder = db.WorkOrder || db.Workorder;
 
 const payloads = buildTransportePersonalPayloads(
   {
@@ -95,38 +43,6 @@ const payloads = buildTransportePersonalPayloads(
   "WO123456",
 );
 
-const workorder = payloads.workorderPayload;
-
-const sql = db.connOracle.getQueryInterface().queryGenerator.insertQuery(
-  WorkOrder.getTableName(),
-  workorder,
-  WorkOrder.rawAttributes,
-);
-
-console.log("query:", sql.query);
-console.log("bind:", JSON.stringify(sql.bind, null, 2));
-
-Qué debes esperar ver
-En query:, que los campos statusdate y wo1 aparezcan como:
-TO_DATE('15/07/2026','DD/MM/YYYY')
-Para targstartdate, algo como:
-TO_DATE('15/07/2026 07:00:00','DD/MM/YYYY HH24:MI:SS')
-En bind: solo deberían aparecer los campos que no son literales SQL.
-Si quieres verificar solo el parser
-Puedes usar también directamente el helper:
-
-const { normalizeDate, formatOracleDate, formatOracleTimestampTz } = require("./src/services/oracle/parsers/baseParser");
-
-console.log(normalizeDate("25/11/1999 6:30:00 a. m."));
-console.log(formatOracleDate("25/11/1999"));
-console.log(formatOracleTimestampTz("25/11/1999 6:30:00 a. m."));
-
-Conclusión
-El cambio real fue en el parser: pasar de fechas JS a expresiones Oracle con TO_DATE.
-tmp_inspect_oracle_date.js debe actualizarse para usar ese parser, no datos Date planos.
-Cuando ejecutes el script revisa el query y confirma que los TO_DATE(...) estén presentes.
-Si quieres, te puedo darte el contenido exacto listo para pegar en tmp_inspect_oracle_date.js.
-
 select * from WORKORDER t  where t.pmnum = '41214210' --> se guardo en workorder tipo oum. y guarda eqnum
 select * from WORKORDER t where t.pmnum = '41214212' --> no se guardo tipo tp
 
@@ -137,17 +53,6 @@ promnt para empezar backend: estoy trabajando con node 24.15.0, "sequelize": "6.
 
 pm16: context.cedulaSolicitante, //traer la extension del solicitante TP PM
 REVISAR QUE ESTA LLEGANDO POR AQUI NO APARECE E CODIGO: PM10 DE TP PM deberia ser el codigo del tipo de servicio a traer
-
-PRIORIDAD TAMPOCO ESTA LLEGANDO
-REVISAR CODIGO DE ORIGEN Y DESCRIPCION PARA ORIGEN Y DESTINO 41214215 720:00
-EN SERVICIO RECCURRENTE ESTA LLEGANDO EL PMNUM
-changeby pide indicador  se le esta pasando nombre de PM
-SUPERVISOR PIDE CEDULA DE SUPERVISOR Y LE LLEGA NOMBRE DE APROBADOR TABLA PM
-PM13 pide nombre de solicitante y llega aprobador o viceverca PM
-
-
-el modal de confirmacion debe crear al momento de confirmar la informacion donde muentra la odst y el correlativo
-igualmente debe ser creada la informacion de envio de correo y la logica para esto también
 
 select * from WORKORDER t where t.wonum = '572496'
 select * from WORKORDER t ORDER BY WONUM DESC
@@ -360,7 +265,8 @@ respuesta del DIRECTORIO ACTIVO DE LDAP:
 FALTAN TRES PUNTOS IMPORTANTES:
 
 TABLA DE SESION: debe registrar los inicios de sesion y los cierre de manera tal que si 
-un usuario tiene una sesion activa no puede iniciarsesion en otra ip, debe registrar quien se logueo con fecha completa, hora, indicador y de ser posible lo que hizo dentro de la app.
+un usuario tiene una sesion activa no puede iniciarsesion en otra ip, debe registrar quien se logueo con fecha completa, hora,
+indicador y de ser posible lo que hizo dentro de la app.
 
 BLOQUEO DE USUARIO:  en la tabla usuario debe haber una campo de cuanta de intentos fallidos
 al tercer intento fallido debe cambiar el estado del usuario de activo a inactivo o false.
@@ -384,3 +290,9 @@ al tercer intento fallido debe cambiar el estado del usuario de activo a inactiv
     "mail": "FLEIREL@PDVSA.COM"
   }
 }
+
+se debe crear la funcion que al crear el usuario este coloque el correo completo pero en el campo correo de cada formulario 
+debe llegar el indicador solo por el tamaño que espera oracle
+
+arreglar las fechas de manera visual el calendario
+

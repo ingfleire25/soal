@@ -1,116 +1,173 @@
 <template>
+  <h1 class="mb-4">Evaluar servicio de transporte</h1>
 
-    <h1 class="mb-4">Evaluar servicio de transporte</h1>
+  <div class="card shadow-sm mb-4">
+    <div class="card-body">
+      <p class="text-muted">
+        Registre la evaluación asociada al código de solicitud. La información
+        de quien evalúa se completa desde el usuario logueado.
+      </p>
+    </div>
+  </div>
 
-    <div class="card shadow-sm mb-4">
-      <div class="card-body">
-        <p class="text-muted">Registre la evaluación asociada al código de solicitud. La información de quien evalúa se completa desde el usuario logueado.</p>
+  <form @submit.prevent="enviarEvaluacion" class="card shadow-sm p-4">
+    <div class="row gy-3">
+      <div class="col-md-6">
+        <label class="form-label">Código de solicitud</label>
+        <select
+          v-model="form.codigoSolicitud"
+          @change="onSolicitudSeleccionada"
+          class="form-select"
+          required
+        >
+          <option value="">Seleccione su solicitud</option>
+          <option
+            v-for="solicitud in solicitudesUsuario"
+            :key="solicitud.id"
+            :value="solicitud.id"
+          >
+            {{ solicitud.id }} - {{ solicitud.descripcion }}
+          </option>
+        </select>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Tipo de solicitud</label>
+        <input
+          v-model="form.tipoSolicitud"
+          type="text"
+          class="form-control bg-light"
+          readonly
+          placeholder="Se completa al elegir la solicitud"
+        />
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Subtipo</label>
+        <input
+          v-model="form.subtipo"
+          type="text"
+          class="form-control bg-light"
+          readonly
+        />
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label">Evaluador</label>
+        <input
+          v-model="form.evaluadorNombre"
+          type="text"
+          class="form-control bg-light"
+          readonly
+        />
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Cédula evaluador</label>
+        <input
+          v-model="form.evaluadorCedula"
+          type="text"
+          class="form-control bg-light"
+          readonly
+        />
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Correo evaluador</label>
+        <input
+          v-model="form.evaluadorCorreo"
+          type="email"
+          class="form-control bg-light"
+          readonly
+        />
+      </div>
+
+      <div class="col-md-12">
+        <h5 class="mb-3">Valoración del servicio</h5>
+      </div>
+
+      <div class="col-md-2" v-for="item in preguntas" :key="item.key">
+        <label class="form-label">{{ item.label }}</label>
+        <select
+          v-model.number="form[item.key]"
+          class="form-select ponderaciones"
+          required
+        >
+          <option value="">Seleccione</option>
+          <option v-for="n in 5" :key="n" :value="n">
+            {{ n }} - {{ valoracionTexto(n) }}
+          </option>
+        </select>
+      </div>
+
+      <div class="col-12">
+        <label class="form-label">Comentarios adicionales</label>
+        <textarea
+          v-model="form.comentarios"
+          class="form-control"
+          rows="4"
+          placeholder="Describe cualquier detalle adicional"
+        ></textarea>
+      </div>
+
+      <div class="col-12 text-end">
+        <button type="submit" class="btn btn-primary" :disabled="loading">
+          <span
+            v-if="loading"
+            class="spinner-border spinner-border-sm me-2"
+          ></span>
+          Enviar evaluación
+        </button>
       </div>
     </div>
-
-    <form @submit.prevent="enviarEvaluacion" class="card shadow-sm p-4">
-      <div class="row gy-3">
-        <div class="col-md-6">
-          <label class="form-label">Código de solicitud</label>
-          <select v-model="form.codigoSolicitud" @change="onSolicitudSeleccionada" class="form-select" required>
-            <option value="">Seleccione su solicitud</option>
-            <option v-for="solicitud in solicitudesUsuario" :key="solicitud.id" :value="solicitud.id">
-              {{ solicitud.id }} - {{ solicitud.descripcion }}
-            </option>
-          </select>
-        </div>
-        <div class="col-md-6">
-          <label class="form-label">Tipo de solicitud</label>
-          <input v-model="form.tipoSolicitud" type="text" class="form-control bg-light" readonly placeholder="Se completa al elegir la solicitud" />
-        </div>
-        <div class="col-md-6">
-          <label class="form-label">Subtipo</label>
-          <input v-model="form.subtipo" type="text" class="form-control bg-light" readonly />
-        </div>
-
-        <div class="col-md-6">
-          <label class="form-label">Evaluador</label>
-          <input v-model="form.evaluadorNombre" type="text" class="form-control bg-light" readonly />
-        </div>
-        <div class="col-md-6">
-          <label class="form-label">Cédula evaluador</label>
-          <input v-model="form.evaluadorCedula" type="text" class="form-control bg-light" readonly />
-        </div>
-        <div class="col-md-6">
-          <label class="form-label">Correo evaluador</label>
-          <input v-model="form.evaluadorCorreo" type="email" class="form-control bg-light" readonly />
-        </div> 
-
-        <div class="col-md-12">
-          <h5 class="mb-3">Valoración del servicio</h5>
-        </div>
-
-        <div class="col-md-2" v-for="item in preguntas" :key="item.key">
-          <label class="form-label ">{{ item.label }}</label>
-          <select v-model.number="form[item.key]" class="form-select ponderaciones" required>
-            <option value="">Seleccione</option>
-            <option v-for="n in 5" :key="n" :value="n">{{ n }} - {{ valoracionTexto(n) }}</option>
-          </select>
-        </div>
-
-        <div class="col-12">
-          <label class="form-label">Comentarios adicionales</label>
-          <textarea v-model="form.comentarios" class="form-control" rows="4" placeholder="Describe cualquier detalle adicional"></textarea>
-        </div>
-
-        <div class="col-12 text-end">
-          <button type="submit" class="btn btn-primary" :disabled="loading">
-            <span v-if="loading" class="spinner-border spinner-border-sm me-2"></span>
-            Enviar evaluación
-          </button>
-        </div>
-      </div>
-    </form>
-  
+  </form>
 </template>
 
 <script>
-import { usarEstadoAutenticacion } from '@/stores/auth';
-import { postEvaluacion } from '@/services/postEvaluacion';
-import { getSolicitudes } from '@/services/getSolicitudes';
+import { usarEstadoAutenticacion } from "@/stores/auth";
+import { postEvaluacion } from "@/services/postEvaluacion";
+import { getSolicitudes } from "@/services/getSolicitudes";
+import {
+  confirmAction,
+  notifyError,
+  showEvaluacionSummary,
+} from "@/utils/alertService";
 
 export default {
-  name: 'EvaluacionServicio',
+  name: "EvaluacionServicio",
   data() {
     return {
       loading: false,
       loadingSolicitudes: false,
       solicitudesUsuario: [],
       preguntas: [
-        { key: 'puntualidad', label: 'Puntualidad del servicio' },
-        { key: 'calidad', label: 'Calidad del transporte' },
-        { key: 'comunicacion', label: 'Comunicación del personal' },
-        { key: 'seguridad', label: 'Condiciones de seguridad' },
-        { key: 'satisfaccion', label: 'Satisfacción del Servicio' }
+        { key: "puntualidad", label: "Puntualidad del servicio" },
+        { key: "calidad", label: "Calidad del transporte" },
+        { key: "comunicacion", label: "Comunicación del personal" },
+        { key: "seguridad", label: "Condiciones de seguridad" },
+        { key: "satisfaccion", label: "Satisfacción del Servicio" },
       ],
       form: {
-        codigoSolicitud: '',
-        tipoSolicitud: '',
-        subtipo: '',
-        evaluadorNombre: '',
-        evaluadorCedula: '',
-        evaluadorCorreo: '',
+        codigoSolicitud: "",
+        tipoSolicitud: "",
+        subtipo: "",
+        evaluadorNombre: "",
+        evaluadorCedula: "",
+        evaluadorCorreo: "",
         puntualidad: null,
         calidad: null,
         comunicacion: null,
         seguridad: null,
         satisfaccion: null,
-        comentarios: ''
-      }
+        comentarios: "",
+      },
     };
   },
   mounted() {
     const authStore = usarEstadoAutenticacion();
     const user = authStore.user?.value;
     if (user) {
-      this.form.evaluadorNombre = `${user.nombres || user.username || ''} ${user.apellidos || ''}`.trim();
-      this.form.evaluadorCedula = user.cedula || '';
-      this.form.evaluadorCorreo = user.email || user.correo || user.username || '';
+      this.form.evaluadorNombre =
+        `${user.nombres || user.username || ""} ${user.apellidos || ""}`.trim();
+      this.form.evaluadorCedula = user.cedula || "";
+      this.form.evaluadorCorreo =
+        user.email || user.correo || user.username || "";
       this.cargarSolicitudes(user);
     }
   },
@@ -119,62 +176,87 @@ export default {
       this.loadingSolicitudes = true;
       try {
         const solicitudes = await getSolicitudes();
-        const userCedula = user?.cedula || user?.cedulaSolicitante || '';
-        const userName = `${user?.nombres || user?.nombre || user?.username || ''}`.trim().toLowerCase();
+        const userCedula = user?.cedula || user?.cedulaSolicitante || "";
+        const userName =
+          `${user?.nombres || user?.nombre || user?.username || ""}`
+            .trim()
+            .toLowerCase();
 
         this.solicitudesUsuario = solicitudes.filter((solicitud) => {
-          const cedulaMatch = userCedula && solicitud.cedulaSolicitante?.toString() === userCedula.toString();
-          const nombreMatch = userName && solicitud.solicitante?.toString().toLowerCase() === userName;
+          const cedulaMatch =
+            userCedula &&
+            solicitud.cedulaSolicitante?.toString() === userCedula.toString();
+          const nombreMatch =
+            userName &&
+            solicitud.solicitante?.toString().toLowerCase() === userName;
           return cedulaMatch || nombreMatch;
         });
       } catch (error) {
-        console.error('Error cargando solicitudes:', error);
+        console.error("Error cargando solicitudes:", error);
       } finally {
         this.loadingSolicitudes = false;
       }
     },
     onSolicitudSeleccionada() {
-      const solicitud = this.solicitudesUsuario.find((item) => item.id === this.form.codigoSolicitud);
+      const solicitud = this.solicitudesUsuario.find(
+        (item) => item.id === this.form.codigoSolicitud,
+      );
       if (solicitud) {
-        this.form.tipoSolicitud = solicitud.tipoSolicitud || '';
-        this.form.subtipo = solicitud.subtipo || '';
+        this.form.tipoSolicitud = solicitud.tipoSolicitud || "";
+        this.form.subtipo = solicitud.subtipo || "";
       } else {
-        this.form.tipoSolicitud = '';
-        this.form.subtipo = '';
+        this.form.tipoSolicitud = "";
+        this.form.subtipo = "";
       }
     },
     valoracionTexto(value) {
-      const labels = ['Muy malo', 'Malo', 'Regular', 'Bueno', 'Excelente'];
-      return labels[value - 1] || '';
+      const labels = ["Muy malo", "Malo", "Regular", "Bueno", "Excelente"];
+      return labels[value - 1] || "";
     },
     async enviarEvaluacion() {
-      if (!this.form.codigoSolicitud.trim()) {
-        notifyError('Debe seleccionar el código de solicitud a evaluar.');
+      if (!String(this.form.codigoSolicitud || "").trim()) {
+        notifyError("Debe seleccionar el código de solicitud a evaluar.");
         return;
       }
+
+      const confirmacion = await confirmAction({
+        title: "¿Confirmar el envío de la evaluación?",
+        text: `Se registrará la evaluación de la solicitud ${this.form.codigoSolicitud} a nombre de ${this.form.evaluadorNombre || "—"}.`,
+        confirmButtonText: "Sí, guardar evaluación",
+        cancelButtonText: "Cancelar",
+      });
+      if (!confirmacion.isConfirmed) return;
+
       this.loading = true;
       try {
-        await postEvaluacion(this.form);
-        notifySuccess('Evaluación registrada correctamente.');
+        const evaluacionGuardada = await postEvaluacion({ ...this.form });
+        await showEvaluacionSummary({
+          evaluacion: evaluacionGuardada || this.form,
+          preguntas: this.preguntas,
+          valoracionTexto: this.valoracionTexto,
+        });
         this.resetForm();
       } catch (error) {
-        notifyError('Error al registrar evaluación: ' + (error.statusText || 'Error desconocido'));
+        notifyError(
+          "Error al registrar evaluación: " +
+            (error.statusText || "Error desconocido"),
+        );
       } finally {
         this.loading = false;
       }
     },
     resetForm() {
-      this.form.codigoSolicitud = '';
-      this.form.tipoSolicitud = '';
-      this.form.subtipo = '';
+      this.form.codigoSolicitud = "";
+      this.form.tipoSolicitud = "";
+      this.form.subtipo = "";
       this.form.puntualidad = null;
       this.form.calidad = null;
       this.form.comunicacion = null;
       this.form.seguridad = null;
       this.form.satisfaccion = null;
-      this.form.comentarios = '';
-    }
-  }
+      this.form.comentarios = "";
+    },
+  },
 };
 </script>
 
@@ -183,5 +265,8 @@ export default {
   font-size: 14px;
 }
 
-.evaluacion-servicio { max-width: 900px; margin: auto; }
+.evaluacion-servicio {
+  max-width: 900px;
+  margin: auto;
+}
 </style>

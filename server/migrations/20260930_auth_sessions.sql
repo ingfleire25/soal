@@ -2,7 +2,7 @@
 BEGIN;
 
 -- Añade el contador a los usuarios existentes con valor inicial cero.
--- La aplicación suma fallos de clave o de inicio duplicado; al tercero desactiva al usuario y reinicia el contador.
+-- La aplicación suma fallos de credenciales; al tercero desactiva al usuario y conserva el contador en tres.
 ALTER TABLE "usuario"
   ADD COLUMN IF NOT EXISTS "intentosFallidos" INTEGER NOT NULL DEFAULT 0;
 

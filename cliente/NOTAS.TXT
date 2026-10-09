@@ -77,3 +77,25 @@ Si quieres, puedo también reemplazar los confirm(...) y prompt(...) por modales
  las cedulas van si V NI EL GUION SOLO NUMERO SIN CARACTERES ESPECIALES
 
  DEBO CAPTAR EL CODIGO DE GLAACCOUNT PARA ENVIARLO AL PARSEO
+
+ Revisé el autocompletado y ajusté el flujo de sesión. No cambié las fuentes de datos de los formularios: continúan consultando 
+ la base de datos y no agregué fallbacks locales.
+
+Autocompletado revisado
+Transporte, Movimiento de Unidades Mayores y Suministro Lacustre: ubicaciones, organizaciones, centros de costo, 
+tipos de servicio y aprobadores vienen de consultas Oracle. En Suministro Lacustre, los materiales también se consultan en Oracle. 
+Los formularios están en TransportePersonal.vue, MovimientoUnidadesMayores.vue y SuministroLacustre.vue.
+
+Edición de solicitudes: usa esos mismos catálogos de Oracle y solicitudes guardadas en PostgreSQL; ver Solicitudes.vue.
+Evaluación de servicio: las solicitudes vienen de PostgreSQL y los datos del evaluador se derivan del usuario autenticado desde la base de datos; ver EvaluacionServicio.vue.
+Los valores fijos —por ejemplo, días de la semana y escala de evaluación— son opciones del formulario, no autocompletado. Encontré mockUsers.js, con usuarios ficticios, pero no encontré referencias que lo usen en la aplicación.
+Cambios de sesión
+Tres contraseñas incorrectas bloquean la cuenta y la dejan desactivada hasta que un administrador la reactive. Reactivarla reinicia el contador.
+Iniciar sesión con credenciales correctas desde otro equipo se rechaza con HTTP 409: no crea una sesión adicional, no expulsa la sesión vigente y no suma un fallo de contraseña.
+Al restaurar credenciales guardadas, el cliente consulta al servidor para comprobar la sesión contra la tabla antes de confiar en ella.
+“Recordar” ahora determina dónde se conserva el token: almacenamiento local si está marcado; almacenamiento de pestaña si no.
+Los cambios principales están en auth.js, usuarios.js, auth.js y api.js.
+
+Validación: compilación del frontend correcta y sin errores de sintaxis en los controladores modificados. 
+Vite sigue mostrando el aviso existente por un bloque de salida superior a 500 kB. No ejecuté pruebas de integración 
+contra PostgreSQL/Oracle; el cambio de esquema requiere que la migración de sesiones esté aplicada en la base de datos.

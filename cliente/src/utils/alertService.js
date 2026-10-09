@@ -96,6 +96,41 @@ export const showSolicitudSummary = ({
   });
 };
 
+/** Modal de éxito con el resumen de una evaluación registrada. */
+export const showEvaluacionSummary = ({ evaluacion = {}, preguntas = [], valoracionTexto }) => {
+  const rows = [
+    ["Evaluación", evaluacion.id],
+    ["Solicitud", evaluacion.codigoSolicitud],
+    ["Tipo", evaluacion.tipoSolicitud],
+    ["Subtipo", evaluacion.subtipo],
+    ["Evaluador", evaluacion.evaluadorNombre],
+    ["Cédula", evaluacion.evaluadorCedula],
+    ["Correo", evaluacion.evaluadorCorreo],
+    ...preguntas.map(({ key, label }) => [
+      label,
+      evaluacion[key] == null
+        ? "—"
+        : `${evaluacion[key]} - ${valoracionTexto(evaluacion[key])}`,
+    ]),
+    ["Comentarios", evaluacion.comentarios],
+  ];
+
+  const details = rows
+    .map(
+      ([label, value]) =>
+        `<div class="d-flex justify-content-between gap-3 py-2 border-bottom"><strong>${escapeHtml(label)}</strong><span class="text-end text-break">${escapeHtml(value)}</span></div>`,
+    )
+    .join("");
+
+  return Swal.fire({
+    icon: "success",
+    title: "Evaluación guardada exitosamente",
+    html: `<div class="text-start">${details}</div>`,
+    confirmButtonText: "Cerrar",
+    customClass: { popup: "swal2-borderless" },
+  });
+};
+
 export const notifyWarning = (message) => {
   return Swal.fire({
     ...toastDefaults,

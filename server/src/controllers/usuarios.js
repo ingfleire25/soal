@@ -104,6 +104,7 @@ exports.update = async (req, res) => {
       departamento,
       rol,
       activo,
+      intentosFallidos: activo === true ? 0 : undefined,
       nivelAprobacion: rol === 'Aprobador' ? nivelAprobacion : null
     });
     res.status(200).json({ statusCode: 200, statusText: 'Usuario actualizado', result: user });

@@ -13,7 +13,8 @@ export async function registrarActividadApi() {
   return api.post("/api/auth/activity");
 }
 
-export async function consultarSesiones(pagina = 1) {
-  const res = await api.get("/api/auth/sesiones", { params: { pagina } });
+export async function consultarSesiones(filtros = {}) {
+  const params = typeof filtros === "number" ? { pagina: filtros } : filtros;
+  const res = await api.get("/api/auth/sesiones", { params });
   return res.data;
 }

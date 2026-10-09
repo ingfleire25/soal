@@ -63,7 +63,7 @@ console.log("[Oracle parser][TP] Context estructurado:", {
       pm17: context.modserv,
       pm18: formatOracleTimestampTz(context.fechaInicio),
       changedate: context.today,
-      changeby: context.correo,
+      changeby: context.changeby,
       description: context.descripcion,
       pm6: context.origen,
       pm7: context.descripcionOrigen,

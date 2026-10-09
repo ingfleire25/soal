@@ -1,22 +1,21 @@
-const { EvaluacionTransporte } = require('../db');
+const { EvaluacionTransporte, conn } = require('../db');
 const { Op } = require('sequelize');
 
-const getNextSequentialId = async (model, prefix) => {
-  const latest = await model.findOne({
-    where: { id: { [Op.like]: `${prefix}-%` } },
-    order: [['id', 'DESC']],
-    attributes: ['id']
+const getNextSequentialId = async (model, prefix, transaction) => {
+  const existingIds = await model.findAll({
+    where: { id: { [Op.like]: `${prefix}%` } },
+    attributes: ['id'],
+    transaction,
   });
 
-  let nextNumber = 1;
-  if (latest && latest.id) {
-    const match = latest.id.match(new RegExp(`^${prefix}-(\d{4})$`));
-    if (match) {
-      nextNumber = parseInt(match[1], 10) + 1;
-    }
-  }
+  const escapedPrefix = prefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const idPattern = new RegExp(`^${escapedPrefix}-?(\\d+)$`);
+  const highestNumber = existingIds.reduce((highest, evaluation) => {
+    const match = String(evaluation.id).match(idPattern);
+    return match ? Math.max(highest, Number(match[1])) : highest;
+  }, 0);
 
-  return `${prefix}-${String(nextNumber).padStart(4, '0')}`;
+  return `${prefix}${String(highestNumber + 1).padStart(4, '0')}`;
 };
 
 exports.getAll = async (req, res) => {
@@ -54,22 +53,33 @@ exports.postEvaluacion = async (req, res) => {
   }
 
   try {
-    const id = await getNextSequentialId(EvaluacionTransporte, 'EV');
-    const nuevaEvaluacion = await EvaluacionTransporte.create({
-      id,
-      codigoSolicitud,
-      tipoSolicitud,
-      subtipo,
-      evaluadorNombre,
-      evaluadorCedula,
-      evaluadorCorreo,
-      fecha: new Date(),
-      puntualidad,
-      calidad,
-      comunicacion,
-      seguridad,
-      satisfaccion,
-      comentarios
+    const nuevaEvaluacion = await conn.transaction(async (transaction) => {
+      // Serializa los generadores EV entre solicitudes simultáneas en PostgreSQL.
+      await conn.query(
+        'SELECT pg_advisory_xact_lock(hashtext(:scope), hashtext(:prefix))',
+        {
+          replacements: { scope: 'evaluacionTransporte', prefix: 'EV' },
+          transaction,
+        },
+      );
+
+      const id = await getNextSequentialId(EvaluacionTransporte, 'EV', transaction);
+      return EvaluacionTransporte.create({
+        id,
+        codigoSolicitud,
+        tipoSolicitud,
+        subtipo,
+        evaluadorNombre,
+        evaluadorCedula,
+        evaluadorCorreo,
+        fecha: new Date(),
+        puntualidad,
+        calidad,
+        comunicacion,
+        seguridad,
+        satisfaccion,
+        comentarios
+      }, { transaction });
     });
 
     res.status(201).json({ statusCode: 201, statusText: 'Evaluación registrada', result: nuevaEvaluacion });

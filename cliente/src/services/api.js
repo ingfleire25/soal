@@ -12,7 +12,15 @@ const api = axios.create({
 // Interceptor para agregar el token
 api.interceptors.request.use(
   (config) => {
-    const auth = JSON.parse(localStorage.getItem("auth"));
+    let auth = null;
+    try {
+      const saved =
+        localStorage.getItem("auth") || sessionStorage.getItem("auth");
+      auth = saved ? JSON.parse(saved) : null;
+    } catch (error) {
+      localStorage.removeItem("auth");
+      sessionStorage.removeItem("auth");
+    }
     const token = auth?.tokenAcceso || auth?.token;
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -29,10 +37,11 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (
-      error.response?.status === 401 &&
+      error.response?.data?.code === "SESSION_INVALID" &&
       !error.config?.url?.includes("/api/auth/login")
     ) {
-      // El store invalida el estado reactivo y redirige; no dejar la interfaz autenticada.
+      // Solo invalidar el store cuando el servidor confirma que expiró la sesión; otros 401
+      // de endpoints de negocio no deben cerrar una sesión que todavía es válida.
       window.dispatchEvent(new Event("auth:unauthorized"));
     }
     return Promise.reject(error);

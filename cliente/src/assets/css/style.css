@@ -451,8 +451,19 @@ input[type="password"] {
     position: absolute; /* Position the image absolutely */
     top: 2.5rem; /* Distance from the top of the container */
     right: 3.15rem; /* Distance from the right of the container */
-    width: 10rem; /* Set the width as needed */
+    width: 13rem;
     z-index: 9; /* Ensure it is above other elements */
+}
+@media (max-width: 576px) {
+    .imagen-cintillo {
+        width: 42vw;
+    }
+    .nombre-app {
+        width: 34vw;
+        top: 50%;
+        right: 0.75rem;
+        transform: translateY(-50%);
+    }
 }
 .form-control:focus {
 /*        box-shadow: 0 0 0 0.2rem rgba(68, 68, 68, 0.25);  Customize color here */

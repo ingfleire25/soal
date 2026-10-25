@@ -16,7 +16,7 @@
           <div class="right-section">
             <section class="shadow" style="border-radius: 15px;">
               <div class="container flex" style="border-radius: 15px 15px 0px 0px;">
-                <img :src="nombreAppImg" class="mt-4 mx-auto img-fluid" style="width: 220px;">
+                <img :src="nombreAppImg" class="login-brand mt-4 mx-auto img-fluid" alt="SOAL web - Operaciones Acuáticas">
               </div>
 
               <div class="row mx-auto p-2">
@@ -209,5 +209,16 @@ function manejarRecuperacionClave() {
 </script>
 
 <style scoped>
+.login-brand {
+  width: 300px;
+  max-width: 80%;
+  height: auto;
+  object-fit: contain;
+}
 
+@media (max-width: 576px) {
+  .login-brand {
+    width: 260px;
+  }
+}
 </style>

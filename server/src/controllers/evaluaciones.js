@@ -1,5 +1,6 @@
-const { EvaluacionTransporte, conn } = require('../db');
+const { EvaluacionTransporte, Solicitud, conn } = require('../db');
 const { Op } = require('sequelize');
+const { completarCorreo } = require('../utils/correo');
 
 const getNextSequentialId = async (model, prefix, transaction) => {
   const existingIds = await model.findAll({
@@ -29,13 +30,15 @@ exports.getAll = async (req, res) => {
 };
 
 exports.postEvaluacion = async (req, res) => {
+  if (req.authUser?.rol !== 'Solicitante') {
+    return res.status(403).json({
+      statusCode: 403,
+      statusText: 'Solo los solicitantes pueden crear evaluaciones',
+    });
+  }
+
   const {
     codigoSolicitud,
-    tipoSolicitud,
-    subtipo,
-    evaluadorNombre,
-    evaluadorCedula,
-    evaluadorCorreo,
     puntualidad,
     calidad,
     comunicacion,
@@ -44,15 +47,35 @@ exports.postEvaluacion = async (req, res) => {
     comentarios
   } = req.body;
 
-  if (!codigoSolicitud || !evaluadorNombre || puntualidad == null || calidad == null || comunicacion == null || seguridad == null || satisfaccion == null) {
+  if (!codigoSolicitud || puntualidad == null || calidad == null || comunicacion == null || seguridad == null || satisfaccion == null) {
     return res.status(400).json({
       statusCode: 400,
       statusText: 'Faltan campos obligatorios para crear la evaluación',
-      required: ['codigoSolicitud', 'evaluadorNombre', 'puntualidad', 'calidad', 'comunicacion', 'seguridad', 'satisfaccion']
+      required: ['codigoSolicitud', 'puntualidad', 'calidad', 'comunicacion', 'seguridad', 'satisfaccion']
     });
   }
 
   try {
+    const solicitud = await Solicitud.findByPk(codigoSolicitud);
+    if (!solicitud || solicitud.tipoSolicitud !== 'Transporte de Personal') {
+      return res.status(404).json({
+        statusCode: 404,
+        statusText: 'Solo se pueden evaluar solicitudes de Transporte de Personal',
+      });
+    }
+
+    const cedulaSolicitante = String(solicitud.cedulaSolicitante || '').trim();
+    const cedulaUsuario = String(req.authUser.cedula || '').trim();
+    if (!cedulaUsuario || cedulaSolicitante !== cedulaUsuario) {
+      return res.status(403).json({
+        statusCode: 403,
+        statusText: 'Solo puede evaluar solicitudes de Transporte de Personal que haya creado',
+      });
+    }
+
+    const evaluadorNombre = `${req.authUser.nombres || ''} ${req.authUser.apellidos || ''}`.trim()
+      || req.authUser.username;
+
     const nuevaEvaluacion = await conn.transaction(async (transaction) => {
       // Serializa los generadores EV entre solicitudes simultáneas en PostgreSQL.
       await conn.query(
@@ -67,11 +90,11 @@ exports.postEvaluacion = async (req, res) => {
       return EvaluacionTransporte.create({
         id,
         codigoSolicitud,
-        tipoSolicitud,
-        subtipo,
+        tipoSolicitud: solicitud.tipoSolicitud,
+        subtipo: solicitud.subtipo,
         evaluadorNombre,
-        evaluadorCedula,
-        evaluadorCorreo,
+        evaluadorCedula: cedulaUsuario,
+        evaluadorCorreo: completarCorreo(req.authUser.correo || req.authUser.username),
         fecha: new Date(),
         puntualidad,
         calidad,

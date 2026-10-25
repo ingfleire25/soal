@@ -1,4 +1,5 @@
 const { Usuario } = require('../db');
+const { completarCorreo } = require('../utils/correo');
 
 exports.search = async (req, res) => {
   try {
@@ -62,7 +63,7 @@ exports.create = async (req, res) => {
       apellidos,
       cedula,
       telefono,
-      correo,
+      correo: completarCorreo(correo || username),
       gerencia,
       departamento,
       rol,
@@ -99,7 +100,7 @@ exports.update = async (req, res) => {
       apellidos,
       cedula,
       telefono,
-      correo,
+      correo: correo ? completarCorreo(correo) : undefined,
       gerencia,
       departamento,
       rol,

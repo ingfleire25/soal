@@ -10,9 +10,29 @@
     </div>
 
     <hr />
-    <div class="px-3 py-2 user-info">
+    <div v-if="isExpanded" class="px-3 py-2 user-info">
       <small>Usuario: <strong>{{ username }}</strong></small><br>
-      <small>Rol: <strong>{{ (auth.user?.value?.roles || []).join(', ') || 'N/A' }}</strong></small>
+      <small>Rol: <strong>{{ userRole }}</strong></small>
+    </div>
+    <div v-else class="user-info-collapsed">
+      <span
+        class="identity-icon"
+        role="img"
+        tabindex="0"
+        :title="`Usuario: ${username}`"
+        :aria-label="`Usuario: ${username}`"
+      >
+        <i class="material-icons">person</i>
+      </span>
+      <span
+        class="identity-icon"
+        role="img"
+        tabindex="0"
+        :title="`Rol: ${userRole}`"
+        :aria-label="`Rol: ${userRole}`"
+      >
+        <i class="material-icons">badge</i>
+      </span>
     </div>
     <hr />
 
@@ -216,13 +236,14 @@ const isExpanded = ref(true)
 const isSolicitante = computed(() => auth.tieneRol('Solicitante'))
 const isAprobador = computed(() => auth.tieneRol('Aprobador'))
 const isAdministrador = computed(() => auth.tieneRol('Administrador'))
-const canCreate = computed(() => isSolicitante.value || isAdministrador.value)
+const canCreate = computed(() => isSolicitante.value)
 const canManageAdmin = computed(() => isAdministrador.value)
 const canUsePlan = computed(() => auth.tieneAlgunoDeLosRoles(['Solicitante', 'Aprobador', 'Administrador']))
-const canUseEvaluacion = computed(() => auth.tieneAlgunoDeLosRoles(['Solicitante', 'Aprobador', 'Administrador']))
+const canUseEvaluacion = computed(() => isSolicitante.value)
 const canUseEstadisticas = computed(() => auth.tieneAlgunoDeLosRoles(['Aprobador', 'Administrador']))
 
 const username = computed(() => (auth.user?.value?.username) || 'Invitado')
+const userRole = computed(() => (auth.user?.value?.roles || []).join(', ') || 'N/A')
 
 // Estado para controlar qué menús están abiertos
 const submenus = reactive({
@@ -336,6 +357,33 @@ onBeforeUnmount(() => {
 
 .sidebar-nav {
   list-style: none;
+}
+
+.user-info-collapsed {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 10px 0;
+}
+
+.identity-icon {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 6px;
+  color: #333;
+  background: rgba(255, 255, 255, 0.7);
+  cursor: help;
+}
+
+.identity-icon .material-icons {
+  font-size: 20px;
+}
+
+.identity-icon:focus-visible {
+  outline: 2px solid #333;
+  outline-offset: 2px;
 }
 
 #sidebar .sidebar-link {

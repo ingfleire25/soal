@@ -1,4 +1,5 @@
 const { Sequelize } = require("sequelize");
+const { obtenerIndicadorCorreo } = require("../../../utils/correo");
 
 // Utilidades compartidas para normalizar los datos de solicitud antes de construir los payloads de Oracle.
 // Esto evita errores por nombres de campos distintos o valores faltantes en el formulario.
@@ -437,9 +438,8 @@ const buildBaseContext = (solicitud = {}) => {
         ]),
         18,
       ) || "SISTEMA",
-    correo: normalizeText(
+    correo: obtenerIndicadorCorreo(
       getFirstValue(solicitud, ["correo", "email", "correoSolicitante"]),
-      50,
     ),
     telefono: normalizeText(
       getFirstValue(solicitud, ["telefono", "phone", "extension"]),

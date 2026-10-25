@@ -72,7 +72,8 @@
         <label class="form-label">Correo evaluador</label>
         <input
           v-model="form.evaluadorCorreo"
-          type="email"
+          type="text"
+          maxlength="50"
           class="form-control bg-light"
           readonly
         />
@@ -123,6 +124,7 @@
 import { usarEstadoAutenticacion } from "@/stores/auth";
 import { postEvaluacion } from "@/services/postEvaluacion";
 import { getSolicitudes } from "@/services/getSolicitudes";
+import { obtenerIndicadorCorreo } from "@/utils/correo";
 import {
   confirmAction,
   notifyError,
@@ -166,8 +168,9 @@ export default {
       this.form.evaluadorNombre =
         `${user.nombres || user.username || ""} ${user.apellidos || ""}`.trim();
       this.form.evaluadorCedula = user.cedula || "";
-      this.form.evaluadorCorreo =
-        user.email || user.correo || user.username || "";
+      this.form.evaluadorCorreo = obtenerIndicadorCorreo(
+        user.email || user.correo || user.username,
+      );
       this.cargarSolicitudes(user);
     }
   },
@@ -183,6 +186,9 @@ export default {
             .toLowerCase();
 
         this.solicitudesUsuario = solicitudes.filter((solicitud) => {
+          if (solicitud.tipoSolicitud !== "Transporte de Personal") {
+            return false;
+          }
           const cedulaMatch =
             userCedula &&
             solicitud.cedulaSolicitante?.toString() === userCedula.toString();

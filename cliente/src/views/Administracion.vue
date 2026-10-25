@@ -75,7 +75,7 @@
       </div>
 
       <div class="row mt-2">
-        <div class="col-md-4"><label>Correo</label><input class="form-control" v-model="editing.correo" type="email" /></div>
+        <div class="col-md-4"><label>Correo</label><input class="form-control" v-model="editing.correo" type="email" :readonly="!editing.id" /></div>
         <div class="col-md-4"><label>Nombres</label><input class="form-control" v-model="editing.nombres" required /></div>
         <div class="col-md-4"><label>Apellidos</label><input class="form-control" v-model="editing.apellidos" required /></div>
       </div>
@@ -130,6 +130,7 @@
 <script setup>
 import { ref, watch } from 'vue'
 import { searchUsuarios, createUsuario, updateUsuario } from '@/services/usuarios'
+import { completarCorreo } from '@/utils/correo'
 
 const search = ref('')
 const usuarios = ref([])
@@ -143,6 +144,12 @@ watch(editing, (newValue) => {
     editing.value.nivelAprobacion = null
   }
 }, { deep: true })
+
+watch(() => editing.value.username, (username) => {
+  if (!editing.value.id) {
+    editing.value.correo = completarCorreo(username)
+  }
+})
 
 async function doSearch() {
   try {
@@ -228,6 +235,7 @@ async function saveUser() {
         error.value = 'La contraseña es obligatoria para nuevo usuario'
         return
       }
+      payload.correo = completarCorreo(payload.correo || payload.username)
       const resp = await createUsuario(payload)
       if (resp.statusCode !== 201) throw new Error(resp.statusText)
       await doSearch()

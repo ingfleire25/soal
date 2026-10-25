@@ -147,6 +147,7 @@ const userRole = computed(() => auth.user?.value?.rol || "");
 const esAprobador = computed(() =>
   ["Aprobador", "Administrador"].includes(userRole.value),
 );
+const esAdministrador = computed(() => userRole.value === "Administrador");
 
 const usuarioGerencia = computed(() => auth.user?.value?.gerencia || "");
 const tieneGerencia = computed(() => lista.value.some((s) => s.gerencia));
@@ -168,7 +169,7 @@ const esVigenteODST = (s) => !esHistoricoSolicitud(s);
 
 const listaFiltrada = computed(() => {
   return lista.value.filter((s) => {
-    if (!esVigenteODST(s)) return false;
+    if (!esAdministrador.value && !esVigenteODST(s)) return false;
 
     const texto = [
       s.id,
@@ -197,6 +198,7 @@ const listaFiltrada = computed(() => {
       return false;
     if (selectedEstado.value && s.estado !== selectedEstado.value) return false;
     if (
+      !esAdministrador.value &&
       usuarioGerencia.value &&
       tieneGerencia.value &&
       s.gerencia !== usuarioGerencia.value
@@ -407,7 +409,11 @@ const modalRef = ref(null);
 const modalInstance = ref(null);
 
 const puedeEditar = (s) => {
-  return s.solicitante === userFullName.value && s.estado === "pendiente";
+  return (
+    !esAdministrador.value &&
+    s.solicitante === userFullName.value &&
+    s.estado === "pendiente"
+  );
 };
 
 const puedeAprobar = (s) => {

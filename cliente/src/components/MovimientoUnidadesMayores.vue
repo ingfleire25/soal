@@ -278,7 +278,8 @@
             <label class="form-label">Correo</label>
             <input
               v-model="form.correo"
-              type="email"
+              type="text"
+              maxlength="50"
               class="form-control form-control-sm bg-light"
               readonly
               required
@@ -371,6 +372,7 @@ import { getAprobadoresLabor } from "@/services/getAprobadoresLabor";
 import { getEquipment } from "@/services/getEquipment";
 import CentroCostoAutocomplete from "@/components/CentroCostoAutocomplete.vue";
 import { toDatetimeLocal, getNivelAprobacion } from "@/utils/dateTime";
+import { obtenerIndicadorCorreo } from "@/utils/correo";
 import {
   notifyError,
   showSolicitudSummary,
@@ -434,7 +436,7 @@ export default {
     if (user) {
       this.form.solicitante = `${user.nombres} ${user.apellidos}`;
       this.form.cedulaSolicitante = user.cedula;
-      this.form.correo = user.correo || user.email || user.username || "";
+      this.form.correo = obtenerIndicadorCorreo(user.correo || user.email || user.username);
       this.form.telefono = user.telefono || user.extension || "";
       this.form.gerencia = user.gerencia || "";
     }

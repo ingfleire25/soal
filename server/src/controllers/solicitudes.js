@@ -2,6 +2,7 @@ const { Solicitud, SuministroLacustre, Materiales, conn } = require("../db");
 const { Op } = require("sequelize");
 const { sendSolicitudToOracle } = require("./oracle/solicitudOracle");
 const mailer = require("../../utils/mailer");
+const { completarCorreo } = require("../utils/correo");
 
 const getNextSequentialId = async (model, prefix) => {
   const solicitudes = await model.findAll({
@@ -82,6 +83,13 @@ exports.getAll = async (req, res) => {
 };
 
 exports.postSolicitud = async (req, res) => {
+  if (req.authUser?.rol === "Administrador") {
+    return res.status(403).json({
+      statusCode: 403,
+      statusText: "El rol Administrador no puede crear solicitudes",
+    });
+  }
+
   let {
     descripcion,
     origen,
@@ -205,7 +213,7 @@ exports.postSolicitud = async (req, res) => {
       tipoServicio,
       aprobador,
       cedulaAprobador,
-      correo,
+      correo: completarCorreo(correo),
       telefono,
       gerencia,
       solicitante,
@@ -247,6 +255,13 @@ exports.postSolicitud = async (req, res) => {
 };
 
 exports.updateSolicitud = async (req, res) => {
+  if (req.authUser?.rol === "Administrador") {
+    return res.status(403).json({
+      statusCode: 403,
+      statusText: "El rol Administrador no puede editar solicitudes",
+    });
+  }
+
   const { id } = req.params;
   let {
     descripcion,
@@ -323,7 +338,7 @@ exports.updateSolicitud = async (req, res) => {
       tipoServicio,
       aprobador,
       cedulaAprobador,
-      correo,
+      correo: correo ? completarCorreo(correo) : undefined,
       telefono,
       gerencia,
       tipoSolicitud,
@@ -481,6 +496,13 @@ exports.cambiarEstado = async (req, res) => {
 };
 
 exports.postSuministroLacustre = async (req, res) => {
+  if (req.authUser?.rol === "Administrador") {
+    return res.status(403).json({
+      statusCode: 403,
+      statusText: "El rol Administrador no puede crear solicitudes",
+    });
+  }
+
   let {
     descripcion,
     origen,
@@ -591,7 +613,7 @@ exports.postSuministroLacustre = async (req, res) => {
       descripcionPersonaRecibe,
       aprobador,
       cedulaAprobador,
-      correo,
+      correo: completarCorreo(correo),
       telefono,
       gerencia,
       solicitante,

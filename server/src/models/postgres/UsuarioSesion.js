@@ -1,7 +1,7 @@
 const { DataTypes } = require('sequelize');
 
 module.exports = (sequelize) => {
-  sequelize.define('usuarioSesion', {
+  sequelize.define('C005T_USUARIO_SESION', {
     id: { type: DataTypes.BIGINT, primaryKey: true, autoIncrement: true },
     usuarioId: { type: DataTypes.INTEGER, allowNull: false, field: 'usuario_id' },
     tokenHash: { type: DataTypes.STRING(64), allowNull: false, unique: true, field: 'token_hash' },
@@ -13,7 +13,7 @@ module.exports = (sequelize) => {
     endedAt: { type: DataTypes.DATE, allowNull: true, field: 'ended_at' },
     endReason: { type: DataTypes.STRING(40), allowNull: true, field: 'end_reason' }
   }, {
-    tableName: 'usuario_sesion',
+    tableName: 'C005T_USUARIO_SESION',
     timestamps: false,
     freezeTableName: true
   });

@@ -2,7 +2,7 @@ const { DataTypes } = require("sequelize");
 
 module.exports = (sequelize) => {
   sequelize.define(
-    "solicitud",
+    "C003T_SOLICITUD",
     {
       id: {
         type: DataTypes.STRING,
@@ -52,6 +52,6 @@ module.exports = (sequelize) => {
       fecha: { type: DataTypes.DATE, allowNull: true },
       modserv: { type: DataTypes.STRING, allowNull: true },
     },
-    { timestamps: true },
+    { tableName: "C003T_SOLICITUD", timestamps: true },
   );
 };

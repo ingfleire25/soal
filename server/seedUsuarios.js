@@ -1,5 +1,5 @@
 require('dotenv').config();
-const { conn, Usuario } = require('./src/db');
+const { conn, J001T_USUARIO } = require('./src/db');
 
 const seedData = [
   {
@@ -71,7 +71,7 @@ const seedData = [
     console.log('Conexión a Postgres OK y sincronización lista');
 
     for (const user of seedData) {
-      const [record, created] = await Usuario.findOrCreate({
+      const [record, created] = await J001T_USUARIO.findOrCreate({
         where: { username: user.username },
         defaults: user
       });

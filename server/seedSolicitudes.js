@@ -1,5 +1,5 @@
 require('dotenv').config();
-const { conn, Solicitud } = require('./src/db');
+const { conn, C003T_SOLICITUD } = require('./src/db');
 const { solicitudesSeed } = require('./seedSolicitudesData');
 
 (async function () {
@@ -8,7 +8,7 @@ const { solicitudesSeed } = require('./seedSolicitudesData');
     console.log('Conexión a Postgres OK y sincronización lista');
 
     for (const s of solicitudesSeed) {
-      const created = await Solicitud.create(s);
+      const created = await C003T_SOLICITUD.create(s);
       console.log('Solicitud creada:', created.id, created.tipoSolicitud, created.subtipo);
     }
 

@@ -1,7 +1,7 @@
 const { DataTypes } = require('sequelize');
 
 module.exports = (sequelize) => {
-  sequelize.define('evaluacionTransporte', {
+  sequelize.define('C001T_EVALUACION_TRANSP', {
     id: {
       type: DataTypes.STRING,
       primaryKey: true,
@@ -21,5 +21,5 @@ module.exports = (sequelize) => {
     satisfaccion: { type: DataTypes.INTEGER, allowNull: false },
     comentarios: { type: DataTypes.TEXT, allowNull: true },
     estado: { type: DataTypes.STRING, allowNull: false, defaultValue: 'registrada' }
-  }, { timestamps: true });
+  }, { tableName: 'C001T_EVALUACION_TRANSP', timestamps: true });
 };

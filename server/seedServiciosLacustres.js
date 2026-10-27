@@ -1,5 +1,5 @@
 require('dotenv').config();
-const { conn, SuministroLacustre, Materiales } = require('./src/db');
+const { conn, C004T_SUMINISTRO_LACUSTRE, C002T_MATERIAL } = require('./src/db');
 
 const serviciosLacustresSeed = [
   {
@@ -107,11 +107,11 @@ const serviciosLacustresSeed = [
 
     for (const servicio of serviciosLacustresSeed) {
       const { materiales, ...servicioData } = servicio;
-      const createdServicio = await SuministroLacustre.create(servicioData);
+      const createdServicio = await C004T_SUMINISTRO_LACUSTRE.create(servicioData);
       console.log('Servicio Lacustre creado:', createdServicio.id, createdServicio.descripcion);
 
       for (const mat of materiales) {
-        await Materiales.create({
+        await C002T_MATERIAL.create({
           ...mat,
           suministroLacustreId: createdServicio.id
         });

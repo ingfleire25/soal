@@ -88,10 +88,10 @@
 // // --- DEFINICIÓN DE ASOCIACIONES ---
 
 // // 1. Relaciones Postgres
-// const { SuministroLacustre, Materiales } = sequelize.models;
-// if (SuministroLacustre && Materiales) {
-//     SuministroLacustre.hasMany(Materiales, { foreignKey: 'suministroLacustreId', as: 'materiales' });
-//     Materiales.belongsTo(SuministroLacustre, { foreignKey: 'suministroLacustreId', as: 'suministroLacustre' });
+// const { C004T_SUMINISTRO_LACUSTRE, C002T_MATERIAL } = sequelize.models;
+// if (C004T_SUMINISTRO_LACUSTRE && C002T_MATERIAL) {
+//     C004T_SUMINISTRO_LACUSTRE.hasMany(C002T_MATERIAL, { foreignKey: 'suministroLacustreId', as: 'materiales' });
+//     C002T_MATERIAL.belongsTo(C004T_SUMINISTRO_LACUSTRE, { foreignKey: 'suministroLacustreId', as: 'suministroLacustre' });
 // }
 
 // // 2. Relaciones Oracle (Nueva relación solicitada)
@@ -230,10 +230,10 @@ sequelizeOracle.models = Object.fromEntries(oraCapsEntries);
 // --- DEFINICIÓN DE ASOCIACIONES ---
 
 // 1. Relaciones Postgres
-const { SuministroLacustre, Materiales } = sequelize.models;
-if (SuministroLacustre && Materiales) {
-    SuministroLacustre.hasMany(Materiales, { foreignKey: 'suministroLacustreId', as: 'materiales' });
-    Materiales.belongsTo(SuministroLacustre, { foreignKey: 'suministroLacustreId', as: 'suministroLacustre' });
+const { C004T_SUMINISTRO_LACUSTRE, C002T_MATERIAL } = sequelize.models;
+if (C004T_SUMINISTRO_LACUSTRE && C002T_MATERIAL) {
+    C004T_SUMINISTRO_LACUSTRE.hasMany(C002T_MATERIAL, { foreignKey: 'suministroLacustreId', as: 'materiales' });
+    C002T_MATERIAL.belongsTo(C004T_SUMINISTRO_LACUSTRE, { foreignKey: 'suministroLacustreId', as: 'suministroLacustre' });
 }
 
 // 2. Relaciones Oracle (Nueva relación solicitada)

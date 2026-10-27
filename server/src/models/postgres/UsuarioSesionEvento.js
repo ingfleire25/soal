@@ -1,7 +1,7 @@
 const { DataTypes } = require('sequelize');
 
 module.exports = (sequelize) => {
-  sequelize.define('usuarioSesionEvento', {
+  sequelize.define('C006T_USUARIO_SESION_EVENTO', {
     id: { type: DataTypes.BIGINT, primaryKey: true, autoIncrement: true },
     usuarioId: { type: DataTypes.INTEGER, allowNull: true, field: 'usuario_id' },
     sesionId: { type: DataTypes.BIGINT, allowNull: true, field: 'sesion_id' },
@@ -12,7 +12,7 @@ module.exports = (sequelize) => {
     userAgent: { type: DataTypes.TEXT, allowNull: true, field: 'user_agent' },
     ocurridoEn: { type: DataTypes.DATE, allowNull: false, field: 'ocurrido_en' }
   }, {
-    tableName: 'usuario_sesion_evento',
+    tableName: 'C006T_USUARIO_SESION_EVENTO',
     timestamps: false,
     freezeTableName: true
   });

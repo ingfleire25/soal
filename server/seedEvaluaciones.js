@@ -1,5 +1,5 @@
 require('dotenv').config();
-const { conn, EvaluacionTransporte } = require('./src/db');
+const { conn, C001T_EVALUACION_TRANSP } = require('./src/db');
 const { solicitudesSeed } = require('./seedSolicitudesData');
 
 const evaluadores = [
@@ -54,7 +54,7 @@ const evaluacionesData = solicitudesSeed.map((solicitud, index) => {
 (async function () {
   try {
     await conn.sync({ alter: true });
-    await EvaluacionTransporte.bulkCreate(evaluacionesData);
+    await C001T_EVALUACION_TRANSP.bulkCreate(evaluacionesData);
     console.log('Evaluaciones seeded successfully');
   } catch (error) {
     console.error('Error seeding evaluaciones:', error);

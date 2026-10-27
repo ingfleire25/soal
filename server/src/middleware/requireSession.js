@@ -1,5 +1,9 @@
 const crypto = require("crypto");
-const { Usuario, UsuarioSesion, UsuarioSesionEvento, conn } = require("../db");
+const {
+  J001T_USUARIO,
+  C005T_USUARIO_SESION,
+  C006T_USUARIO_SESION_EVENTO,
+} = require("../db");
 
 const TIEMPO_INACTIVIDAD_MAXIMO_MS = 20 * 60 * 1000;
 
@@ -9,7 +13,7 @@ function generarHuellaToken(token) {
 
 // Solo se auditan método y ruta; nunca se guardan contraseñas ni cuerpos de petición.
 async function registrarEvento({ userId, sessionId, type, req, transaction }) {
-  await UsuarioSesionEvento.create(
+  await C006T_USUARIO_SESION_EVENTO.create(
     {
       usuarioId: userId,
       sesionId: sessionId,
@@ -58,7 +62,7 @@ async function exigirSesion(req, res, next) {
 
   try {
     // Se compara la huella del Bearer con Postgres; el token original nunca se persiste.
-    const session = await UsuarioSesion.findOne({
+    const session = await C005T_USUARIO_SESION.findOne({
       where: { tokenHash: generarHuellaToken(token), endedAt: null },
     });
     if (!session) {
@@ -83,7 +87,7 @@ async function exigirSesion(req, res, next) {
         });
     }
 
-    const user = await Usuario.findByPk(session.usuarioId);
+    const user = await J001T_USUARIO.findByPk(session.usuarioId);
     if (!user || !user.activo) {
       await finalizarSesion(session, req, "account_locked");
       return res

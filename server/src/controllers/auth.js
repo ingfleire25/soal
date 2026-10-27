@@ -2,7 +2,7 @@ const crypto = require("crypto");
 // Validación LDAP temporalmente desactivada: conservar para reactivarla cuando vuelva el túnel.
 // const { InvalidCredentialsError } = require('ldapts');
 const { Op, QueryTypes } = require("sequelize");
-const { Usuario, UsuarioSesion, conn } = require("../db");
+const { J001T_USUARIO, C005T_USUARIO_SESION, conn } = require("../db");
 // const { validarCredencialesLdap } = require('./ldapPrueba');
 const exigirSesion = require("../middleware/requireSession");
 const MAX_INTENTOS_FALLIDOS = 3;
@@ -10,7 +10,7 @@ const MAX_INTENTOS_FALLIDOS = 3;
 // En el tercer fallo se bloquean nuevos inicios; una sesión ya autenticada conserva su vigencia.
 async function registrarIntentoFallido(userId, req) {
   return conn.transaction(async (transaction) => {
-    const user = await Usuario.findByPk(userId, {
+    const user = await J001T_USUARIO.findByPk(userId, {
       transaction,
       lock: transaction.LOCK.UPDATE,
     });
@@ -31,7 +31,7 @@ async function registrarIntentoFallido(userId, req) {
       };
     }
 
-    const activeSession = await UsuarioSesion.findOne({
+    const activeSession = await C005T_USUARIO_SESION.findOne({
       where: { usuarioId: userId, endedAt: null },
       transaction,
       lock: transaction.LOCK.UPDATE,
@@ -61,13 +61,13 @@ async function crearSesion(userId, req) {
   const now = new Date();
 
   const result = await conn.transaction(async (transaction) => {
-    const user = await Usuario.findByPk(userId, {
+    const user = await J001T_USUARIO.findByPk(userId, {
       transaction,
       lock: transaction.LOCK.UPDATE,
     });
     if (!user || !user.activo) return { locked: true };
 
-    const expiredSessions = await UsuarioSesion.findAll({
+    const expiredSessions = await C005T_USUARIO_SESION.findAll({
       where: { usuarioId: userId, endedAt: null, expiresAt: { [Op.lte]: now } },
       transaction,
       lock: transaction.LOCK.UPDATE,
@@ -87,7 +87,7 @@ async function crearSesion(userId, req) {
       });
     }
 
-    const activeSession = await UsuarioSesion.findOne({
+    const activeSession = await C005T_USUARIO_SESION.findOne({
       where: { usuarioId: userId, endedAt: null },
       transaction,
       lock: transaction.LOCK.UPDATE,
@@ -114,7 +114,7 @@ async function crearSesion(userId, req) {
     }
 
     // Se guarda el hash del token, no el token utilizable; IP y navegador identifican el origen de la sesión.
-    const session = await UsuarioSesion.create(
+    const session = await C005T_USUARIO_SESION.create(
       {
         usuarioId: userId,
         tokenHash: exigirSesion.generarHuellaToken(token),
@@ -154,7 +154,7 @@ exports.iniciarSesion = async (req, res) => {
 
   try {
     // Postgres determina si el usuario existe, está habilitado y valida la contraseña local.
-    const user = await Usuario.findOne({ where: { username } });
+    const user = await J001T_USUARIO.findOne({ where: { username } });
     if (!user) {
       return res.status(403).json({
         statusCode: 403,

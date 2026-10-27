@@ -1,0 +1,240 @@
+NOMENCLATURA Y ESTANDARES PARA LAS ESTRUCTURAS DE DATOS RELACIONALES
+
+OBJETIVO
+Establecer normas para la estandarización de nomenclatura de los objetos de los manejadores de base de datos, el cual forma parte de la plataforma de desarrollo de sistemas, con la finalidad de permitir efectividad en el uso de la nomenclatura de datos, para disminuir la redundancia, utilizar palabras, abreviaturas y acrónimos oficiales, utilizar nombres nemónicos en lo posible. Se consideran todos los objetos de la base de datos, tanto lógicos como físicos; estos son: Archivos, Tablespace, Segmentos (Rollback, Temporary), Clusters, Tablas, Vistas, Constraints, Índices, Columnas, Secuencias, Database Links (Base de Datos Distribuida), etc.
+
+BENEFICIOS DE LOS ESTANDARES
+
+* AIT: Minimización de errores.
+
+
+* AIT: Simplificación de pruebas (Instalación, actualización, etc.).
+
+
+* AIT: Ahorro de costos: Instalaciones, configuraciones, soporte y F/H.
+
+
+* AIT: Minimización de curva de aprendizaje.
+
+
+* AIT: Minimizar tiempo de solución de fallas.
+
+
+* AIT: Mayor efectividad de distribución masiva (instalación, actualizaciones, etc.).
+
+
+* Usuario: Movilidad.
+
+
+* Usuario: Minimización de curva de aprendizaje.
+
+
+* Usuario: Unificación (Configuraciones).
+
+
+* Usuario: Disponibilidad de servicio.
+
+
+
+NOMENCLATURA DE BASE DE DATOS
+Antes de comenzar a definir la nomenclatura de base de datos, es importante señalar que la estructura de archivos de la base de datos se basará en la estructura flexible, partiendo de los puntos de montura disponible para la instalación del manejador de base de datos y la creación de la instancia. La longitud de la instancia o la base de datos será igual a la longitud del DB_Name, el cual tiene un máximo de nueve (9) caracteres alfanuméricos y estará compuesto por el siguiente formato: aaapnn. Se recomienda que el nombre de instancia y el DB_Name sea el mismo. Donde aaa es el Área geográfica (OCC, ORI, SUR, CEN, MET, Otros), p es la Inicial de la Plataforma de Trabajo D, T, A, P (desarrollo, test, adiestramiento, producción), nn es el Número consecutivo para identificar unívocamente las instancias bajo el mismo ambiente de trabajo. Ejemplo: orip01, occp04, occd01.
+
+NOMENCLATURA DE ARCHIVOS
+Los archivos que constituyen la base de datos contienen data del usuario e información adicional necesaria para garantizar la continuidad operativa de la base de datos. Estos son: Data files, Redo log files, Control files, Parameter file, Password file, Archived redo log files.
+
+Data File: Un datafile es una estructura física y solo pueden pertenecer a un tablespace. Los datafiles se crean para un tablespace con el fin de alocar una cantidad de espacio de disco. El datafile almacena la data del diccionario, de los objetos de usuarios y before-images de data (segmentos de rollbacks). Debe existir al menos un data file. La longitud del nombre de los Data files es de 513 caracteres, la cual contempla la ruta donde residirá el data files y su nombre. Para efectos de nomenclatura solo nos basaremos en la definición del nombre del data file, el cual deberá ser en minúscula y estará regido por el siguiente formato: o_txxyy.dbf. Donde o es la inicial de los objetos, en su mayoría corresponde al nemotécnico del proyecto o aplicación (POZO, SPP, GAS), t es la inicial del Tipo de tablespace D, I (datos, índice), xx es el número consecutivo equivalente al número del tablespace (SPP_D01) al que pertenecerá el data files, yy es el número consecutivo para identificar la cantidad de data files dispersos para cada tipo de tablespace, dbf es la extensión de los data files. Ejemplos: /usr1/oradata/occd0001/spp_d011.dbf, /usr2/oradata/occd0001/spp_d012.dbf. Para los tablespace temporales, usuario, rollback se empleará lo siguiente: TEMPn, USERSn, RBSn. En caso de que exista más de un tablespace Temporal, de usuario o Rollback llevará un consecutivo.
+
+Control File: Estos archivos contienen la información necesaria para mantener y verificar la integridad de la data. Debe existir al menos un control file, sin embargo es recomendable que estén multiplexados. Adicionalmente se debe considerar en la política de respaldo generar el scripts del control file para recrearlo de ser necesario. La longitud del nombre del control file es de 513 caracteres, que incluye la ruta donde será almacenado. El formato para la creación de los control file deberá regirse de la siguiente manera: controlnn.ctl. Donde Control es el prefijo para identificar que el archivo pertenece a un control file, nn es el número consecutivo asociado a la cantidad de copias multiplexadas de los control file, las cuales deben existir en discos diferentes, ctl es la extensión del control file, aunque se recomienda .con, consideramos que .ctl es más representativo. Ejemplo: /usr1/oradata/occp01/control01.ctl.
+
+Redo Log File: Estos archivos contienen un registro de los cambios hechos a la base de datos para asegurar la reconstrucción de la data en caso de falla. Es necesario al menos dos (2) redo log files. La longitud máxima para definir el nombre de estos archivos es de 513, que contiene la ubicación física. El formato de los redo log es: redoxxyy.rdo. Donde redo es el prefijo para identificar que el archivo corresponde a un Redo Log, xx es el número consecutivo que indica la cantidad de grupos de Redo log, yy es el número consecutivo que indica el # de miembros multiplexados en cada grupo, rdo es la extensión que indica que corresponde a un archivo de Redo. Ejemplos: /usr1/oradata/occd01/redo0101.rdo, /usr2/oradata/occd01/redo0201.rdo, /usr1/oradata/occd01/redo0102.rdo, /usr2/oradata/occd01/redo0202.rdo.
+
+Archive Log File: Son copias archivadas de los Redo Log File en línea, que se generan en forma manual o automática cuando la base de datos opera en un modo ARCHIVELOG. Son manejados por RDBMS y su nombre es una combinación del destino del archivo y el número de secuencia de log que heredó del redo log en línea que lo generó. Esta se puede expresar como: instancia_%s.arc. Donde Instancia es el nombre de la instancia e incluye el # de secuencia del log como parte del archivo. No sugerimos utilizar %S para formatear a 10 decimales el # de secuencia. Es importante colocar en el parámetro LOG_ARCHIVE_FORMAT de forma explícita, ya que de lo contrario colocará el default según el sistema operativo. arc indica la extensión del tipo de archivo. Ejemplo: /usr4/archives/occd01/occd01_011200.arc. La definición del formato de los Archive log file se realiza en el parámetro LOG_ARCHIVE_FORMAT. Por ejemplo: LOG_ARCHIVE_FORMAT =occd01_%s.arc. La ruta donde residirán estos archivos se debe contener un directorio llamado /archives dentro de la estructura OFA. Esto será definido en el parámetro de base de datos LOG_ARCHIVE_DEST. Por ejemplo: LOG_ARCHIVE_DEST= /usr4/archives/occd01/. El parámetro LOG_ARCHIVE_DUPLEX_DEST tiene como finalidad multiplexar las copias de los Archive logs, el cual se rige por las mismas condiciones antes expuestas.
+
+NOMENCLATURA DE TABLESPACES
+Un tablespace es una estructura lógica que agrupa objetos almacenados en una base de datos. Una base de datos contiene al menos un tablespace creado para definir la base de datos (system) y el diccionario de datos con el nombre y la localización de todos los objetos almacenados (tablas, indices, vistas y otros tablespaces). Un tablespace corresponde a uno o más archivos físicos. Los tablespaces distribuyen el almacenamiento de la data a través de los dispositivos para mejorar el rendimiento y reduce la contención del I/O. El nombre de un Tablespace tiene un máximo de (30) caracteres alfanuméricos cuyo significado se describe a continuación: A...A_Tnn. Donde A...A es el sinónimo o sigla del proyecto y puede contener el mismo nombre que el dueño del esquema, T indica el tipo de tablespace, si es de datos (D), índices (I), temporal (T), nn es el número consecutivo de los tipos de tablespaces. Ejemplo: SPP_D01, SPP_I01. El DBA tiene la opción de crear tablespace temporales los cuales son usados por los segmentos de sort y no pueden contener data permanente. Se creará un tablespace temporal llamado TEMP (su datafile es llamado temp01.dbf), para seguir este criterio utilizaremos la palabra TEMP para indicar que es un tablespace temporal y un consecutivo. Por ejemplo: TEMP02 (su datafile corresponderá a: temp0201.dbf). El tablespace asociados a los segmentos de Rollback Segments consideraremos el default RBS y su datafile corresponde a rbs01.dbf. En caso de crear adicionales tablespaces para segmentos de rollback, se colocará un consecutivo similar a los segmentos de temporales (Por ejemplo RBS02 (rbs0201.dbf)) y en caso que sea por requerimiento de alguna actividad eventual en la base de datos se deberá crear el tablespace con el prefijo RBS, seguido de un nombre significativo, por ejemplo, RBS_DESIGNER (rbs_designer.dbf).
+
+NOMENCLATURA DE SEGMENTOS
+Un segmento representa el siguiente nivel lógico de almacenamiento después del tablespace. Se almacena lógicamente la información de los tablespace en estructuras llamadas segmentos. Estos se clasifican de acuerdo a la información que manejan: Segmentos de Datos (contienen todos los datos de una tabla o cluster), Segmentos de Índices (contienen los datos de los índices de tablas o clusters), Segmentos Temporales (áreas de trabajo temporal que se requieren para estados intermedios en el procesamiento de una instrucción), Segmentos Rollback (contienen la información necesaria para reconstruir una imagen original de una fila). Los dos primeros se manejan internamente mediante los objetos Tablas, Clusters e Índices. Los Segmentos temporales también son manejados internamente por RDBMS, y los segmentos rollback deben ser definidos por el diseñador de base de datos.
+
+Segmento de Rollback: El nombre de un segmento de rollback tiene un máximo de ochenta y un (81) caracteres alfanuméricos cuyo significado se describe a continuación: RBSnn. Donde RBS es el indicador de segmento de rollback y nn es el número consecutivo. Ejemplos: RBS01, RBS02, RBS03. Debido a que la asignación de segmento rollback la maneja internamente RDBMS, no es correcto que el nombre de los mismos lleve la aplicación o el área relacional. Debe ser genérico ya que pueden ser utilizados por cualquier aplicación de la instancia en cuestión. A menos que sea una actividad eventual que amerite la utilización de grandes áreas de segmentos de rollback, donde se sugiere que el nombre sea representativo al proceso, por ejemplo CIERRE_01.
+
+NOMENCLATURA DE CLUSTERS
+Un cluster es un grupo de tablas que son almacenadas en el mismo espacio físico debido a que comparten columnas comunes (Cluster Key) y son frecuentemente accesadas de manera conjunta. La longitud máxima del cluster es de treinta (30) caracteres alfanuméricos, representado a través del formato: CLnnn_Nombre-cluster. Donde CL es el prefijo que indica que el objeto es de tipo cluster, nnn es el número consecutivo, Nombre-cluster es la descripción del cluster. Ejemplo: CL001_Departamento.
+
+NOMENCLATURA DE TABLAS
+Existen varios métodos de almacenar data en una base de datos, entre ellos se encuentra las tablas, las cuales puede ser tablas regulares, particionadas o nested. El Arquitecto conjuntamente con el analista funcional es el responsable de definir el nombre de las tablas durante la fase de modelamiento. El nombre de una tabla, independiente del tipo tiene un máximo de Treinta (30) caracteres alfanuméricos.
+
+Tablas Regulares: El formato corresponde a AnnnT_Nombre_Tabla. Donde A es el prefijo (Letra) que indica el tipo de tabla (C, D, E para transaccionales; I, J, K para base, tipo o madre; X, Y, Z para históricas), nnn es el número consecutivo o con orden especial, T indica que es una tabla, Nombre_Tabla es la descripción de la tabla. Ejemplos: C233T_MVTO_TANQUE, J100T_TIP_LN_IN_EQ, X001T_HISTMESX.
+
+Definición de las Particionadas y Subparticiones: El formato corresponde a AnnnTPnnSnn_Nombre_Columna. Donde AnnnT indica la tabla base, P indica particionamiento o subparticionamiento, nn es el número consecutivo de particiones, Snn es la subpartición si aplica, Nombre_Columna es el nombre de la columna a particionar. Ejemplos: C001TP1_Id_Producto, X002TP1S1_Ventas.
+
+Definición de los Tipo VARRAY: Un arreglo puede contener cero o mas elementos del mismo tipo, cada elemento tiene un número que indica la posición en el arreglo, es unidimensional, indexado a través de un entero y finito. Para crear una tabla usando arreglo se crea un objeto como TYPE y luego un objeto como TYPE de tipo ARRAY (array_type_Producto).
+
+Definición de los Segmentos de las Tablas Nested: Una tabla tipo Nested es una tabla contenida dentro de otra tabla. La nomenclatura del segmento se define como TNnnn_Nombre_Columna. Donde TN indica segmento de tabla nested, nnn es el consecutivo de la tabla, Nombre_Columna es el nombre de la columna tipo ARRAY/TYPE. Ejemplo: TN002_Linea_producto.
+
+NOMENCLATURA DE VISTAS
+Se estudian vistas lógicas y materializadas. El formato para vistas lógicas corresponde a AnnnVi_Nombre_Tabla. Donde Annn es el prefijo y número de la tabla principal, V indica que es una vista, i identifica el tipo de vista (L para lógica, M para materializada), Nombre_Tabla es la descripción de la vista. Ejemplos: C169V_PUNTO_LINEA, C031V_PRES_FONDO.
+
+NOMENCLATURA DE CONSTRAINTS
+Un Constraint es una restricción sobre una o varias columnas de una tabla.
+
+* Constraint Primario: AnnnPK_Nombre_tabla. Ejemplo: J100PK_TIP_LN_IN_EQ.
+
+
+* Constraint Foráneo: AnnnFK_Descripcion. Ejemplo: J120FK_I063T_UNIDAD_MEDD.
+
+
+* Constraint Único: AnnnUK_Descripcion. Ejemplo: J120UK_PARAMETRO.
+
+
+* Constraint de Chequeo: AnnnCK_Descripcion. Ejemplo: C233CK_CO_ESTATUS_MOVIMIENTO.
+
+
+
+NOMENCLATURA DE INDICE
+Son estructuras opcionales asociadas a Tablas y Cluster.
+
+* Índice Primario: Sigue la nomenclatura de los constraint primarios.
+
+
+* Índice Foráneo: AnnnF_Descripcion. Ejemplo: C233F_J327T_COD_MVTO_TNQ.
+
+
+* Índice Alterno: AnnnA_Descripcion. Ejemplo: C233A_PRODUCCION_ACUMULADA.
+
+
+* Índice Cluster: CLnnn_Nombre-cluster. Ejemplo: CL001Ic_Departamento.
+
+
+
+NOMENCLATURA DE SUCESION(ES) SECUENCIAS
+Las secuencias generan números ordenados y diferentes para una columna clave. El nombre de una secuencia tiene un máximo de treinta caracteres y se rige por el formato AnnnS_Descripcion. Ejemplo: C233S_BOLETA_G35.
+
+NOMENCLATURA DE DATABASE LINK
+Un Database Link es un enlace que le permite a una base de datos conectarse con una base de datos remota. El nombre de un database link debe estar definido como DBName_Owner. Ejemplo: ORIP01_POZO.
+
+NOMENCLATURA DE TRIGGERS DE BASE DE DATOS
+Los database triggers son procedimientos definidos en la Base de Datos asociados a una tabla específica. Estructura: OwnerDT_Prefijo_Tabla_Accion_DML. Ejemplos: LAIDT_X016T_BEFORE_IUD, POZODT_X105T_INSTEAD_I.
+
+NOMENCLATURA DE PAQUETES
+Los Paquetes son un conjunto de procedimientos, funciones y otros objetos de programa almacenados juntos. Estructura: PK_Owner_Nombre. Ejemplo: PK_GAS_CIERRE.
+
+NOMENCLATURA DE PROCEDIMIENTOS
+Los Procedimientos son un conjunto de instrucciones PL/SQL agrupadas en programa. Estructura: P_Owner_Nombre. Ejemplo: P_GAS_MERMAS_OPER_INST.
+
+NOMENCLATURA DE FUNCIONES
+Las funciones devuelven un valor. Estructura: F_Owner_Nombre. Ejemplo: F_OLEO_EXP.
+
+NOMENCLATURA SINONIMOS
+La finalidad de un sinónimo es proveer trasparencia de ubicación o pertenencia de una tabla. Se rigen por las mismas reglas de nomenclatura del objeto original. Ejemplo: CREATE PUBLIC SYNONYM C233T_MVTO_TANQUE for POZO.C233T_MVTO_TANQUE;.
+
+NOMENCLATURA DEL CODIGO DEL USUARIO
+La creación de una cuenta puede estar orientada a un usuario o al dueño de esquema de una aplicación. Las cuentas para dueños de esquemas deben corresponder al acrónimo de la aplicación, con quota unlimited sobre tablespaces de datos e índices, permisos y profile PROFILE_DUENO_ESQUEMA. Las cuentas de los usuarios deben crearse de acuerdo a su identificador único con default tablespace USERS y temporary tablespace TEMP. Cuentas para Database Links corresponden a DueñoLNK con profile PROFILE_DBLINK. Procesos en batch o interfaces usan el formato UPAA_LetraDueño_Region (ejemplo UPAACOC).
+
+NOMENCLATURA DE ROLES
+El administrador de Base de Datos es el responsable de crear los roles y asignarlos a usuarios. Existen roles de base de datos y roles de aplicación. Estructura: o_Funcio. Ejemplo: SPP_CONSULTA.
+
+NOMENCLATURA DE PROFILES
+Los profiles son objetos que permiten asignar o limitar recursos y configurar políticas de seguridad de contraseñas. Nomenclatura: PROFILE_Definicion. Ejemplos: PROFILE_DBLINK, PROFILE_ANALISTA, PROFILE_DBA, PROFILE_BATCH, PROFILE_DUENO_ESQUEMA, PROFILE_USER_IT30, PROFILE_USER_SE5.
+
+NOMENCLATURA DE COLUMNAS
+El nombre de una columna tiene un máximo de treinta (30) caracteres alfanuméricos. Las columnas de las tablas físicas deben heredar el mismo nombre que se les definió como elementos de datos a nivel lógico. En caso de que el proyecto no maneje nomenclatura para las columnas, se pueden apoyar en la tabla de abreviaturas:
+
+* Tipo: Código | Símbolo: CO | Tipo de dato: Varchar / Number | Descripción: Serie de caracteres que permiten identificar una ocurrencia de una Entidad y cuyo significado se obtiene a través de un proceso de decodificación o traducción. Debe ser de al menos 2 columnas. Ejemplo: CO_INSTIT_EDUCAC.
+
+
+* Tipo: Número | Símbolo: NU | Tipo de dato: Number | Descripción: Serie de caracteres que permiten identificar una ocurrencia de una Entidad y no necesita ser decodificado o traducido. Ejemplo: NU_PUESTO.
+
+
+* Tipo: Nombre | Símbolo: NB | Tipo de dato: Varchar2(n) | Descripción: Serie de caracteres alfabéticos que permiten identificar una ocurrencia de una Entidad. Sirve para designar a una persona o cosa. Depende del dominio: Nombre de Persona (VARCHAR2(60)), Nombre de Filial/Compañía (VARCHAR2(40)), Nombre de País/Ciudad/Área Geográfica (VARCHAR2(15)), Nombre de Institutos de Educación (VARCHAR2(60)), Nombre de Departamento/Gerencia (VARCHAR2(60)). Ejemplo: NB_EMPLEADO.
+
+
+* Tipo: Fecha | Símbolo: FE | Tipo de dato: Date | Descripción: Combinación de Año, Mes, Día, Hora, Minutos, Segundos. Ejemplo: FE_EGRESO_EMP.
+
+
+* Tipo: Año | Símbolo: AA | Tipo de dato: Number(4) / Varchar2(4) | Descripción: Representa un año en particular, expresado con cuatro dígitos. Ejemplo: AA_PERIOD_VACAC.
+
+
+* Tipo: Mes | Símbolo: MM | Tipo de dato: Number(2) / Varchar2(2) | Descripción: Representa un mes en particular, expresado con dos dígitos. Sus posibles valores van del 1 al 12. Ejemplo: MM_PRUEBA_HPP.
+
+
+* Tipo: Día | Símbolo: DD | Tipo de dato: Number(2) / Varchar2(2) | Descripción: Representa un día en particular, expresado con dos dígitos. Sus posibles valores van del 1 al 31. Ejemplo: DD_PRUEBA_HPP.
+
+
+* Tipo: Tiempo | Símbolo: TI | Tipo de dato: Date | Descripción: Representa un momento del tiempo en el día, y estará compuesto de tres partes: horas, minutos y segundos. Ejemplo: TI_PRUEBA_HPP.
+
+
+* Tipo: Hora | Símbolo: HH | Tipo de dato: Number(2) / Varchar2(2) | Descripción: Expresa una hora en particular, sus posibles valores oscilan entre 0 y 24. Ejemplo: HH_PRUEBA_HPP.
+
+
+* Tipo: Segundo | Símbolo: SS | Tipo de dato: Number(2) / Varchar2(2) | Descripción: Expresa los segundos de una determinada hora, sirve para indicar un momento del tiempo, sus posibles valores oscilan entre 0 y 59. Ejemplo: SS_PRUEBA_HPP.
+
+
+* Tipo: Indicador | Símbolo: IN | Tipo de dato: Varchar2(2) | Descripción: Serie de caracteres alfanuméricos que describen o narran algo acerca de una persona, cosa o acontecimiento. No identifica. Debe ser de 1 sola columna, sino es un codigo. Ejemplo: IN_EDO_EMPL_PUES.
+
+
+* Tipo: Dirección | Símbolo: DI | Tipo de dato: Varchar2(50) | Descripción: Lugar de ubicación de una persona o cosa. Ejemplo: DI_HABITACIO_EMPL.
+
+
+* Tipo: Texto | Símbolo: TX | Tipo de dato: Varchar2 | Descripción: Lugar de ubicación de una persona o cosa. Ejemplo: TX_OBSER_EVAL_PUES.
+
+
+* Tipo: Monto | Símbolo: MO | Tipo de dato: Number | Descripción: Representa una cantidad monetaria que no es expresada ni en Bolivares ni en Dolares. Dominios: Monto por Delegación Financiera (NUMBER), Monto por Honorarios Profesionales (NUMBER(11,2)), Monto de Pasajes y Viáticos (NUMBER(11,2)). Ejemplo: MO_HON_DIA_HONPROF.
+
+
+* Tipo: Monto(BS) | Símbolo: BS | Tipo de dato: Number | Descripción: Representa una cantidad monetaria en Bolívares. Ejemplo: BS_MAX_NIV_SALAR.
+
+
+* Tipo: Monto($) | Símbolo: DS | Tipo de dato: Number | Descripción: Representa una cantidad monetaria en dólares. Ejemplo: DS_FACTURA_PROYINV.
+
+
+* Tipo: Cantidad | Símbolo: CA | Tipo de dato: Number | Descripción: Valor numérico que representa un número de cosas o personas. Ejemplo: CA_DIAS_AUSENCIA.
+
+
+* Tipo: Medida | Símbolo: MD | Tipo de dato: Number | Descripción: Representa el resultado de una medición. Ejemplo: MD_TOPE_YACIM_DBY.
+
+
+* Tipo: Valor | Símbolo: VA | Tipo de dato: Number | Descripción: Dato numérico que representa lo que vale una persona o cosa. Este valor es determinado por una evaluación. Ejemplo: VA_EVAL_EST_EMPL.
+
+
+* Tipo: Frecuencia | Símbolo: FR | Tipo de dato: Number | Descripción: Repetición frecuente de un hecho. Cada cuanto un fenómeno ocurre. Ejemplo: FR_EVAL_EST_EMPL.
+
+
+* Tipo: Porcentaje | Símbolo: PC | Tipo de dato: Number | Descripción: Valor de una proporción calculada en tanto por ciento, sin llevarlo a lo que corresponde en base a 100, por ejemplo 12% se colocaría 12 y no 0.12. Ejemplo: PC_AGUA_SED_HRE.
+
+
+* Tipo: Presión | Símbolo: PR | Tipo de dato: Number | Descripción: Relación entre la fuerza ejercida por un fluído sobre una superficie y esta superficie. Ejemplo: PR_LINEA_FLUJO_HPP.
+
+
+* Tipo: Tasa | Símbolo: TS | Tipo de dato: Number | Descripción: Regulación, medición o estimación de una cosa. Para Tasa Monetaria el formato a utilizar es NUMBER(11,2). Ejemplo: TS_ACTUAL_TMONEDA.
+
+
+* Tipo: Temperatura | Símbolo: TM | Tipo de dato: Number | Descripción: Grado de calor en los cuerpos. Ejemplo: TM_FILTRAD_LOD_PCO.
+
+
+* Tipo: Volumen | Símbolo: VO | Tipo de dato: Number | Descripción: Porción de espacio ocupada por un cuerpo. Ejemplo: VO_AGUA_ACUM_HPI.
+
+
+* Tipo: Gráfico | Símbolo: GR | Tipo de dato: Raw / Long Raw | Descripción: Cuando los caracteres almacenados son de un gráfico. Ejemplo: GR_AGUA_ACUM_HPI.
+
+Hecho. Renombré solo los modelos PostgreSQL y actualicé sus referencias en la 
+API y los scripts seed. Los nuevos nombres son:
+
+Modelo/tabla	Nombre normalizado
+Evaluación de transporte	C001T_EVALUACION_TRANSP
+Materiales	C002T_MATERIAL
+Solicitud	C003T_SOLICITUD
+Suministro lacustre	C004T_SUMINISTRO_LACUSTRE
+Usuario	J001T_USUARIO
+Sesión de usuario	C005T_USUARIO_SESION
+Evento de sesión	C006T_USUARIO_SESION_EVENTO
+La migración 20261026_postgres_nombres_normalizados.sql renombra las tablas 
+existentes dentro de una transacción, conservando sus datos y relaciones. Dejé
+ el paso a paso para respaldar, ejecutar y verificar el cambio en 
+ MIGRACION_NOMBRES_POSTGRES.md.
+
+Validación: pasó la revisión de sintaxis de JavaScript y comprobé que Sequelize
+ registra los siete modelos con los nuevos nombres de tabla y conserva la 
+ asociación entre suministro y materiales. No ejecuté la migración contra una 
+ base local: no están disponibles psql ni pg_dump en este entorno. Ejecuta el 
+ respaldo y la migración antes de iniciar la API actualizada, como indica la guía.

@@ -1,5 +1,5 @@
 require('dotenv').config();
-const { conn, Materiales } = require('./src/db');
+const { conn, C002T_MATERIAL } = require('./src/db');
 
 const materialesSeed = [
   { renglon: 'MAT001', descripcion: 'Cemento Portland 50kg', cantidad: 100, fechaEntregaMuelle: new Date().toISOString(), observacion: 'Material para construcción' },
@@ -59,7 +59,7 @@ const materialesSeed = [
     console.log('Conexión a Postgres OK y sincronización lista');
 
     for (const mat of materialesSeed) {
-      const created = await Materiales.create({ ...mat, suministroLacustreId: null });
+      const created = await C002T_MATERIAL.create({ ...mat, suministroLacustreId: null });
       console.log('Material creado:', created.renglon, created.descripcion);
     }
 

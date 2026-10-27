@@ -1,4 +1,4 @@
-const { Usuario } = require('../db');
+const { J001T_USUARIO } = require('../db');
 const { completarCorreo } = require('../utils/correo');
 
 exports.search = async (req, res) => {
@@ -18,7 +18,7 @@ exports.search = async (req, res) => {
         }
       : {};
 
-    const users = await Usuario.findAll({ where, order: [['createdAt', 'DESC']] });
+    const users = await J001T_USUARIO.findAll({ where, order: [['createdAt', 'DESC']] });
     res.status(200).json({ statusCode: 200, statusText: 'OK', result: users });
   } catch (error) {
     console.error('Error buscar usuarios', error);
@@ -29,7 +29,7 @@ exports.search = async (req, res) => {
 exports.getById = async (req, res) => {
   try {
     const { id } = req.params;
-    const user = await Usuario.findByPk(id);
+    const user = await J001T_USUARIO.findByPk(id);
     if (!user) return res.status(404).json({ statusCode: 404, statusText: 'Usuario no encontrado' });
 
     res.status(200).json({ statusCode: 200, statusText: 'OK', result: user });
@@ -51,12 +51,12 @@ exports.create = async (req, res) => {
       return res.status(400).json({ statusCode: 400, statusText: 'Los aprobadores deben tener un nivel de aprobación asignado' });
     }
 
-    const existing = await Usuario.findOne({ where: { username } });
+    const existing = await J001T_USUARIO.findOne({ where: { username } });
     if (existing) {
       return res.status(409).json({ statusCode: 409, statusText: 'Usuario ya existe' });
     }
 
-    const newUser = await Usuario.create({
+    const newUser = await J001T_USUARIO.create({
       username,
       password,
       nombres,
@@ -81,11 +81,11 @@ exports.update = async (req, res) => {
     const { id } = req.params;
     const { username, password, nombres, apellidos, cedula, telefono, correo, gerencia, departamento, rol, activo, nivelAprobacion } = req.body;
 
-    const user = await Usuario.findByPk(id);
+    const user = await J001T_USUARIO.findByPk(id);
     if (!user) return res.status(404).json({ statusCode: 404, statusText: 'Usuario no encontrado' });
 
     if (username && username !== user.username) {
-      const clash = await Usuario.findOne({ where: { username } });
+      const clash = await J001T_USUARIO.findOne({ where: { username } });
       if (clash) return res.status(409).json({ statusCode: 409, statusText: 'Username en uso' });
     }
 

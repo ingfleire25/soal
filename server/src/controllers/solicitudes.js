@@ -1,4 +1,9 @@
-const { Solicitud, SuministroLacustre, Materiales, conn } = require("../db");
+const {
+  C003T_SOLICITUD,
+  C004T_SUMINISTRO_LACUSTRE,
+  C002T_MATERIAL,
+  conn,
+} = require("../db");
 const { Op } = require("sequelize");
 const { sendSolicitudToOracle } = require("./oracle/solicitudOracle");
 const mailer = require("../../utils/mailer");
@@ -54,11 +59,11 @@ const getApprovalLevel = (fechaInicio, fechaSolicitud = null) => {
 
 exports.getAll = async (req, res) => {
   try {
-    const solicitudes = await Solicitud.findAll({
+    const solicitudes = await C003T_SOLICITUD.findAll({
       order: [["createdAt", "DESC"]],
     });
-    const suministro = await SuministroLacustre.findAll({
-      include: [{ model: Materiales, as: "materiales" }],
+    const suministro = await C004T_SUMINISTRO_LACUSTRE.findAll({
+      include: [{ model: C002T_MATERIAL, as: "materiales" }],
       order: [["createdAt", "DESC"]],
     });
     const all = [
@@ -186,8 +191,8 @@ exports.postSolicitud = async (req, res) => {
         : tipoSolicitud === "Movimiento Unidades Mayores"
           ? "OUM"
           : "TP";
-    const id = await getNextSequentialId(Solicitud, prefijoSolicitud);
-    const nueva = await Solicitud.create({
+    const id = await getNextSequentialId(C003T_SOLICITUD, prefijoSolicitud);
+    const nueva = await C003T_SOLICITUD.create({
       id,
       descripcion,
       origen,
@@ -297,11 +302,11 @@ exports.updateSolicitud = async (req, res) => {
   organizacionCcOi = normalizeOrganizacionCcOi(req.body);
 
   try {
-    let solicitud = await Solicitud.findByPk(id);
-    let modelo = "Solicitud";
+    let solicitud = await C003T_SOLICITUD.findByPk(id);
+    let modelo = "C003T_SOLICITUD";
     if (!solicitud) {
-      solicitud = await SuministroLacustre.findByPk(id);
-      modelo = "SuministroLacustre";
+      solicitud = await C004T_SUMINISTRO_LACUSTRE.findByPk(id);
+      modelo = "C004T_SUMINISTRO_LACUSTRE";
     }
 
     if (!solicitud) {
@@ -353,7 +358,7 @@ exports.updateSolicitud = async (req, res) => {
       result: {
         ...solicitud.dataValues,
         tipoTabla:
-          modelo === "Solicitud" ? "solicitudes" : "suministroLacustre",
+          modelo === "C003T_SOLICITUD" ? "solicitudes" : "suministroLacustre",
       },
     });
   } catch (err) {
@@ -377,11 +382,11 @@ exports.cambiarEstado = async (req, res) => {
   }
 
   try {
-    let solicitud = await Solicitud.findByPk(id);
-    let modelo = "Solicitud";
+    let solicitud = await C003T_SOLICITUD.findByPk(id);
+    let modelo = "C003T_SOLICITUD";
     if (!solicitud) {
-      solicitud = await SuministroLacustre.findByPk(id);
-      modelo = "SuministroLacustre";
+      solicitud = await C004T_SUMINISTRO_LACUSTRE.findByPk(id);
+      modelo = "C004T_SUMINISTRO_LACUSTRE";
     }
 
     if (!solicitud) {
@@ -401,8 +406,8 @@ exports.cambiarEstado = async (req, res) => {
     if (estado === "aprobada" && estadoAnterior !== "aprobada") {
       try {
         const oracleSolicitud = { ...solicitud.dataValues };
-        if (modelo === "SuministroLacustre") {
-          oracleSolicitud.materiales = await Materiales.findAll({
+        if (modelo === "C004T_SUMINISTRO_LACUSTRE") {
+          oracleSolicitud.materiales = await C002T_MATERIAL.findAll({
             where: { suministroLacustreId: solicitud.id },
             raw: true,
           });
@@ -482,7 +487,7 @@ exports.cambiarEstado = async (req, res) => {
         ...solicitud.dataValues,
         oracle: oracleIdentifiers,
         tipoTabla:
-          modelo === "Solicitud" ? "solicitudes" : "suministroLacustre",
+          modelo === "C003T_SOLICITUD" ? "solicitudes" : "suministroLacustre",
       },
     });
   } catch (err) {
@@ -591,8 +596,8 @@ exports.postSuministroLacustre = async (req, res) => {
 
     transaction = await conn.transaction();
     const nivelAprobacion = getApprovalLevel(fechaInicio, fecha);
-    const id = await getNextSequentialId(SuministroLacustre, "SL");
-    const nueva = await SuministroLacustre.create({
+    const id = await getNextSequentialId(C004T_SUMINISTRO_LACUSTRE, "SL");
+    const nueva = await C004T_SUMINISTRO_LACUSTRE.create({
       id,
       descripcion,
       origen,
@@ -628,7 +633,7 @@ exports.postSuministroLacustre = async (req, res) => {
 
     // Crear materiales asociados
     for (const mat of materiales) {
-      await Materiales.create({
+      await C002T_MATERIAL.create({
         renglon: mat.renglon,
         descripcion: mat.descripcion,
         unidadMedida: mat.unidadMedida || null,

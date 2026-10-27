@@ -1,7 +1,7 @@
 const { DataTypes } = require('sequelize');
 
 module.exports = (sequelize) => {
-  sequelize.define('usuario', {
+  sequelize.define('J001T_USUARIO', {
     username: { type: DataTypes.STRING, allowNull: false, unique: true },
     password: { type: DataTypes.STRING, allowNull: false },
     nombres: { type: DataTypes.STRING, allowNull: false },
@@ -17,6 +17,7 @@ module.exports = (sequelize) => {
     intentosFallidos: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 }
   }, {
     timestamps: true,
+    tableName: 'J001T_USUARIO',
     freezeTableName: true
   });
 }; 

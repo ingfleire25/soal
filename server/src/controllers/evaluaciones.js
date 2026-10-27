@@ -1,4 +1,4 @@
-const { EvaluacionTransporte, Solicitud, conn } = require('../db');
+const { C001T_EVALUACION_TRANSP, C003T_SOLICITUD, conn } = require('../db');
 const { Op } = require('sequelize');
 const { completarCorreo } = require('../utils/correo');
 
@@ -21,7 +21,7 @@ const getNextSequentialId = async (model, prefix, transaction) => {
 
 exports.getAll = async (req, res) => {
   try {
-    const evaluaciones = await EvaluacionTransporte.findAll({ order: [['createdAt', 'DESC']] });
+    const evaluaciones = await C001T_EVALUACION_TRANSP.findAll({ order: [['createdAt', 'DESC']] });
     res.status(200).json({ statusCode: 200, statusText: 'OK', result: evaluaciones });
   } catch (err) {
     console.error(err);
@@ -56,7 +56,7 @@ exports.postEvaluacion = async (req, res) => {
   }
 
   try {
-    const solicitud = await Solicitud.findByPk(codigoSolicitud);
+    const solicitud = await C003T_SOLICITUD.findByPk(codigoSolicitud);
     if (!solicitud || solicitud.tipoSolicitud !== 'Transporte de Personal') {
       return res.status(404).json({
         statusCode: 404,
@@ -86,8 +86,8 @@ exports.postEvaluacion = async (req, res) => {
         },
       );
 
-      const id = await getNextSequentialId(EvaluacionTransporte, 'EV', transaction);
-      return EvaluacionTransporte.create({
+      const id = await getNextSequentialId(C001T_EVALUACION_TRANSP, 'EV', transaction);
+      return C001T_EVALUACION_TRANSP.create({
         id,
         codigoSolicitud,
         tipoSolicitud: solicitud.tipoSolicitud,

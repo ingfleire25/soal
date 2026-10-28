@@ -18,5 +18,5 @@ module.exports = (sequelize) => {
       type: DataTypes.STRING,
       allowNull: true
     }
-  }, { tableName: 'C002T_MATERIAL', timestamps: true });
+  }, { tableName: 'C002T_MATERIAL',schema: 'soal', timestamps: true });
 };

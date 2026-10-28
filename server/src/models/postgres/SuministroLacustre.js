@@ -37,5 +37,5 @@ module.exports = (sequelize) => {
     nivelAprobacion: { type: DataTypes.ENUM('1', '2', '3'), allowNull: true },
     estado: { type: DataTypes.ENUM('pendiente', 'aprobada', 'rechazada'), defaultValue: 'pendiente', allowNull: false },
     motivoRechazo: { type: DataTypes.TEXT, allowNull: true }
-  }, { tableName: 'C004T_SUMINISTRO_LACUSTRE', timestamps: true });
+  }, { tableName: 'C004T_SUMINISTRO_LACUSTRE', schema: 'soal', timestamps: true });
 };

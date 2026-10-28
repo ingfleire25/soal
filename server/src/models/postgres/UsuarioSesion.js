@@ -15,6 +15,7 @@ module.exports = (sequelize) => {
   }, {
     tableName: 'C005T_USUARIO_SESION',
     timestamps: false,
+    schema: 'soal',
     freezeTableName: true
   });
 };

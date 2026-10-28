@@ -1,118 +1,3 @@
-
-// // ACTUALIZACION PARA MANEJAR DOS INSTANCIAS DE BASES DE DATOS POSTGRES Y ORACLE
-// // FECHA DE CAMBIO: 03/03/2026
-
-// require('dotenv').config();
-// const fs = require('fs');
-// const { Sequelize } = require('sequelize');
-// const path = require('path');
-// const oracledb = require('oracledb');
-
-// // --- CONFIGURACIÓN PARA MODO THICK (ORACLE) ---
-// try {
-//     oracledb.initOracleClient({ libDir: 'C:\\ORACLE\\instantclient_12_1' }); 
-//     console.log("✅ Oracle Client inicializado en modo Thick");
-// } catch (err) {
-//     console.error("❌ Error al inicializar Oracle Client:", err);
-// }
-
-// // Credenciales Postgres
-// const { DB_USER, DB_PASSWORD, DB_HOST, DB_NAME, DB_PORT } = process.env;
-
-// // Credenciales Oracle
-// const { ORA_USER, ORA_PASSWORD, ORA_HOST, ORA_SERVICE_NAME, ORA_PORT } = process.env;
-
-// /**
-//  * INSTANCIA POSTGRESQL C:\ORACLE\instantclient_10_2
-//  */
-// const sequelize = new Sequelize(`postgres://${DB_USER}:${DB_PASSWORD}@${DB_HOST}/${DB_NAME}`, {
-//     logging: false,      
-//     native: false,       
-//     port: DB_PORT,       
-//     define: { freezeTableName: true } 
-// });
-
-// /**
-//  * INSTANCIA ORACLE
-//  */
-// const sequelizeOracle = new Sequelize(ORA_SERVICE_NAME, ORA_USER, ORA_PASSWORD, {
-//     host: ORA_HOST,
-//     port: ORA_PORT, 
-//     dialect: 'oracle',
-//     /* MODIFICACIÓN: Se añade timezone '-04:00' para sincronizar la hora local de Venezuela 
-//        con Sequelize y evitar el desfase automático hacia el formato UTC estándar (Z).
-//     */
-//     timezone: '-04:00',
-//     logging: false,
-//     dialectOptions: {
-//         connectString: `(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=${ORA_HOST})(PORT=${ORA_PORT}))(CONNECT_DATA=(SERVICE_NAME=${ORA_SERVICE_NAME})))`
-//         // connectString: `${ORA_HOST}:${ORA_PORT}/${ORA_SERVICE_NAME}`
-//     },
-//     define: { freezeTableName: true }
-// });
-
-// // --- CARGA AUTOMÁTICA DE MODELOS ---
-
-// // 1. Cargar modelos de Postgres
-// const pgModelsPath = path.join(__dirname, '/models/postgres');
-// if (fs.existsSync(pgModelsPath)) {
-//     fs.readdirSync(pgModelsPath)
-//         .filter(file => file.endsWith('.js'))
-//         .forEach(file => {
-//             require(path.join(pgModelsPath, file))(sequelize);
-//         });
-// }
-
-// // 2. Cargar modelos de Oracle
-// const oraModelsPath = path.join(__dirname, '/models/oracle');
-// if (fs.existsSync(oraModelsPath)) {
-//     fs.readdirSync(oraModelsPath)
-//         .filter(file => file.endsWith('.js'))
-//         .forEach(file => {
-//             require(path.join(oraModelsPath, file))(sequelizeOracle);
-//         });
-// }
-
-// // --- ESTANDARIZACIÓN DE NOMBRES (CAPITALIZACIÓN) ---
-
-// // Estandarizar Postgres
-// let entries = Object.entries(sequelize.models);
-// let capsEntries = entries.map(([name, model]) => [name[0].toUpperCase() + name.slice(1), model]);
-// sequelize.models = Object.fromEntries(capsEntries);
-
-// // Estandarizar Oracle
-// let oraEntries = Object.entries(sequelizeOracle.models);
-// let oraCapsEntries = oraEntries.map(([name, model]) => [name[0].toUpperCase() + name.slice(1), model]);
-// sequelizeOracle.models = Object.fromEntries(oraCapsEntries);
-
-// // --- DEFINICIÓN DE ASOCIACIONES ---
-
-// // 1. Relaciones Postgres
-// const { C004T_SUMINISTRO_LACUSTRE, C002T_MATERIAL } = sequelize.models;
-// if (C004T_SUMINISTRO_LACUSTRE && C002T_MATERIAL) {
-//     C004T_SUMINISTRO_LACUSTRE.hasMany(C002T_MATERIAL, { foreignKey: 'suministroLacustreId', as: 'materiales' });
-//     C002T_MATERIAL.belongsTo(C004T_SUMINISTRO_LACUSTRE, { foreignKey: 'suministroLacustreId', as: 'suministroLacustre' });
-// }
-
-// // 2. Relaciones Oracle (Nueva relación solicitada)
-// const { Chartofaccounts, Companies } = sequelizeOracle.models;
-// if (Chartofaccounts && Companies) {
-//     // Definimos que Chartofaccounts se une a Companies mediante CH3 -> COMPANY
-//     Chartofaccounts.belongsTo(Companies, { 
-//         foreignKey: 'ch3',    // campo en Chartofaccounts
-//         targetKey: 'company',  // campo en Companies
-//         as: 'companyData'      // alias para el include
-//     });
-// }
-
-// // Exportación de modelos y conexiones
-// module.exports = {
-//     ...sequelize.models,       // Modelos de Postgres  
-//     ...sequelizeOracle.models, // Modelos de Oracle
-//     conn: sequelize,           // Conexión Postgres
-//     connOracle: sequelizeOracle // Conexión Oracle
-// };
-
 // ACTUALIZACION PARA MANEJAR DOS INSTANCIAS DE BASES DE DATOS POSTGRES Y ORACLE
 // FECHA DE CAMBIO: 03/03/2026
 
@@ -143,7 +28,9 @@ const sequelize = new Sequelize(`postgres://${DB_USER}:${DB_PASSWORD}@${DB_HOST}
     logging: false,      
     native: false,       
     port: DB_PORT,       
-    define: { freezeTableName: true } 
+    define: { 
+        schema: 'soal',
+        freezeTableName: true } 
 });
 
 /**

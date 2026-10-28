@@ -52,6 +52,6 @@ module.exports = (sequelize) => {
       fecha: { type: DataTypes.DATE, allowNull: true },
       modserv: { type: DataTypes.STRING, allowNull: true },
     },
-    { tableName: "C003T_SOLICITUD", timestamps: true },
+    { tableName: "C003T_SOLICITUD", schema: 'soal', timestamps: true },
   );
 };

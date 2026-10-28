@@ -363,8 +363,8 @@ exports.obtenerSesiones = async (req, res) => {
         s."expires_at" AS "expiresAt",
         s."ended_at" AS "endedAt",
         s."end_reason" AS "endReason"
-      FROM "usuario_sesion" s
-      INNER JOIN "usuario" u ON u."id" = s."usuario_id"
+      FROM "soal"."C005T_USUARIO_SESION" s
+      INNER JOIN "soal"."J001T_USUARIO" u ON u."id" = s."usuario_id"
       ${where}
       ORDER BY s."started_at" DESC, s."id" DESC
       LIMIT :limite OFFSET :desplazamiento
@@ -376,8 +376,8 @@ exports.obtenerSesiones = async (req, res) => {
     );
     const [conteo] = await conn.query(
       `SELECT COUNT(*)::INTEGER AS total
-       FROM "usuario_sesion" s
-       INNER JOIN "usuario" u ON u."id" = s."usuario_id"
+       FROM "soal"."C005T_USUARIO_SESION" s
+       INNER JOIN "soal"."J001T_USUARIO" u ON u."id" = s."usuario_id"
        ${where}`,
       { replacements, type: QueryTypes.SELECT },
     );

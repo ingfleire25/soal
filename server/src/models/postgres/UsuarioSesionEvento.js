@@ -13,6 +13,7 @@ module.exports = (sequelize) => {
     ocurridoEn: { type: DataTypes.DATE, allowNull: false, field: 'ocurrido_en' }
   }, {
     tableName: 'C006T_USUARIO_SESION_EVENTO',
+    schema: 'soal',
     timestamps: false,
     freezeTableName: true
   });
